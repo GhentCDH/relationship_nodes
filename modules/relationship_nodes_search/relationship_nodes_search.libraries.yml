@@ -1,0 +1,19 @@
+relationship_form:
+  js:
+    js/relationship_form.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
+vocab_confirm:
+  version: VERSION
+  js:
+    js/vocab_confirm.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
+    - core/jquery
+exposed_filters_style:
+  version: VERSION
+  css:
+    theme:
+      css/relationship_nodes_search.css: {}

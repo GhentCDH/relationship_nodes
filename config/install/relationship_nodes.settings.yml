@@ -1,0 +1,8 @@
+# Default field names for relationship nodes.
+related_entity_fields:
+  related_entity_1: 'rn_related_entity_1'
+  related_entity_2: 'rn_related_entity_2'
+relation_type: 'rn_relation_type'
+mirror_fields:
+  mirror_entity_reference: 'rn_mirror_reference'
+  mirror_string: 'rn_mirror_string'

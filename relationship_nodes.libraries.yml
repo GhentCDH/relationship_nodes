@@ -1,0 +1,8 @@
+mirror_change_confirm:
+  version: 1.x
+  js:
+    js/mirror_change_confirm.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupal.once

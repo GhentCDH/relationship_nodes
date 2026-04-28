@@ -1,0 +1,95 @@
+{#
+/**
+ * @file
+ * Template for the relationship view field.
+ *
+ * Available variables:
+ * - items: Array of relationship items, each containing:
+ *   - field_name: Array with 'field_value' and 'link_url' keys
+ * - groups: Array of relationships grouped by field value
+ * - summary: Array with 'total', 'fields', 'has_groups', 'group_count'
+ * - fields: Array of field metadata with 'name', 'label', 'weight', 'hide_label', 'is_link'
+ * - row: The full result row object
+ */
+#}
+
+<div class="relationship-field">
+  {% if items %}
+    {% if groups %}
+      <div class="grouped-relationships">
+        {% for group_name, items in groups %}
+          <div class="relationship-group">
+            <h4 class="group-title">{{ group_name|capitalize }}</h4>
+            <ul class="group-items">
+              {% for item in items %}
+                <li class="relationship-item">
+                  {% for field_name, field_config in fields %}
+                    {% if item[field_name] is defined %}
+                      <span class="field field--name-{{ field_name|clean_class }}">
+                      
+                        {% if not field_config.hide_label %}
+                          <span class="field-label">{{ field_config.label }}:</span>
+                        {% endif %}
+                        
+                        <span class="field-value">
+                          {% for field_value in item[field_name].field_values %}
+                            {% if field_value.link_url %}
+                              {{ link(field_value.value, field_value.link_url, {'class': ['relationship-link']}) }}
+                            {% else %}
+                              {{ field_value.value }}
+                            {% endif %}
+                            {% if not loop.last and item[field_name].separator is defined %}
+                              {{ item[field_name].separator }}
+                            {% endif %}
+                          {% endfor %}
+                        </span>
+                        
+                      </span>
+                    {% endif %}
+                  {% endfor %}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endfor %}
+      </div>
+    
+    {% else %}
+      <ul class="relationships-list">
+        {% for item in items %}
+          <li class="relationship-item">
+            {% for field_name, field_config in fields %}
+              {% if item[field_name] is defined %}
+                <span class="field field--name-{{ field_name|clean_class }}">
+                  
+                  {% if not field_config.hide_label %}
+                    <span class="field-label">{{ field_config.label }}:</span>
+                  {% endif %}
+                  
+                  <span class="field-value">
+                    {% for field_value in item[field_name].field_values %}
+                      {% if field_value.link_url %}
+                        {{ link(field_value.value, field_value.link_url, {'class': ['relationship-link']}) }}
+                      {% else %}
+                        {{ field_value.value }}
+                      {% endif %}
+                      {% if not loop.last and item[field_name].separator is defined %}
+                        {{ item[field_name].separator }}
+                      {% endif %}
+                    {% endfor %}
+                  </span>
+                  
+                </span>
+              {% endif %}
+            {% endfor %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    
+  {% else %}
+    <div class="no-relationships">
+      <p>{{ 'No relationships found'|t }}</p>
+    </div>
+  {% endif %}
+</div>

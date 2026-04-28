@@ -1,0 +1,38 @@
+relationship_nodes.relation_node_field_form:
+  path: '/admin/structure/types/manage/{node_type}/fields/relationship-nodes-edit/{field_config}'
+  defaults:
+    _form: '\Drupal\relationship_nodes\Form\Admin\FieldConfigForm'
+    _title: 'Edit Relation Field'
+  requirements:
+    _permission: 'administer content types'
+  options:
+    _admin_route: TRUE
+  parameters:
+    node_type:
+      type: entity:node_type
+    field_config:
+      type: entity:field_config
+relationship_nodes.relation_taxonomy_term_field_form:
+  path: '/admin/structure/taxonomy/manage/{taxonomy_vocabulary}/overview/fields/relationship-nodes-edit/{field_config}'
+  defaults:
+    _form: '\Drupal\relationship_nodes\Form\Admin\FieldConfigForm'
+    _title: 'Edit Relation Field'
+  requirements:
+    _permission: 'administer taxonomy'
+  options:
+    _admin_route: TRUE
+  parameters:
+    taxonomy_vocabulary:
+      type: entity:taxonomy_vocabulary
+    field_config:
+      type: entity:field_config
+relationship_nodes.rn_field_delete:
+  path: '/admin/structure/relationship-nodes/field-delete/{field_config}'
+  defaults:
+    _controller: '\Drupal\relationship_nodes\Controller\FieldDeleteController::delete'
+    _title: 'Delete RN Field'
+  requirements:
+    _permission: 'administer content types'
+  parameters:
+    field_config:
+      type: entity:field_config

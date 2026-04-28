@@ -1,0 +1,152 @@
+<?php
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\relationship_nodes_search\Form\ExtendedIndexAddFieldsForm;
+use Drupal\views\Plugin\views\filter\FilterPluginBase;
+use Drupal\relationship_nodes_search\Plugin\views\filter\RelationshipFilter;
+
+
+/**
+ * Implements hook_module_implements_alter().
+ *
+ * Ensures the search_api_query_alter runs last to properly handle nested queries.
+ */
+function relationship_nodes_search_module_implements_alter(&$implementations, $hook) {
+  if ($hook === 'search_api_query_alter') {
+    if (isset($implementations['relationship_nodes_search'])) {
+      $implementation = $implementations['relationship_nodes_search'];
+      unset($implementations['relationship_nodes_search']);
+      $implementations['relationship_nodes_search'] = $implementation;
+    }
+  }
+}
+
+
+/**
+ * Implements hook_entity_type_alter().
+ */
+function relationship_nodes_search_entity_type_alter(array &$entity_types) {
+  if (isset($entity_types['search_api_index'])) {
+    $entity_types['search_api_index']->setFormClass('add_fields', ExtendedIndexAddFieldsForm::class);
+  }
+}
+
+
+/**
+ * Implements hook_search_api_field_type_mapping_alter().
+ */
+function relationship_nodes_search_search_api_field_type_mapping_alter(array &$mapping) {
+  $mapping['relation_info'] = 'relationship_nodes_search_nested_relationship';
+}
+
+
+/**
+ * Implements hook_facets_search_api_query_type_mapping_alter().
+ */
+function relationship_nodes_search_facets_search_api_query_type_mapping_alter($backend_plugin_id, array &$query_types) {
+  $query_types['relationship_nodes_search_nested_relationship'] = 'search_api_nested';
+}
+
+
+/**
+ * Implements hook_form_views_exposed_form_alter().
+ */
+function relationship_nodes_search_form_views_exposed_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $view = $form_state->getStorage()['view'] ?? NULL;
+  if (!$view) {
+    return;
+  }
+
+  $filters = $view->display_handler->getHandlers('filter') ?? [];
+  foreach ($filters as $filter_id => $filter) {
+    if ($filter->getPluginId() === 'search_api_relationship_filter' && $filter->isExposed()) {
+      $form['#attached']['library'][] = 'relationship_nodes_search/exposed_filters_style';
+      $identifier = $filter->options['expose']['identifier'] ?? $filter_id;
+      $wrap_id = $identifier . '_wrapper';
+
+      if (!empty($form[$wrap_id]) &&
+          is_array($form[$wrap_id]) &&
+          isset($form[$wrap_id][$identifier]['#type']) &&
+          $form[$wrap_id][$identifier]['#type'] === 'details') {
+
+        if (!empty($form[$wrap_id]['#title'])) {
+          $form[$wrap_id][$identifier]['#title'] = $form[$wrap_id]['#title'];
+          unset($form[$wrap_id]['#title']);
+        }
+      }
+    }
+  }
+}
+
+
+/**
+ * Implements hook_views_filters_summary_info_alter().
+ */
+function relationship_nodes_search_views_filters_summary_info_alter(array &$info, FilterPluginBase $filter): void {
+  if (!$filter instanceof RelationshipFilter) {
+    return;
+  }
+
+  $identifier = $filter->options['expose']['identifier'] ?? NULL;
+  if (!$identifier) {
+    return;
+  }
+
+  $values = \Drupal::request()->query->all()[$identifier] ?? [];
+  $field_settings = $filter->options['field_settings'] ?? [];
+  unset($field_settings['range_pair']);
+
+  $entity_label = NULL;
+  $type_label   = NULL;
+
+  /** @var \Drupal\relationship_nodes_search\Views\Widget\NestedFilterDropdownOptionsProvider $provider */
+  $provider = \Drupal::service('relationship_nodes_search.nested_filter_dropdown_provider');
+
+  foreach ($field_settings as $field_name => $config) {
+    if (empty($config['enabled'])) {
+      continue;
+    }
+    if (($config['widget'] ?? '') === 'select_range') {
+      continue;
+    }
+
+    $child_filter_id = $config['child_filter_id'] ?? $field_name;
+    $raw = $values[$child_filter_id]['value'] ?? $values[$child_filter_id] ?? '';
+    if ($raw === '' || $raw === NULL) {
+      continue;
+    }
+
+    if ($child_filter_id === 'type') {
+      $type_label = (string) $raw;
+      continue;
+    }
+
+    if ($entity_label === NULL) {
+      $entity_label = $provider->resolveEntityLabel((string) $raw);
+    }
+  }
+
+  // Nothing active at all.
+  if ($entity_label === NULL && $type_label === NULL) {
+    $info['value'] = NULL;
+    return;
+  }
+
+  // Build display label from whatever is present.
+  if ($entity_label !== NULL && $type_label !== NULL) {
+    $display = "\u{1F517} " . $entity_label . ' (' . $type_label . ')';
+  }
+  elseif ($entity_label !== NULL) {
+    $display = "\u{1F517} " . $entity_label;
+  }
+  else {
+    // Type-only: "co-worker of anybody"
+    $display = "\u{1F517} " . $type_label;
+  }
+
+  $info['value'] = [[
+    'id'    => $identifier,
+    'raw'   => $identifier,
+    'value' => $display,
+  ]];
+}

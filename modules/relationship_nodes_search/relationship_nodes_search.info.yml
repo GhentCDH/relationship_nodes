@@ -1,0 +1,11 @@
+name: 'Relationship Nodes Search'
+type: module
+description: 'ElasticSearch integration for relationship_nodes.'
+package: 'Relationship Nodes'
+core_version_requirement: ^10
+dependencies:
+  - search_api:search_api
+  - elasticsearch_connector:elasticsearch_connector
+  - facets:facets_exposed_filters
+  - better_exposed_filters:better_exposed_filters
+  - relationship_nodes:relationship_nodes
