@@ -55,6 +55,34 @@ views.filter.search_api_relationship_filter:
           child_filter_id:
             type: string
             label: 'Exposed filter identifier for this child field'
+          start_field:
+            type: string
+            label: 'Start field machine name'
+          from_label:
+            type: label
+            label: 'From label'
+          end_field:
+            type: string
+            label: 'End field machine name'
+          to_label:
+            type: label
+            label: 'To label'
+          int_range:
+            type: mapping
+            label: 'Integer range settings'
+            mapping:
+              min:
+                type: string
+                label: 'Minimum value'
+              max:
+                type: string
+                label: 'Maximum value'
+              use_current_year_min:
+                type: boolean
+                label: 'Use current year as minimum'
+              use_current_year_max:
+                type: boolean
+                label: 'Use current year as maximum'
     operator:
       type: string
       label: 'Group operator (and or or)'
