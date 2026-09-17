@@ -9,6 +9,7 @@ use Drupal\Core\Entity\EntityFormInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\node\Entity\NodeType;
 use Drupal\relationship_nodes\Form\Entity\RelationInlineEntityForm;
 use Drupal\relationship_nodes\Form\Admin\LockedFieldListBuilder;
 
@@ -49,6 +50,20 @@ function relationship_nodes_theme() {
       'template' => 'relationship-field',
     ],
   ];
+}
+
+
+/**
+ * Implements hook_node_type_insert().
+ */
+function relationship_nodes_node_type_insert(NodeType $node_type) {
+  $settingsManager = \Drupal::service('relationship_nodes.bundle_settings_manager');
+  $bundle_info = $settingsManager->getBundleInfo($node_type);
+  if (!$bundle_info || !$bundle_info->isRelation()) {
+    return;
+  }
+  $fieldManager = \Drupal::service('relationship_nodes.relationship_field_manager');
+  $fieldManager->implementFieldUpdates($node_type);
 }
 
 
@@ -161,7 +176,7 @@ function relationship_nodes_entity_type_build(array &$entity_types) {
 function relationship_nodes_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
   $alter_form_service = NULL;
   switch ($form_id) {
-    //case 'node_type_add_form': // not yet operational
+    case 'node_type_add_form':
     case 'node_type_edit_form':
       $alter_form_service = \Drupal::service('relationship_nodes.node_type_form_alter');
       break;

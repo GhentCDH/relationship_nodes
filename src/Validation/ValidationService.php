@@ -34,10 +34,10 @@ final class ValidationService {
    */
   public function displayFormStateValidationErrors(array &$form, FormStateInterface $formState): void {
     $result = $this->validateFormStateBundle($formState);
-    
+
     if (!$result->isValid()) {
       $entity = $formState->getFormObject()->getEntity();
-      $message = $result->getFormattedErrors($this->formatter, $entity->id());
+      $message = $result->getFormattedErrors($this->formatter, $entity->id() ?? '');
       $formState->setErrorByName('relationship_nodes', $message);
     }
   }
@@ -63,8 +63,14 @@ final class ValidationService {
    */
   private function validateFormStateFields(FormStateInterface $formState): ValidationResult {
     $entity = $formState->getFormObject()->getEntity();
-    
+
     if (!$entity instanceof ConfigEntityBundleBase) {
+      return ValidationResult::valid();
+    }
+
+    // Validation runs before EntityForm::submitForm() calls buildEntity(), so
+    // a new entity has no ID yet — no fields exist to validate.
+    if ($entity->id() === NULL) {
       return ValidationResult::valid();
     }
 

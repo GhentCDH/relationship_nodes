@@ -3,61 +3,62 @@ views.filter.search_api_relationship_filter:
   label: 'Search API Nested Relationship Filter'
   mapping:
     value:
-      type: mapping
+      type: sequence
       label: 'Filter values (runtime)'
-      mapping:
-        '*':
-          type: mapping
-          label: 'Field filter value'
-          mapping:
-            value:
-              type: string
-              label: 'Filter value'
-            operator:
-              type: string
-              label: 'Comparison operator'
+      sequence:
+        type: mapping
+        label: 'Field filter value'
+        mapping:
+          value:
+            type: string
+            label: 'Filter value'
+          operator:
+            type: string
+            label: 'Comparison operator'
     field_settings:
-      type: mapping
+      type: sequence
       label: 'Field settings (per child field)'
-      mapping:
-        '*':
-          type: mapping
-          label: 'Child field configuration'
-          mapping:
-            enabled:
-              type: boolean
-              label: 'Enable this field in filter'
-            widget:
-              type: string
-              label: 'Widget type (textfield or select)'
-            label:
-              type: string
-              label: 'Custom label for exposed form'
-            placeholder:
-              type: string
-              label: 'Placeholder text for textfield widget'
-            field_operator:
-              type: string
-              label: 'Default comparison operator'
-            select_display_mode:
-              type: string
-              label: 'Display mode for select widget (raw or label)'
-            required:
-              type: boolean
-              label: 'Make this field required'
-            expose_field_operator:
-              type: boolean
-              label: 'Allow users to select operator'
-            weight:
-              type: integer
-              label: 'Display order weight (lower values first)'
-            value:
-              type: string
-              label: 'Default value when filter is not exposed'
+      sequence:
+        type: mapping
+        label: 'Child field configuration'
+        mapping:
+          enabled:
+            type: boolean
+            label: 'Enable this field in filter'
+          widget:
+            type: string
+            label: 'Widget type (textfield or select)'
+          label:
+            type: label
+            label: 'Custom label for exposed form'
+          placeholder:
+            type: label
+            label: 'Placeholder text for textfield widget'
+          field_operator:
+            type: string
+            label: 'Default comparison operator'
+          select_display_mode:
+            type: string
+            label: 'Display mode for select widget (raw or label)'
+          required:
+            type: boolean
+            label: 'Make this field required'
+          expose_field_operator:
+            type: boolean
+            label: 'Allow users to select operator'
+          weight:
+            type: integer
+            label: 'Display order weight (lower values first)'
+          value:
+            type: string
+            label: 'Default value when filter is not exposed'
+          child_filter_id:
+            type: string
+            label: 'Exposed filter identifier for this child field'
     operator:
       type: string
       label: 'Group operator (and or or)'
-    
+
     expose_operators:
       type: boolean
       label: 'Expose operator selectors to users'
@@ -66,31 +67,30 @@ views.field.search_api_relationship_field:
   label: 'Search API Nested Relationship Field'
   mapping:
     field_settings:
-      type: mapping
+      type: sequence
       label: 'Field display settings'
-      mapping:
-        '*':
-          type: mapping
-          label: 'Child field display configuration'
-          mapping:
-            enabled:
-              type: boolean
-              label: 'Display this field'
-            label:
-              type: string
-              label: 'Custom label'
-            display_mode:
-              type: string
-              label: 'Display mode (raw, label, or link)'
-            weight:
-              type: integer
-              label: 'Display weight'
-            hide_label:
-              type: boolean
-              label: 'Hide field label'
-            multiple_separator:
-              type: string
-              label: 'Separator for multiple values'
+      sequence:
+        type: mapping
+        label: 'Child field display configuration'
+        mapping:
+          enabled:
+            type: boolean
+            label: 'Display this field'
+          label:
+            type: label
+            label: 'Custom label'
+          display_mode:
+            type: string
+            label: 'Display mode (raw, label, or link)'
+          weight:
+            type: integer
+            label: 'Display weight'
+          hide_label:
+            type: boolean
+            label: 'Hide field label'
+          multiple_separator:
+            type: string
+            label: 'Separator for multiple values'
     sort_by_field:
       type: string
       label: 'Field to sort relationships by'

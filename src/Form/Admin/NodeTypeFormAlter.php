@@ -102,7 +102,38 @@ class NodeTypeFormAlter {
         ],
       ],
     ];
+    // Copy our form values onto the entity inside buildEntity() so they are
+    // present on the entity when NodeTypeForm::save() writes it to config.
+    // Without this, third-party settings are absent on the add form because
+    // buildEntity() clones the entity but does not map non-property values.
+    $form['#entity_builders'][] = [$this, 'copySettingsToEntity'];
+
     $form['#validate'][] = [$this->validationService, 'displayFormStateValidationErrors'];
-    $form['actions']['submit']['#submit'][] = [$this->formHandler,  'handleSubmission'];
+    $form['actions']['submit']['#submit'][] = [$this->formHandler, 'handleSubmission'];
+  }
+
+
+  /**
+   * Entity builder: copies relationship_nodes form values onto the entity.
+   *
+   * Called by EntityForm::buildEntity() before the entity is saved, ensuring
+   * the third-party settings survive the first (and only) config save.
+   *
+   * @param string $entity_type
+   *   The entity type ID.
+   * @param \Drupal\node\Entity\NodeType $entity
+   *   The node type entity being built.
+   * @param array $form
+   *   The form array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   */
+  public function copySettingsToEntity(string $entity_type, NodeType $entity, array &$form, FormStateInterface $form_state): void {
+    $values = $form_state->getValue('relationship_nodes') ?? [];
+    foreach ($values as $property => $value) {
+      if ($this->settingsManager->isRelationProperty($property)) {
+        $entity->setThirdPartySetting('relationship_nodes', $property, $value);
+      }
+    }
   }
 }
