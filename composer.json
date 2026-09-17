@@ -3,7 +3,7 @@
   "description": "Bidirectional node relationships via dedicated relation nodes, with typed relation labels and mirror taxonomy support.",
   "type": "drupal-module",
   "license": "GPL-2.0-or-later",
-  "version": "1.0.0-beta1",
+  "version": "1.0.0-beta3",
   "keywords": ["drupal", "relationships", "nodes", "inline-entity-form", "taxonomy"],
   "require": {
     "drupal/core": "^10 || ^11",
