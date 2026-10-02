@@ -104,28 +104,59 @@ class MirrorSync {
       return;
     }   
 
-    $changes = $this->getMirrorTermChanges($term, $ref_field);
+    $term_id = (int) $term->id();
 
+    // A deleted term's mirror must no longer point to it.
+    if ($hook === 'delete') {
+      $mirror_id = $this->getMirrorTermId($term, $ref_field);
+      $this->updateLink($mirror_id, $ref_field, $term_id, NULL);
+      return;
+    }
+
+    $changes = $this->getMirrorTermChanges($term, $ref_field);
     if (!$changes) {
       return;
     }
 
-    $term_id = $term->id();
-    foreach ($changes as $key => $id) {
-      if(!$id){
-        continue;
-      }
-      $linked_term = $this->loadTerm($id);
-      if (!$linked_term) {
-        continue;
-      }
-      if ($key === 'original') {
-        $linked_term->$ref_field->target_id = null;
-          
-      } elseif ($hook !== 'delete') {
-        $linked_term->$ref_field->target_id = $term_id;
-      }
-      $linked_term->save();        
+    // The previous mirror no longer points back, the new one does.
+    $this->updateLink($changes['original'], $ref_field, $term_id, NULL);
+    $this->updateLink($changes['current'], $ref_field, NULL, $term_id);
+  }
+
+
+  /**
+   * Updates the mirror reference of a linked term when needed.
+   *
+   * Only saves the linked term when its reference changes, so linked terms
+   * are not saved again (and re-trigger this sync) when already correct.
+   *
+   * @param int|null $linked_id
+   *   The ID of the linked term, or NULL to do nothing.
+   * @param string $ref_field
+   *   The mirror reference field name.
+   * @param int|null $only_if
+   *   Only update when the linked term currently points to this term ID;
+   *   NULL to update regardless.
+   * @param int|null $new_target
+   *   The new mirror term ID, or NULL to clear the reference.
+   */
+  protected function updateLink(?int $linked_id, string $ref_field, ?int $only_if, ?int $new_target): void {
+    if (!$linked_id) {
+      return;
     }
+    $linked_term = $this->loadTerm($linked_id);
+    if (!$linked_term || !$linked_term->hasField($ref_field)) {
+      return;
+    }
+    $current = $linked_term->$ref_field->target_id;
+    $current = $current === NULL ? NULL : (int) $current;
+    if ($only_if !== NULL && $current !== $only_if) {
+      return;
+    }
+    if ($current === $new_target) {
+      return;
+    }
+    $linked_term->$ref_field->target_id = $new_target;
+    $linked_term->save();
   }
 }
