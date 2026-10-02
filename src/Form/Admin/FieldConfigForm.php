@@ -171,10 +171,32 @@ class FieldConfigForm extends FormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
     parent::validateForm($form, $form_state);
-    if ($this->entityType !== 'node' || !in_array($this->fieldName, $this->fieldResolver->getRelatedEntityFields(), TRUE)) {
+    if ($this->entityType !== 'node') {
       return;
     }
     $target = $form_state->getValue('target_bundle');
+    $current = $this->getCurrentTargetBundle($this->bundle, $this->fieldName);
+
+    // Existing relations would point to content of the old target, and drop
+    // out of the computed relationship fields of both content types.
+    if ($target && $current && $target !== $current) {
+      $in_use = $this->entityTypeManager->getStorage('node')->getQuery()
+        ->accessCheck(FALSE)
+        ->condition('type', $this->bundle)
+        ->exists($this->fieldName)
+        ->count()
+        ->execute();
+      if ($in_use) {
+        $form_state->setErrorByName('target_bundle', $this->formatPlural($in_use,
+          'The target cannot be changed: 1 relation uses this field. Delete or change it first.',
+          'The target cannot be changed: @count relations use this field. Delete or change them first.'));
+        return;
+      }
+    }
+
+    if (!in_array($this->fieldName, $this->fieldResolver->getRelatedEntityFields(), TRUE)) {
+      return;
+    }
     $other_field = $this->fieldResolver->getOppositeRelatedEntityField($this->fieldName);
     $other_target = $other_field ? $this->getCurrentTargetBundle($this->bundle, $other_field) : NULL;
     if (!$target || !$other_target) {

@@ -4,10 +4,12 @@ namespace Drupal\Tests\relationship_nodes\Kernel;
 
 use Drupal\Core\Config\MemoryStorage;
 use Drupal\Core\Config\StorageComparer;
+use Drupal\Core\Form\FormState;
 use Drupal\Core\Routing\RouteMatch;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\NodeType;
+use Drupal\relationship_nodes\Form\Admin\FieldConfigForm;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
@@ -93,6 +95,26 @@ class ConfigAndRoutesTest extends RelationshipNodesKernelTestBase {
     }
     // The computed field's item list class is not a field type.
     $this->assertFalse($this->container->get('plugin.manager.field.field_type')->hasDefinition('referencing_relationship_item_list'));
+  }
+
+  /**
+   * A relation field's target cannot change while relations use it.
+   */
+  public function testRetargetRefusedWhenInUse(): void {
+    NodeType::create(['type' => 'organisation', 'name' => 'Organisation'])->save();
+    $field = FieldConfig::loadByName('node', static::RELATION_BUNDLE, 'rn_related_entity_2');
+    $submit = function () use ($field): array {
+      $form_state = new FormState();
+      $form_state->addBuildInfo('args', [$field]);
+      $form_state->setValues(['label' => $field->label(), 'target_bundle' => 'organisation', 'op' => 'Save']);
+      $this->container->get('form_builder')->submitForm(FieldConfigForm::class, $form_state);
+      return $form_state->getErrors();
+    };
+
+    $this->createRelation($this->createPerson('A'), $this->createPerson('B'));
+    $this->assertArrayHasKey('target_bundle', $submit());
+    $reloaded = $this->container->get('entity_type.manager')->getStorage('field_config')->loadUnchanged($field->id());
+    $this->assertSame(['person' => 'person'], $reloaded->getSetting('handler_settings')['target_bundles']);
   }
 
 }
