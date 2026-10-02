@@ -8,17 +8,20 @@
 
 /**
  * Implements hook_uninstall().
+ *
+ * Removes this module's fields and filters from views. Otherwise Drupal
+ * deletes the views that use them, because they depend on this module.
+ * Search API indexes remove the relationship fields and processor themselves.
+ * During a config sync, the imported configuration already defines the views.
  */
-function relationship_nodes_search_uninstall() {
+function relationship_nodes_search_uninstall($is_syncing = FALSE) {
+    if ($is_syncing) {
+        return;
+    }
     $view_storage = \Drupal::entityTypeManager()->getStorage('view');
     $views = $view_storage->loadMultiple();
     
     foreach ($views as $view) {
-        // Skip views provided by this module (they'll be deleted automatically)
-        if ($view->status() && strpos($view->getConfigDependencyName(), 'relationship_nodes_search') !== FALSE) {
-            continue;
-        }
-        
         $changed = FALSE;
         $displays = $view->get('display');
         

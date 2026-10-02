@@ -111,7 +111,7 @@ Elasticsearch cannot change the type of an existing field: after changing child 
 ## Known limitations
 
 - **Autocomplete widget**: the exposed relationship filter has no autocomplete widget.
-- **Disabling the module** while indexes still contain relationship fields can cause `SearchApiException` errors from `elasticsearch_connector` when it updates the index settings and cannot resolve the data type. Remove the relationship fields from the indexes first.
+- **Uninstalling the module** removes its fields and filters from views and the relationship fields and processor from Search API indexes. Elasticsearch then recreates the affected indexes, so reindex afterwards.
 
 ## Dependencies
 
