@@ -1,0 +1,4 @@
+# Formatting-only commits, skipped by git blame:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+# style: apply Drupal coding standards (automatic fixes)
+f46e507a14734e53f2e1c9ba1e8dcf81e076f976
