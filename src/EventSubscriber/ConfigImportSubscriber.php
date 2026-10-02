@@ -103,7 +103,9 @@ class ConfigImportSubscriber implements EventSubscriberInterface {
     $storage_comparer = $event->getConfigImporter()->getStorageComparer();
 
     if ($this->getModuleStateChange($storage_comparer) === 'disabling') {
-      $this->cleanupService->removeModuleSettings();
+      // The imported configuration already has the module's settings removed;
+      // only clean up data that is not configuration.
+      $this->cleanupService->removeModuleSettings(FALSE);
       return;
     }
 
@@ -129,10 +131,12 @@ class ConfigImportSubscriber implements EventSubscriberInterface {
       $target_extensions = $target_storage->read('core.extension');
 
 
-      if (isset($source_extensions['module']['relationship_nodes']) && !isset($target_extensions['module']['relationship_nodes'])) {
+      // The source storage holds the configuration being imported, the target
+      // storage the active configuration.
+      if (!isset($source_extensions['module']['relationship_nodes']) && isset($target_extensions['module']['relationship_nodes'])) {
         return 'disabling';
       }
-      if (!isset($source_extensions['module']['relationship_nodes']) && isset($target_extensions['module']['relationship_nodes'])) {
+      if (isset($source_extensions['module']['relationship_nodes']) && !isset($target_extensions['module']['relationship_nodes'])) {
         return 'enabling';
       }
       return NULL;

@@ -49,10 +49,17 @@ class SettingsCleanupService {
 
   /**
    * Removes all module settings.
+   *
+   * @param bool $include_config
+   *   Whether to also remove the module's settings from configuration
+   *   entities (bundles, fields, displays). Pass FALSE during a config sync:
+   *   the imported configuration already reflects the desired state.
    */
-  public function removeModuleSettings(): void {
-    $this->unsetRnEntitySettings();
-    $this->cleanFormDisplays();
+  public function removeModuleSettings(bool $include_config = TRUE): void {
+    if ($include_config) {
+      $this->unsetRnEntitySettings();
+      $this->cleanFormDisplays();
+    }
     $this->cleanRelationWeights();
   }
 

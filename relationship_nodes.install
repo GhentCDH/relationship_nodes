@@ -64,5 +64,7 @@ function relationship_nodes_uninstall($is_syncing) {
   $cleanupService = \Drupal::service('relationship_nodes.settings_cleanup_service');
 
   // Potentially, a lot of entity types need to be saved, which can take a while.
-  $cleanupService->removeModuleSettings();
+  // During a config sync, the imported configuration already has the
+  // module's settings removed, so configuration entities are left alone.
+  $cleanupService->removeModuleSettings(!$is_syncing);
 }
