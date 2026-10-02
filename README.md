@@ -116,18 +116,18 @@ A vocabulary term in the relation type vocabulary can carry a mirror field (`rn_
 `CalculatedFieldHelper` defines a registry of virtual field names (`calculated_this_id`, `calculated_related_id`, `calculated_related_name`, `calculated_relation_type_name`) that are not stored in the database. Their values are resolved at render time based on the viewing context (which node is being viewed). The same field names are used by `relationship_nodes_search` for Elasticsearch indexing — the field names are shared, but resolution differs: the formatter resolves them from entities; Search API indexes them as nested Elasticsearch fields.
 
 ### Auto-title
-When `auto_title` is enabled on a bundle, `RelationNodeSubscriber` generates a title for the relation node automatically on presave (`EntityEventType::PRESAVE`).
+When `auto_title` is enabled on a bundle, `RelationNodeSubscriber` sets the titles of the relation node in all its translations on presave, using `RelationTitleGenerator`. `TargetNodeSubscriber` updates them when a related node is renamed.
 
 ## Event subscribers
 
 | Subscriber | Event | Action |
 |-----------|-------|--------|
-| `RelationNodeSubscriber` | `EntityEventType::PRESAVE` | Auto-generates title for relation nodes |
-| `TargetNodeSubscriber` | `EntityEventType::DELETE` | Deletes orphaned relation nodes when a parent is deleted |
+| `RelationNodeSubscriber` | `EntityEventType::PRESAVE` | Auto-generates the titles of relation nodes |
+| `TargetNodeSubscriber` | `EntityEventType::DELETE`, `UPDATE` | Deletes the relation nodes of a deleted node; updates relation titles when a node is renamed |
 | `MirrorTermSubscriber` | Entity events | Keeps mirror fields on vocab terms in sync |
 | `ConfigImportSubscriber` | Config import events | Validates and cleans up settings during config import |
 
-`TargetNodeSubscriber` only handles DELETE — not saves — so it does not interact with `RelationNodeSubscriber`'s PRESAVE. There is no save-loop risk between the two subscribers.
+`TargetNodeSubscriber` skips relation nodes, so the relation saves it triggers do not trigger it again.
 
 ## Display pipeline
 
@@ -147,11 +147,14 @@ Templates access this via the `relationship_nodes.twig_extension` Twig functions
 
 ## Known limitations
 
-- **Nested field display**: `computed_relationshipfield__*` fields show the relation node, but displaying fields *of* the relation node (nested field display) is not implemented.
 - **One relation type per pair of content types**: the computed relationship field of a content type is named after the content types it connects, so two relation types between the same content types are refused.
-- **Auto-title**: only the translation being saved gets a title, and titles are not updated when a related node is renamed. The title field is not hidden in the relation form when auto-title is enabled.
-- **Revisions**: relations are separate nodes, so reverting a node to an older revision does not restore its relations.
+- **Revisions**: relations are separate nodes, not part of a node's revisions. Reverting a node to an older revision does not restore the relations it had then.
+- **Scale**: all relations of a node are loaded when it is displayed or edited, and renaming a node updates the titles of all its relations and (with `relationship_nodes_search`) marks all related nodes for reindexing. This is meant for up to hundreds of relations per node, not thousands.
 - **Access**: relations are shown when the viewer may view the relation node and the related nodes (node access, including node grants and permission modules).
+
+### Auto-title
+
+When `auto_title` is enabled on a relation bundle, the title of each relation is generated in every translation from the related nodes' labels in that language (e.g. "Relationship Ann - Bob"), and updated when a related node is renamed. The title field is hidden in relation forms.
 
 ## Upgrading
 

@@ -110,7 +110,7 @@ Elasticsearch cannot change the type of an existing field: after changing child 
 
 ## Known limitations
 
-- **Autocomplete widget**: the exposed relationship filter has no autocomplete widget.
+- **Autocomplete widget** (to do): the exposed relationship filter offers a text field, a dropdown of indexed values or a year range, but no autocomplete.
 - **Uninstalling the module** removes its fields and filters from views and the relationship fields and processor from Search API indexes. Elasticsearch then recreates the affected indexes, so reindex afterwards.
 
 ## Dependencies
