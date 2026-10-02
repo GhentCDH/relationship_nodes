@@ -165,6 +165,35 @@ class FieldConfigForm extends FormBase {
 
   /**
    * {@inheritdoc}
+   *
+   * Only one relation bundle may connect the same two bundles: the computed
+   * relationship fields are named after the bundles they connect.
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    parent::validateForm($form, $form_state);
+    if ($this->entityType !== 'node' || !in_array($this->fieldName, $this->fieldResolver->getRelatedEntityFields(), TRUE)) {
+      return;
+    }
+    $target = $form_state->getValue('target_bundle');
+    $other_field = $this->fieldResolver->getOppositeRelatedEntityField($this->fieldName);
+    $other_target = $other_field ? $this->getCurrentTargetBundle($this->bundle, $other_field) : NULL;
+    if (!$target || !$other_target) {
+      return;
+    }
+    $existing = \Drupal::service('relationship_nodes.bundle_info_service')
+      ->findRelationBundleForPair($target, $other_target, $this->bundle);
+    if ($existing) {
+      $form_state->setErrorByName('target_bundle', $this->t('The relation type %existing already connects %a and %b. Use one relation type per pair of content types.', [
+        '%existing' => $existing,
+        '%a' => $target,
+        '%b' => $other_target,
+      ]));
+    }
+  }
+
+
+  /**
+   * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $field = FieldConfig::load("{$this->entityType}.{$this->bundle}.{$this->fieldName}");

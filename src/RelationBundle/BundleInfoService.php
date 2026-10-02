@@ -152,6 +152,43 @@ class BundleInfoService {
 
 
   /**
+   * Finds a relation bundle that connects two bundles.
+   *
+   * The computed relationship field of a bundle is named after the bundles it
+   * connects, so only one relation bundle may connect the same two bundles.
+   *
+   * @param string $bundle_a
+   *   One target bundle.
+   * @param string $bundle_b
+   *   The other target bundle (the same for a self-referencing relation).
+   * @param string|null $exclude
+   *   A relation bundle to ignore, e.g. the one being edited.
+   *
+   * @return string|null
+   *   The ID of the relation bundle connecting the two bundles, or NULL.
+   */
+  public function findRelationBundleForPair(string $bundle_a, string $bundle_b, ?string $exclude = NULL): ?string {
+    $pair = [$bundle_a, $bundle_b];
+    sort($pair);
+    foreach (array_keys($this->getAllRelationBundles('node_type')) as $relation_bundle) {
+      if ($relation_bundle === $exclude) {
+        continue;
+      }
+      $per_field = $this->getRelationBundleInfo($relation_bundle)['related_bundles_per_field'] ?? [];
+      if (count($per_field) !== 2) {
+        continue;
+      }
+      $other = array_map(fn($targets) => (string) reset($targets), array_values($per_field));
+      sort($other);
+      if ($other === $pair) {
+        return $relation_bundle;
+      }
+    }
+    return NULL;
+  }
+
+
+  /**
    * Gets relation information for a target bundle.
    *
    * @param string $target_bundle

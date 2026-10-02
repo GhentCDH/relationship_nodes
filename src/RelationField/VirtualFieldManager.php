@@ -52,9 +52,22 @@ class VirtualFieldManager {
       return;
     }
 
-    $bundles_involved = [];
+    // Two relation bundles between the same bundles would produce the same
+    // field name. The field form prevents this; if it happens anyway (e.g.
+    // through a config import), the first relation bundle keeps the field.
+    ksort($relationships);
     foreach ($relationships as $relation_bundle => $relationship) {
       $field_name = 'computed_relationshipfield__' . $bundle . '__' . implode('_', $relationship['related_bundles']);
+      if (isset($fields[$field_name])) {
+        \Drupal::logger('relationship_nodes')->error('Relation bundles @first and @second both connect @bundle with @related; only @first is shown in field @field. Use one relation bundle per pair of bundles.', [
+          '@first' => $fields[$field_name]->getTargetBundle(),
+          '@second' => $relation_bundle,
+          '@bundle' => $bundle,
+          '@related' => implode(', ', $relationship['related_bundles']),
+          '@field' => $field_name,
+        ]);
+        continue;
+      }
       $fields[$field_name] = BaseFieldDefinition::create('entity_reference')
         ->setName($field_name)
         ->setLabel('Relationships with ' . implode(', ', $relationship['related_bundles']))
