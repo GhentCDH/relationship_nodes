@@ -196,8 +196,10 @@ class NestedExposedFormBuilder {
     $operator = [
       '#type' => 'select',
       '#title' => $this->t('Operator'),
-      '#options' => $this->operatorHelper->getOperatorOptions(),
-      '#default_value' => $field_value['operator'] ?? $field_config['field_operator'] ?? $this->operatorHelper->getDefaultOperator(),
+      // Range operators unless the field is known not to support them.
+      '#options' => $this->operatorHelper->getOperatorOptionsForField($field_config['supports_range'] ?? TRUE),
+      // Sanitized so operators from older configurations are not illegal choices.
+      '#default_value' => $this->operatorHelper->sanitizeOperator($field_value['operator'] ?? $field_config['field_operator'] ?? NULL),
       '#attributes' => ['class' => ['relationship-filter-operator']],
     ];
     $this->setFormNestedValue($form, $path, $operator);

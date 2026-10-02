@@ -15,25 +15,30 @@ class FilterOperatorHelper {
   use StringTranslationTrait;
 
   /**
+   * Operators from older configurations, mapped to a supported operator.
+   *
+   * The filter widgets submit a single value, so operators that need several
+   * values never worked: IN and BETWEEN with a scalar crashed or compared
+   * against single characters. '!=' is not known to the Elasticsearch
+   * connector; '<>' is its "not equal" operator.
+   */
+  protected const LEGACY_OPERATORS = [
+    '!=' => '<>',
+    'IN' => '=',
+    'NOT IN' => '<>',
+    'BETWEEN' => '=',
+    'NOT BETWEEN' => '<>',
+  ];
+
+
+  /**
    * Get all available operator options.
    *
    * @return array
    *   All operator options keyed by operator value.
    */
   public function getOperatorOptions(): array {
-    return [
-      '=' => $this->t('Is equal to'),
-      '!=' => $this->t('Is not equal to'),
-      '<' => $this->t('Is less than'),
-      '<=' => $this->t('Is less than or equal to'),
-      '>' => $this->t('Is greater than'),
-      '>=' => $this->t('Is greater than or equal to'),
-      'IN' => $this->t('Is one of'),
-      'NOT IN' => $this->t('Is not one of'),
-      'BETWEEN' => $this->t('Is between'),
-      'NOT BETWEEN' => $this->t('Is not between'),
-      '<>' => $this->t('Contains'),
-    ];
+    return $this->getRangeOperatorOptions();
   }
 
 
@@ -46,10 +51,7 @@ class FilterOperatorHelper {
   public function getTextOperatorOptions(): array {
     return [
       '=' => $this->t('Is equal to'),
-      '!=' => $this->t('Is not equal to'),
-      'IN' => $this->t('Is one of'),
-      'NOT IN' => $this->t('Is not one of'),
-      '<>' => $this->t('Contains'),
+      '<>' => $this->t('Is not equal to'),
     ];
   }
 
@@ -61,17 +63,11 @@ class FilterOperatorHelper {
    *   Range operator options.
    */
   public function getRangeOperatorOptions(): array {
-    return [
-      '=' => $this->t('Is equal to'),
-      '!=' => $this->t('Is not equal to'),
+    return $this->getTextOperatorOptions() + [
       '<' => $this->t('Is less than'),
       '<=' => $this->t('Is less than or equal to'),
       '>' => $this->t('Is greater than'),
       '>=' => $this->t('Is greater than or equal to'),
-      'IN' => $this->t('Is one of'),
-      'NOT IN' => $this->t('Is not one of'),
-      'BETWEEN' => $this->t('Is between'),
-      'NOT BETWEEN' => $this->t('Is not between'),
     ];
   }
 
@@ -103,34 +99,6 @@ class FilterOperatorHelper {
    */
   public function isValidOperator(string $operator): bool {
     return array_key_exists($operator, $this->getOperatorOptions());
-  }
-
-
-  /**
-   * Check if an operator requires multiple values (BETWEEN, IN, etc.).
-   *
-   * @param string $operator
-   *   The operator to check.
-   *
-   * @return bool
-   *   TRUE if operator needs multiple values.
-   */
-  public function isMultiValueOperator(string $operator): bool {
-    return in_array($operator, ['BETWEEN', 'NOT BETWEEN', 'IN', 'NOT IN']);
-  }
-
-
-  /**
-   * Check if an operator is a range operator (BETWEEN, NOT BETWEEN).
-   *
-   * @param string $operator
-   *   The operator to check.
-   *
-   * @return bool
-   *   TRUE if operator is a range operator.
-   */
-  public function isRangeOperator(string $operator): bool {
-    return in_array($operator, ['BETWEEN', 'NOT BETWEEN']);
   }
 
 
@@ -192,7 +160,8 @@ class FilterOperatorHelper {
     if (empty($operator)) {
       return $this->getDefaultOperator();
     }
-    
+    $operator = static::LEGACY_OPERATORS[$operator] ?? $operator;
+
     return $this->isValidOperator($operator) ? $operator : $this->getDefaultOperator();
   }
 }
