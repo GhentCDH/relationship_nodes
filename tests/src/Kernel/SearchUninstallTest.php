@@ -34,7 +34,12 @@ class SearchUninstallTest extends SearchQueryTest {
           'display_title' => 'Default',
           'display_options' => [
             'fields' => [
-              'search_api_id' => ['id' => 'search_api_id', 'table' => 'search_api_index_test_index', 'field' => 'search_api_id', 'plugin_id' => 'standard'],
+              'search_api_id' => [
+                'id' => 'search_api_id',
+                'table' => 'search_api_index_test_index',
+                'field' => 'search_api_id',
+                'plugin_id' => 'standard',
+              ],
             ],
             'filters' => [
               'relations' => [
