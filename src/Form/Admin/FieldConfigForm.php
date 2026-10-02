@@ -10,9 +10,10 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\node\Entity\NodeType;
-use Drupal\taxonomy\Entity\Vocabulary;
+use Drupal\relationship_nodes\RelationBundle\BundleInfoService;
 use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
 use Drupal\relationship_nodes\RelationField\FieldNameResolver;
+use Drupal\taxonomy\Entity\Vocabulary;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -26,6 +27,7 @@ class FieldConfigForm extends FormBase {
   protected FieldNameResolver $fieldResolver;
   protected BundleSettingsManager $settingsManager;
   protected FieldUiManager $uiUpdater;
+  protected BundleInfoService $bundleInfoService;
   protected ?FieldConfig $fieldConfig = NULL;
   protected ?string $fieldName = NULL;
   protected ?string $entityType = NULL;
@@ -59,12 +61,14 @@ class FieldConfigForm extends FormBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container): self {
-    return new static(
+    $instance = new static(
       $container->get('entity_type.manager'),
       $container->get('relationship_nodes.field_name_resolver'),
       $container->get('relationship_nodes.bundle_settings_manager'),
       $container->get('relationship_nodes.field_ui_manager')
     );
+    $instance->bundleInfoService = $container->get('relationship_nodes.bundle_info_service');
+    return $instance;
   }
 
   /**
@@ -197,7 +201,7 @@ class FieldConfigForm extends FormBase {
     if (!$target || !$other_target) {
       return;
     }
-    $existing = \Drupal::service('relationship_nodes.bundle_info_service')
+    $existing = $this->bundleInfoService
       ->findRelationBundleForPair($target, $other_target, $this->bundle);
     if ($existing) {
       $form_state->setErrorByName('target_bundle', $this->t('The relation type %existing already connects %a and %b. Use one relation type per pair of content types.', [

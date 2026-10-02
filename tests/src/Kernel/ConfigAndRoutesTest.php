@@ -11,6 +11,7 @@ use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\NodeType;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\relationship_nodes\Form\Admin\FieldConfigForm;
+use Drupal\relationship_nodes\Form\Admin\LockedFieldListBuilder;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
@@ -126,6 +127,24 @@ class ConfigAndRoutesTest extends RelationshipNodesKernelTestBase {
     $settings = $this->container->get('relationship_nodes.bundle_settings_manager');
     $this->assertTrue($settings->getBundleInfo(static::RELATION_BUNDLE, 'node')->isRelation());
     $this->assertFalse($settings->getBundleInfo(static::RELATION_BUNDLE, 'taxonomy_term')->isRelation());
+  }
+
+  /**
+   * The hooks run on Drupal 10 (procedural) and 11.3+ (hook class).
+   */
+  public function testHooks(): void {
+    $list_builder = $this->container->get('entity_type.manager')->getDefinition('field_config')->getListBuilderClass();
+    $this->assertSame(LockedFieldListBuilder::class, $list_builder);
+
+    $module_handler = $this->container->get('module_handler');
+    if (version_compare(\Drupal::VERSION, '11.3', '>=')) {
+      $requirements = $module_handler->invokeAll('runtime_requirements');
+    }
+    else {
+      $module_handler->loadInclude('relationship_nodes', 'install');
+      $requirements = relationship_nodes_requirements('runtime');
+    }
+    $this->assertSame('Configuration validated successfully', (string) $requirements['relationship_nodes_config']['value']);
   }
 
 }

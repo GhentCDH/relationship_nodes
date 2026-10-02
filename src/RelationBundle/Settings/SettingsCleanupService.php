@@ -2,10 +2,13 @@
 
 namespace Drupal\relationship_nodes\RelationBundle\Settings;
 
-use Drupal\relationship_nodes\Plugin\Field\FieldWidget\RelationIefWidget;
+use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\KeyValueStore\KeyValueFactoryInterface;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
+use Drupal\relationship_nodes\Plugin\Field\FieldWidget\RelationIefWidget;
 use Drupal\relationship_nodes\RelationBundle\BundleInfoService;
 use Drupal\relationship_nodes\RelationField\RelationshipFieldManager;
 
@@ -20,6 +23,8 @@ class SettingsCleanupService {
   protected BundleInfoService $bundleInfoService;
   protected RelationshipFieldManager $relationFieldManager;
   protected KeyValueFactoryInterface $keyValueFactory;
+  protected LoggerChannelInterface $logger;
+  protected CacheBackendInterface $cache;
 
   /**
    * Constructs a SettingsCleanupService object.
@@ -32,17 +37,25 @@ class SettingsCleanupService {
    *   The field configurator.
    * @param \Drupal\Core\KeyValueStore\KeyValueFactoryInterface $keyValueFactory
    *   The key-value factory.
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
+   *   The logger factory.
+   * @param \Drupal\Core\Cache\CacheBackendInterface $cache
+   *   The default cache bin.
    */
   public function __construct(
     EntityTypeManagerInterface $entityTypeManager,
     BundleInfoService $bundleInfoService,
     RelationshipFieldManager $relationFieldManager,
     KeyValueFactoryInterface $keyValueFactory,
+    LoggerChannelFactoryInterface $loggerFactory,
+    CacheBackendInterface $cache,
   ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->bundleInfoService = $bundleInfoService;
     $this->relationFieldManager = $relationFieldManager;
     $this->keyValueFactory = $keyValueFactory;
+    $this->logger = $loggerFactory->get('relationship_nodes');
+    $this->cache = $cache;
   }
 
   /**
@@ -72,10 +85,10 @@ class SettingsCleanupService {
       foreach ($this->relationFieldManager->getAllRnCreatedFields() as $field) {
         $this->unsetRnThirdPartySettings($field);
       }
-      \Drupal::cache()->deleteAll();
+      $this->cache->deleteAll();
     }
     catch (\Exception $e) {
-      \Drupal::logger('relationship_nodes')->error('Error cleaning up Relationship Nodes data: @error', [
+      $this->logger->error('Error cleaning up Relationship Nodes data: @error', [
         '@error' => $e->getMessage(),
       ]);
     }
@@ -143,10 +156,10 @@ class SettingsCleanupService {
   protected function cleanRelationWeights(): void {
     try {
       $this->keyValueFactory->get('relationship_nodes_weights')->deleteAll();
-      \Drupal::logger('relationship_nodes')->info('Cleaned up all relation weights.');
+      $this->logger->info('Cleaned up all relation weights.');
     }
     catch (\Exception $e) {
-      \Drupal::logger('relationship_nodes')->error('Error cleaning up relation weights: @error', [
+      $this->logger->error('Error cleaning up relation weights: @error', [
         '@error' => $e->getMessage(),
       ]);
     }

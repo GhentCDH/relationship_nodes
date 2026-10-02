@@ -2,21 +2,22 @@
 
 namespace Drupal\relationship_nodes_search\Views\Widget;
 
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Session\AccountProxyInterface;
+use Drupal\Core\Session\PermissionsHashGeneratorInterface;
+use Drupal\relationship_nodes\RelationData\TermHelper\MirrorProvider;
+use Drupal\relationship_nodes\RelationField\CalculatedFieldHelper;
+use Drupal\relationship_nodes_search\FieldHelper\NestedIndexFieldHelper;
+use Drupal\relationship_nodes_search\QueryHelper\NestedFacetResultParser;
+use Drupal\relationship_nodes_search\Views\Parser\NestedFieldResultViewsParser;
 use Drupal\search_api\Entity\Index;
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
-use Drupal\relationship_nodes_search\FieldHelper\NestedIndexFieldHelper;
-use Drupal\relationship_nodes\RelationField\CalculatedFieldHelper;
-use Drupal\relationship_nodes_search\Views\Parser\NestedFieldResultViewsParser;
-use Drupal\relationship_nodes_search\QueryHelper\NestedFacetResultParser;
-use Drupal\Core\Language\LanguageManagerInterface;
-use Drupal\relationship_nodes\RelationData\TermHelper\MirrorProvider;
-use Drupal\search_api\Query\ConditionGroupInterface;
 use Drupal\search_api\Query\ConditionGroup;
+use Drupal\search_api\Query\ConditionGroupInterface;
 
 /**
  * Provides dropdown options for nested filter fields.
@@ -36,6 +37,7 @@ class NestedFilterDropdownOptionsProvider {
   protected NestedFieldResultViewsParser $resultParser;
   protected NestedFacetResultParser $facetResultParser;
   protected MirrorProvider $mirrorProvider;
+  protected PermissionsHashGeneratorInterface $permissionsHashGenerator;
 
   /**
    * Constructs a NestedFilterDropdownOptionsProvider object.
@@ -60,6 +62,8 @@ class NestedFilterDropdownOptionsProvider {
    *   The facet result parser service.
    * @param \Drupal\relationship_nodes\RelationData\TermHelper\MirrorProvider $mirrorProvider
    *   The mirror provider service.
+   * @param \Drupal\Core\Session\PermissionsHashGeneratorInterface $permissionsHashGenerator
+   *   The permissions hash generator.
    */
   public function __construct(
     EntityTypeManagerInterface $entityTypeManager,
@@ -72,7 +76,9 @@ class NestedFilterDropdownOptionsProvider {
     NestedFieldResultViewsParser $resultParser,
     NestedFacetResultParser $facetResultParser,
     MirrorProvider $mirrorProvider,
+    PermissionsHashGeneratorInterface $permissionsHashGenerator,
   ) {
+    $this->permissionsHashGenerator = $permissionsHashGenerator;
     $this->entityTypeManager = $entityTypeManager;
     $this->cache = $cache;
     $this->loggerFactory = $loggerFactory;
@@ -298,7 +304,7 @@ class NestedFilterDropdownOptionsProvider {
         $field_key,
         $display_mode,
         $this->languageManager->getCurrentLanguage()->getId(),
-        \Drupal::service('user_permissions_hash_generator')->generate($this->currentUser),
+        $this->permissionsHashGenerator->generate($this->currentUser),
         $this->normalizeConditions($query->getConditionGroup()),
       ]));
       if ($cached = $this->cache->get($cid)) {

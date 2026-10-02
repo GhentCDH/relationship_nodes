@@ -54,6 +54,8 @@ services:
       - '@relationship_nodes.bundle_info_service'
       - '@relationship_nodes.relationship_field_manager'
       - '@keyvalue'
+      - '@logger.factory'
+      - '@cache.default'
 
   # ── RelationData layer ─────────────────────────────────────────────────────
   relationship_nodes.relation_title_generator:
@@ -133,6 +135,7 @@ services:
     class: Drupal\relationship_nodes\RelationField\VirtualFieldManager
     arguments:
       - '@relationship_nodes.bundle_info_service'
+      - '@logger.factory'
 
   # ── Display layer ──────────────────────────────────────────────────────────
   relationship_nodes.field_result_parser:
@@ -179,6 +182,7 @@ services:
       - '@relationship_nodes.bundle_settings_manager'
       - '@relationship_nodes.relationship_field_manager'
       - '@relationship_nodes.field_ui_manager'
+      - '@messenger'
   relationship_nodes.field_ui_manager:
     class: Drupal\relationship_nodes\Form\Admin\FieldUiManager
     arguments:

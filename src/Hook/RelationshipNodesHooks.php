@@ -2,11 +2,16 @@
 
 namespace Drupal\relationship_nodes\Hook;
 
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Extension\Requirement\RequirementSeverity;
 use Drupal\Core\Hook\Attribute\Hook;
 use Drupal\Core\Hook\Order\Order;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\relationship_nodes\Form\Admin\LockedFieldListBuilder;
+use Drupal\relationship_nodes\Validation\ValidationResultFormatter;
+use Drupal\relationship_nodes\Validation\ValidationService;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Hook implementations for Drupal 11.2 and later.
@@ -15,9 +20,37 @@ use Drupal\relationship_nodes\Form\Admin\LockedFieldListBuilder;
  * and relationship_nodes.install, which call the same methods. Those are
  * marked as legacy, so Drupal 11.2+ only runs the implementations here.
  */
-class RelationshipNodesHooks {
+class RelationshipNodesHooks implements ContainerInjectionInterface {
 
   use StringTranslationTrait;
+
+  /**
+   * Constructs a RelationshipNodesHooks object.
+   *
+   * Drupal 11 autowires hook classes (hence the Autowire attributes);
+   * Drupal 10 instantiates this class through create().
+   *
+   * @param \Drupal\relationship_nodes\Validation\ValidationService $validationService
+   *   The validation service.
+   * @param \Drupal\relationship_nodes\Validation\ValidationResultFormatter $validationResultFormatter
+   *   The validation result formatter.
+   */
+  public function __construct(
+    #[Autowire(service: 'relationship_nodes.validation_service')]
+    protected ValidationService $validationService,
+    #[Autowire(service: 'relationship_nodes.validation_result_formatter')]
+    protected ValidationResultFormatter $validationResultFormatter,
+  ) {}
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container): static {
+    return new static(
+      $container->get('relationship_nodes.validation_service'),
+      $container->get('relationship_nodes.validation_result_formatter'),
+    );
+  }
 
   /**
    * Implements hook_entity_type_alter().
@@ -51,17 +84,7 @@ class RelationshipNodesHooks {
   public function buildRequirements(): array {
     $title = $this->t('Relationship Nodes Configuration');
     try {
-      if (!\Drupal::hasService('relationship_nodes.validation_service')) {
-        return [
-          'relationship_nodes_config' => [
-            'title' => $title,
-            'value' => $this->t('Validation service unavailable'),
-            'description' => $this->t('Configuration validation will be available once the module is fully loaded.'),
-            'severity' => $this->severity('info'),
-          ],
-        ];
-      }
-      $validation_result = \Drupal::service('relationship_nodes.validation_service')->validateAllRelationConfig();
+      $validation_result = $this->validationService->validateAllRelationConfig();
       if ($validation_result->isValid()) {
         return [
           'relationship_nodes_config' => [
@@ -71,8 +94,7 @@ class RelationshipNodesHooks {
           ],
         ];
       }
-      $formatter = \Drupal::service('relationship_nodes.validation_result_formatter');
-      $errors = $validation_result->getFormattedErrors($formatter, 'relationship_nodes');
+      $errors = $validation_result->getFormattedErrors($this->validationResultFormatter, 'relationship_nodes');
       // The formatter returns a heading line followed by "- error" lines.
       $items = [];
       foreach (explode("\n", $errors) as $line) {

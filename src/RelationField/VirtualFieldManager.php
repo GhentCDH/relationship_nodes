@@ -2,12 +2,14 @@
 
 namespace Drupal\relationship_nodes\RelationField;
 
-use Drupal\relationship_nodes\Plugin\Field\FieldWidget\RelationIefWidget;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\node\NodeInterface;
 use Drupal\relationship_nodes\Plugin\Field\FieldType\ReferencingRelationshipItemList;
+use Drupal\relationship_nodes\Plugin\Field\FieldWidget\RelationIefWidget;
 use Drupal\relationship_nodes\RelationBundle\BundleInfoService;
 
 /**
@@ -18,6 +20,7 @@ use Drupal\relationship_nodes\RelationBundle\BundleInfoService;
 class VirtualFieldManager {
 
   protected BundleInfoService $bundleInfoService;
+  protected LoggerChannelInterface $logger;
 
   /**
    * Constructs a VirtualFieldManager object.
@@ -25,8 +28,9 @@ class VirtualFieldManager {
    * @param \Drupal\relationship_nodes\RelationBundle\BundleInfoService $bundleInfoService
    *   The bundle info service.
    */
-  public function __construct(BundleInfoService $bundleInfoService) {
+  public function __construct(BundleInfoService $bundleInfoService, LoggerChannelFactoryInterface $loggerFactory) {
     $this->bundleInfoService = $bundleInfoService;
+    $this->logger = $loggerFactory->get('relationship_nodes');
   }
 
   /**
@@ -57,7 +61,7 @@ class VirtualFieldManager {
     foreach ($relationships as $relation_bundle => $relationship) {
       $field_name = 'computed_relationshipfield__' . $bundle . '__' . implode('_', $relationship['related_bundles']);
       if (isset($fields[$field_name])) {
-        \Drupal::logger('relationship_nodes')->error('Relation bundles @first and @second both connect @bundle with @related; only @first is shown in field @field. Use one relation bundle per pair of bundles.', [
+        $this->logger->error('Relation bundles @first and @second both connect @bundle with @related; only @first is shown in field @field. Use one relation bundle per pair of bundles.', [
           '@first' => $fields[$field_name]->getTargetBundle(),
           '@second' => $relation_bundle,
           '@bundle' => $bundle,

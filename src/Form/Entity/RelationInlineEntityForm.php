@@ -9,6 +9,7 @@ use Drupal\inline_entity_form\Form\NodeInlineForm;
 use Drupal\node\NodeInterface;
 use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
 use Drupal\relationship_nodes\RelationData\NodeHelper\ForeignKeyResolver;
+use Drupal\relationship_nodes\RelationData\NodeHelper\RelationTitleGenerator;
 use Drupal\relationship_nodes\RelationField\FieldNameResolver;
 use Drupal\taxonomy\TermInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -24,6 +25,8 @@ class RelationInlineEntityForm extends NodeInlineForm {
   protected FieldNameResolver $fieldNameResolver;
   protected ForeignKeyResolver $foreignKeyResolver;
   protected BundleSettingsManager $bundleSettingsManager;
+  protected RelationTitleGenerator $titleGenerator;
+  protected ParentNodeContext $parentNodeContext;
 
   /**
    * {@inheritdoc}
@@ -34,6 +37,8 @@ class RelationInlineEntityForm extends NodeInlineForm {
     $instance->foreignKeyResolver = $container->get('relationship_nodes.foreign_key_field_resolver');
     $instance->entityTypeManager = $container->get('entity_type.manager');
     $instance->bundleSettingsManager = $container->get('relationship_nodes.bundle_settings_manager');
+    $instance->titleGenerator = $container->get('relationship_nodes.relation_title_generator');
+    $instance->parentNodeContext = $container->get('relationship_nodes.parent_node_context');
     return $instance;
   }
 
@@ -51,7 +56,7 @@ class RelationInlineEntityForm extends NodeInlineForm {
     if (!$relation_entity instanceof NodeInterface) {
       return $entity_form;
     }
-    \Drupal::service('relationship_nodes.relation_title_generator')->hideTitleField($entity_form, $relation_entity);
+    $this->titleGenerator->hideTitleField($entity_form, $relation_entity);
 
     $foreign_key = $this->foreignKeyResolver->getEntityFormForeignKeyField($relation_entity, $form_state);
     if ($foreign_key) {
@@ -76,7 +81,7 @@ class RelationInlineEntityForm extends NodeInlineForm {
       return;
     }
 
-    $current_node = \Drupal::service('relationship_nodes.parent_node_context')->getParentNode();
+    $current_node = $this->parentNodeContext->getParentNode();
     if (!($current_node instanceof NodeInterface)) {
       // New parent node: a submit handler binds the relation later.
       return;

@@ -2,15 +2,16 @@
 
 namespace Drupal\relationship_nodes\Form\Admin;
 
-use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Config\Entity\ConfigEntityBundleBase;
-use Drupal\Core\Url;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Url;
 use Drupal\node\Entity\NodeType;
-use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
 use Drupal\relationship_nodes\RelationField\RelationshipFieldManager;
+use Drupal\taxonomy\Entity\Vocabulary;
 
 /**
  * Service for handling relationship bundle form submissions.
@@ -22,6 +23,7 @@ class BundleFormHandler {
   protected BundleSettingsManager $settingsManager;
   protected RelationshipFieldManager $relationFieldManager;
   protected FieldUiManager $fieldUiUpdater;
+  protected MessengerInterface $messenger;
 
   /**
    * Constructs a BundleFormHandler object.
@@ -32,15 +34,19 @@ class BundleFormHandler {
    *   The field configurator.
    * @param \Drupal\relationship_nodes\Form\Admin\FieldUiManager $fieldUiUpdater
    *   The field UI updater.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger.
    */
   public function __construct(
     BundleSettingsManager $settingsManager,
     RelationshipFieldManager $relationFieldManager,
     FieldUiManager $fieldUiUpdater,
+    MessengerInterface $messenger,
   ) {
     $this->settingsManager = $settingsManager;
     $this->relationFieldManager = $relationFieldManager;
     $this->fieldUiUpdater = $fieldUiUpdater;
+    $this->messenger = $messenger;
   }
 
   /**
@@ -106,7 +112,7 @@ class BundleFormHandler {
       $message = 'The following relationship fields were created: @fields. You can review them here: @link';
     }
 
-    \Drupal::messenger()->addStatus($this->t(
+    $this->messenger->addStatus($this->t(
       $message, ['@fields' => implode(', ', array_keys($missing_fields)), '@link' => $link]
     ));
   }
