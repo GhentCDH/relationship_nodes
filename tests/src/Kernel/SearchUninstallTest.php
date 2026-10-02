@@ -14,7 +14,7 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
  */
 #[Group('relationship_nodes')]
 #[RunTestsInSeparateProcesses]
-class SearchUninstallTest extends SearchQueryTest {
+class SearchUninstallTest extends SearchKernelTestBase {
 
   /**
    * The index and a view lose their relationship parts, but survive.
@@ -68,25 +68,5 @@ class SearchUninstallTest extends SearchQueryTest {
     $this->assertNotNull($view, 'The view still exists.');
     $this->assertArrayNotHasKey('relations', $view->getDisplay('default')['display_options']['filters'] ?? []);
   }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function testFilters(): void {}
-
-  /**
-   * {@inheritdoc}
-   */
-  public function testFacets(): void {}
-
-  /**
-   * {@inheritdoc}
-   */
-  public function testLegacyOperators(): void {}
-
-  /**
-   * {@inheritdoc}
-   */
-  public function testIndexedValues(): void {}
 
 }
