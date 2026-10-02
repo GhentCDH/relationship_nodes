@@ -293,6 +293,10 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
           if (!$this->isRelationPublished($relationship_entity, $join_field, $item->getLanguage())) {
             continue;
           }
+          // Read the relation's fields in the language of the indexed item.
+          if ($relationship_entity instanceof TranslatableInterface && $relationship_entity->hasTranslation($item->getLanguage())) {
+            $relationship_entity = $relationship_entity->getTranslation($item->getLanguage());
+          }
           $nested_values = [];
           foreach ($child_fld_configs as $child_fld_nm => $child_fld_config){
             if(in_array($child_fld_nm, $calc_fld_nms)){

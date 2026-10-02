@@ -99,6 +99,20 @@ class NestedFilterBuilder extends FilterBuilder {
       return $result;
     }
 
+    // A single negative condition means "no relation matches", e.g. "relation
+    // type is not co-worker" excludes items with a co-worker relation. Inside
+    // one nested query it would mean "some relation does not match". Combined
+    // conditions keep their meaning: one relation that matches all of them.
+    $conditions = $condition_group->getConditions();
+    if (count($conditions) === 1 && reset($conditions) instanceof NestedChildFieldCondition) {
+      $positive = $this->getPositiveCondition(reset($conditions));
+      if ($positive) {
+        $nested = $this->queryBuilder->buildNestedFilter($parent, $this->buildFilterTerm($positive, $index_fields, $querySettings));
+        $result['filters'] = ['bool' => ['must_not' => [$nested]]];
+        return $result;
+      }
+    }
+
     $subfilters = $this->buildConditionGroupSubfilters($condition_group, $index_fields, $querySettings);
 
     if (empty($subfilters)) {
@@ -109,4 +123,33 @@ class NestedFilterBuilder extends FilterBuilder {
     $result['filters'] = $this->queryBuilder->buildNestedFilter($parent, $combined_subfilters);
     return $result;
   }
+
+
+  /**
+   * Returns the positive counterpart of a negative condition.
+   *
+   * @param NestedChildFieldCondition $condition
+   *   The condition.
+   *
+   * @return NestedChildFieldCondition|null
+   *   The condition with the opposite operator, or NULL if the condition is
+   *   not negative.
+   */
+  protected function getPositiveCondition(NestedChildFieldCondition $condition): ?NestedChildFieldCondition {
+    $value = $condition->getValue();
+    $operator = match (TRUE) {
+      $condition->getOperator() === '<>' && $value !== NULL => '=',
+      $condition->getOperator() === 'NOT IN' => 'IN',
+      // "Field is empty": no relation has a value.
+      $condition->getOperator() === '=' && $value === NULL => '<>',
+      default => NULL,
+    };
+    if ($operator === NULL) {
+      return NULL;
+    }
+    $positive = clone $condition;
+    $positive->setOperator($operator);
+    return $positive;
+  }
+
 }
