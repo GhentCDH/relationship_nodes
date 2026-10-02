@@ -225,16 +225,6 @@ final class ConfigImportValidator {
   // ========== Complete Import Validation ==========
 
   /**
-   * Validate all relation configuration in import.
-   */
-  public function validateAllImportConfig(StorageInterface $storage): ValidationResult {
-    return ValidationResult::mergeAll([
-      $this->validateAllBundleImports($storage),
-      $this->validateAllFieldImports($storage),
-    ]);
-  }
-
-  /**
    * Validate all bundle imports.
    */
   private function validateAllBundleImports(StorageInterface $storage): ValidationResult {

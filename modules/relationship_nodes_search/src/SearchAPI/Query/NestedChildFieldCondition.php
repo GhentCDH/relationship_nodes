@@ -61,14 +61,4 @@ class NestedChildFieldCondition extends Condition {
     return $this;
   }
 
-  /**
-   * Checks if this is a nested child field condition.
-   *
-   * @return bool
-   *   TRUE if both parent and child field names are set, FALSE otherwise.
-   */
-  public function isNestedChildField(): bool {
-    return !empty($this->parentFieldName) && !empty($this->childFieldName);
-  }
-
 }

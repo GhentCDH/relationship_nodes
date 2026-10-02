@@ -3,7 +3,6 @@
 namespace Drupal\relationship_nodes\Display\Configurator;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\Form\FormStateInterface;
 use Drupal\relationship_nodes\RelationField\FieldNameResolver;
 
 /**
@@ -350,66 +349,6 @@ class FieldConfiguratorBase {
   }
 
   /**
-   * Extracts settings from form state.
-   *
-   * Generic helper for extracting configuration values from form state.
-   * Reads values directly from form state path without wrapper prefix.
-   *
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The form state.
-   * @param array $default_settings
-   *   Default settings structure.
-   * @param string|null $prefix
-   *   Optional path prefix (e.g., 'settings' for formatters, 'options' for Views).
-   *
-   * @return array
-   *   Extracted settings.
-   */
-  public function extractSettingsFromFormState(
-    FormStateInterface $form_state,
-    array $default_settings,
-    ?string $prefix = NULL,
-  ): array {
-    $settings = [];
-
-    foreach ($default_settings as $key => $default_value) {
-      if ($prefix) {
-        $value = $form_state->getValue([$prefix, $key]);
-      }
-      else {
-        $value = $form_state->getValue($key);
-      }
-
-      $settings[$key] = $value ?? $default_value;
-    }
-
-    return $settings;
-  }
-
-  /**
-   * Gets default display settings structure.
-   *
-   * @param bool $include_template
-   *   Whether to include template setting.
-   *
-   * @return array
-   *   Default settings array.
-   */
-  public function getDefaultDisplaySettings(bool $include_template = FALSE): array {
-    $defaults = [
-      'field_settings' => [],
-      'sort_by_field' => '',
-      'group_by_field' => '',
-    ];
-
-    if ($include_template) {
-      $defaults['template'] = 'relationship-field';
-    }
-
-    return $defaults;
-  }
-
-  /**
    * Builds field metadata for template rendering.
    *
    * Filters configurations to only enabled fields and prepares for templates.
@@ -516,16 +455,6 @@ class FieldConfiguratorBase {
       '#prefix' => '<div class="messages messages--error">',
       '#suffix' => '</div>',
     ];
-  }
-
-  /**
-   * Gets the field name resolver service.
-   *
-   * @return \Drupal\relationship_nodes\RelationField\FieldNameResolver
-   *   The field name resolver.
-   */
-  protected function getFieldNameResolver(): FieldNameResolver {
-    return $this->fieldNameResolver;
   }
 
 }

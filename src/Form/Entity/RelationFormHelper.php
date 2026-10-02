@@ -72,36 +72,6 @@ class RelationFormHelper {
   }
 
   /**
-   * Finds the IEF state key for a given field name.
-   *
-   * Iterates over all IEF widget states and matches on the field instance name.
-   * Useful for looking up the (hashed) IEF ID when only the field name is known.
-   *
-   * @param string $field_name
-   *   The field name to look up.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The form state.
-   *
-   * @return string|null
-   *   The IEF state key, or NULL if not found.
-   */
-  public function getIefStateKey(string $field_name, FormStateInterface $form_state): ?string {
-    $ief_states = $form_state->get('inline_entity_form') ?? [];
-
-    foreach ($ief_states as $ief_id => $widget_state) {
-      if (!is_array($widget_state)) {
-        continue;
-      }
-      $widget_field_name = $this->getIefWidgetInstanceFieldName($widget_state);
-      if ($widget_field_name === $field_name) {
-        return $ief_id;
-      }
-    }
-
-    return NULL;
-  }
-
-  /**
    * Checks if form is a parent form with IEF subforms.
    *
    * @param \Drupal\Core\Form\FormStateInterface $form_state

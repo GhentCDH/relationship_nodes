@@ -550,48 +550,4 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
     ];
   }
 
-  /**
-   * Check if any filter values are set.
-   *
-   * @param array $values
-   *   The filter values.
-   * @param array $field_settings
-   *   The field settings.
-   *
-   * @return bool
-   *   TRUE if any enabled field has a non-empty value.
-   */
-  protected function hasActiveFilterValues(array $values, array $field_settings): bool {
-    if (empty($values)) {
-      return FALSE;
-    }
-
-    foreach ($field_settings as $field_name => $config) {
-      // Skip disabled fields.
-      if (empty($config['enabled'])) {
-        continue;
-      }
-
-      // Check if field has a value.
-      $child_filter_id = $config['child_filter_id'] ?? $field_name;
-      $value = $values[$child_filter_id]['value'] ?? $values[$child_filter_id] ?? NULL;
-
-      if ($value !== NULL && $value !== '') {
-        return TRUE;
-      }
-    }
-
-    $pair = $this->getRangePairConfig();
-    if (!empty($pair['enabled'])) {
-      foreach (['from', 'to'] as $key) {
-        $val = $values['range_pair'][$key]['value'] ?? $values['range_pair'][$key] ?? NULL;
-        if ($val !== NULL && $val !== '') {
-          return TRUE;
-        }
-      }
-    }
-
-    return FALSE;
-  }
-
 }

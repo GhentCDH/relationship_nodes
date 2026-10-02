@@ -53,19 +53,6 @@ class NestedFacetResultParser {
   }
 
   /**
-   * Extracts unique values from aggregation buckets.
-   *
-   * @param array $buckets
-   *   Array of Elasticsearch bucket objects.
-   *
-   * @return array
-   *   Array of unique values (keys).
-   */
-  public function getUniqueValues(array $buckets): array {
-    return array_column($buckets, 'key');
-  }
-
-  /**
    * Remove surrounding quotes from facet values.
    *
    * Elasticsearch sometimes returns string values wrapped in quotes.

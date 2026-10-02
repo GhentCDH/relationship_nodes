@@ -380,18 +380,4 @@ class BundleSettingsManager {
     return $this->getCimProperty($config_data, 'referencing_type');
   }
 
-  /**
-   * Checks if configuration data represents a mirroring vocabulary.
-   *
-   * @param array $config_data
-   *   The configuration data array.
-   *
-   * @return bool
-   *   TRUE if mirroring vocabulary, FALSE otherwise.
-   */
-  public function isCimMirroringVocab(array $config_data): bool {
-    $relation_vocab_type = $this->getCimRelationVocabType($config_data);
-    return in_array($relation_vocab_type, ['string', 'entity_reference']);
-  }
-
 }

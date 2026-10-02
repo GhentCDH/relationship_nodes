@@ -275,34 +275,6 @@ class NestedExposedFormBuilder {
     $this->setFormNestedValue($form, $path, $value);
   }
 
-  /* // ENTITY AUTOCOMPLETE NOT YET IMPLEMENTED (CF CONFIG HELPER)
-  protected function addEntityAutocompleteWidget(array &$form, array $path, string $child_fld_nm, string $label, bool $required, string $placeholder, ?array $field_value = NULL): void {
-  $target_type =  // implement childfieldentrefhelper getnestedfieldtargettype;
-  $default_entity = $this->getDefaultEntityValue($child_fld_nm, $target_type, $field_value);
-  $path[] = 'value';
-  $value = [
-  '#type' => 'entity_autocomplete',
-  '#title' => $label,
-  '#target_type' => $target_type,
-  '#default_value' => $default_entity,
-  '#required' => $required,
-  '#placeholder' => $placeholder,
-  ];
-  $this->setFormNestedValue($form, $path, $value);
-  }
-
-  protected function getDefaultEntityValue(string $child_fld_nm, string $target_type, ?array $field_value = NULL) {
-  if (empty($field_value) || !is_numeric($field_value)) {
-  return NULL;
-  }
-
-  try {
-  return $this->entityTypeManager->getStorage($target_type)->load($field_value);
-  } catch (\Exception $e) {
-  return NULL;
-  }
-  }*/
-
   /**
    * Set a nested value in form array.
    *

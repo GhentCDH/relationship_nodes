@@ -6,7 +6,6 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\NodeInterface;
 use Drupal\relationship_nodes\Form\Entity\RelationFormHelper;
-use Drupal\relationship_nodes\Plugin\Field\FieldType\ReferencingRelationshipItemList;
 
 /**
  * Service for synchronizing relationship nodes.
@@ -119,42 +118,6 @@ class RelationSync {
       // Also removes the weights of the deleted relations.
       $this->deleteNodes($removed_ids);
     }
-  }
-
-  /**
-   * Gets relation nodes that were removed from a parent node.
-   *
-   * @param \Drupal\node\NodeInterface $parent_node
-   *   The parent node.
-   * @param string $field_name
-   *   The field name.
-   *
-   * @return array
-   *   Array of removed relation node IDs.
-   */
-  public function getRemovedRelations(NodeInterface $parent_node, string $field_name): array {
-    $item_list = $parent_node->get($field_name) ?? NULL;
-    if (!($item_list instanceof ReferencingRelationshipItemList)) {
-      return [];
-    }
-    $original_relations = array_keys($item_list->collectExistingRelations()) ?? [];
-    $current_relations = $this->nodeInfoService->getFieldListTargetIds($item_list) ?? [];
-    return array_diff($original_relations, $current_relations);
-  }
-
-  /**
-   * Checks if a relation entity item needs to be saved.
-   *
-   * @param array $entity_item
-   *   The entity item array.
-   *
-   * @return bool
-   *   TRUE if the item needs saving, FALSE otherwise.
-   */
-  private function relationNeedsSave(array $entity_item): bool {
-    return !empty($entity_item['entity'])
-      && $entity_item['entity'] instanceof NodeInterface
-      && !empty($entity_item['needs_save']);
   }
 
 }

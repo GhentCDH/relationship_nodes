@@ -26,13 +26,6 @@ function relationship_nodes_search_search_api_field_type_mapping_alter(array &$m
 }
 
 /**
- * Implements hook_facets_search_api_query_type_mapping_alter().
- */
-function relationship_nodes_search_facets_search_api_query_type_mapping_alter($backend_plugin_id, array &$query_types) {
-  $query_types['relationship_nodes_search_nested_relationship'] = 'search_api_nested';
-}
-
-/**
  * Implements hook_form_views_exposed_form_alter().
  */
 function relationship_nodes_search_form_views_exposed_form_alter(&$form, FormStateInterface $form_state, $form_id) {

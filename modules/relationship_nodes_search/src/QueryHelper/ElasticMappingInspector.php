@@ -115,25 +115,4 @@ class ElasticMappingInspector {
     }
   }
 
-  /**
-   * Clears cached mappings (for a specific index or all indices).
-   *
-   * @param string|null $index_id
-   *   Optional index ID to clear. If NULL, clears all cached mappings.
-   */
-  public function clearCache(?string $index_id = NULL): void {
-    if ($index_id) {
-      unset($this->mappingCache[$index_id]);
-      foreach (array_keys($this->fieldMappingCache) as $key) {
-        if (str_starts_with($key, $index_id . ':')) {
-          unset($this->fieldMappingCache[$key]);
-        }
-      }
-    }
-    else {
-      $this->mappingCache = [];
-      $this->fieldMappingCache = [];
-    }
-  }
-
 }

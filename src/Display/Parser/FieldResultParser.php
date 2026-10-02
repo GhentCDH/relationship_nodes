@@ -132,32 +132,4 @@ class FieldResultParser extends FieldResultParserBase {
     return $references;
   }
 
-  /**
-   * Processes a simple array of entity IDs (single entity type).
-   *
-   * Convenience method when all IDs are from the same entity type.
-   *
-   * @param array $entity_ids
-   *   Array of entity IDs.
-   * @param string $entity_type
-   *   The entity type for all IDs.
-   * @param array $config
-   *   Field configuration.
-   * @param string|null $langcode
-   *   Optional language code. If NULL, uses current language.
-   *
-   * @return array
-   *   Array of processed values.
-   */
-  public function processEntityIds(array $entity_ids, string $entity_type, array $config, ?string $langcode = NULL): array {
-    $references = array_map(function ($id) use ($entity_type) {
-      return [
-        'entity_type' => $entity_type,
-        'entity_id' => $id,
-      ];
-    }, $entity_ids);
-
-    return $this->processEntityReferences($references, $config, $langcode);
-  }
-
 }

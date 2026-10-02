@@ -22,35 +22,4 @@ namespace Drupal\relationship_nodes_search\SearchAPI\Query;
  */
 class NestedChildFieldConditionGroup extends NestedConditionGroupBase {
 
-  /**
-   * Adds a child field condition to this group.
-   *
-   * Resolves the full Elasticsearch field path and creates a
-   * NestedChildFieldCondition, mirroring the API of
-   * NestedParentFieldConditionGroup::addChildFieldCondition().
-   *
-   * @param string $child_fld_nm
-   *   The child field name within the nested object.
-   * @param mixed $value
-   *   The value to filter on. NULL generates an exists/missing condition.
-   * @param string $operator
-   *   The comparison operator (=, !=, >=, <=, etc.).
-   *
-   * @return $this
-   */
-  public function addChildFieldCondition(string $child_fld_nm, $value, string $operator = '='): static {
-    $path = $this->queryBuilder->getElasticQueryFieldPath(
-      $this->index,
-      $this->parentFieldName,
-      $child_fld_nm
-    );
-
-    $condition = new NestedChildFieldCondition($path, $value, $operator);
-    $condition->setParentFieldName($this->parentFieldName);
-    $condition->setChildFieldName($child_fld_nm);
-
-    $this->conditions[] = $condition;
-    return $this;
-  }
-
 }

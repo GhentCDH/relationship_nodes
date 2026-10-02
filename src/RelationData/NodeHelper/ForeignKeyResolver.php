@@ -37,30 +37,6 @@ class ForeignKeyResolver {
   }
 
   /**
-   * Gets the default foreign key field for a relation bundle.
-   *
-   * @param string $relation_bundle
-   *   The relation bundle ID.
-   * @param string|null $target_bundle
-   *   The target bundle ID.
-   *
-   * @return string|null
-   *   The foreign key field name or NULL.
-   */
-  public function getDefaultBundleForeignKeyField(string $relation_bundle, ?string $target_bundle = NULL): ?string {
-    if (!$target_bundle) {
-      $target_entity = $this->ensureTargetNode();
-      if (!($target_entity instanceof NodeInterface)) {
-        return NULL;
-      }
-      $target_bundle = $target_entity->getType();
-    }
-
-    $connection_info = $this->bundleInfoService->getBundleConnectionInfo($relation_bundle, $target_bundle) ?? [];
-    return $this->connectionInfoToForeignKey($connection_info);
-  }
-
-  /**
    *
    */
   public function getEntityForeignKeyField(NodeInterface $relation_entity, ?NodeInterface $target_entity = NULL): ?string {

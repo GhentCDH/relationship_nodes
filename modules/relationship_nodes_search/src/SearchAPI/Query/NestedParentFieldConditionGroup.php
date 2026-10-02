@@ -11,14 +11,4 @@ namespace Drupal\relationship_nodes_search\SearchAPI\Query;
  */
 class NestedParentFieldConditionGroup extends NestedConditionGroupBase {
 
-  /**
-   * Checks if this is a nested parent field condition group.
-   *
-   * @return bool
-   *   TRUE if parent field name is set, FALSE otherwise.
-   */
-  public function isNestedParentField(): bool {
-    return !empty($this->parentFieldName);
-  }
-
 }
