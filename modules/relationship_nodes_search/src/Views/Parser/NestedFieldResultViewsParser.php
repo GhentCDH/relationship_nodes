@@ -71,7 +71,7 @@ class NestedFieldResultViewsParser extends FieldResultParserBase {
           $parsed = $this->parseEntityReferenceString($value);
           if ($parsed) {
             $entity_type = $parsed['entity_type'];
-            $entity_id = $parsed['entity_id'];
+            $entity_id = $parsed['id'];
             
             if (!isset($entity_ids_by_type[$entity_type])) {
               $entity_ids_by_type[$entity_type] = [];

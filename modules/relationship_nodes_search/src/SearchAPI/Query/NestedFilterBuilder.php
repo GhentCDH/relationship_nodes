@@ -87,18 +87,22 @@ class NestedFilterBuilder extends FilterBuilder {
   protected function buildNestedFieldConditionFilters(NestedParentFieldConditionGroup $condition_group, array $index_fields): array {
     $parent = $condition_group->getParentFieldName();
     
+    // The parent's buildFilters() reads all three keys of a nested result.
+    $result = ['filters' => [], 'post_filters' => [], 'facets_post_filters' => []];
+
     if (empty($parent)) {
        $this->logger->warning('NestedParentFieldConditionGroup without parent field name');
-      return [];
+      return $result;
     }
 
     $subfilters = $this->buildConditionGroupSubfilters($condition_group, $index_fields);
 
     if (empty($subfilters)) {
-      return [];
+      return $result;
     }
 
     $combined_subfilters = $this->wrapWithConjunction($subfilters, $condition_group->getConjunction());
-    return ['filters' => $this->queryBuilder->buildNestedFilter($parent, $combined_subfilters)];
+    $result['filters'] = $this->queryBuilder->buildNestedFilter($parent, $combined_subfilters);
+    return $result;
   }
 }
