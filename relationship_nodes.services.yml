@@ -113,6 +113,13 @@ services:
       - '@entity_type.manager'
       - '@relationship_nodes.field_name_resolver'
       - '@relationship_nodes.bundle_settings_manager'
+  relationship_nodes.rn_field_access_check:
+    class: Drupal\relationship_nodes\Access\RnFieldAccessCheck
+    arguments:
+      - '@relationship_nodes.field_name_resolver'
+      - '@relationship_nodes.relationship_field_manager'
+    tags:
+      - { name: access_check, applies_to: _rn_field_access }
   relationship_nodes.virtual_field_manager:
     class: Drupal\relationship_nodes\RelationField\VirtualFieldManager
     arguments:
