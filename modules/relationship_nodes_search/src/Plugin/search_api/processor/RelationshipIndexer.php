@@ -4,6 +4,8 @@ namespace Drupal\relationship_nodes_search\Plugin\search_api\processor;
 
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\TypedData\TranslatableInterface;
+use Drupal\Core\Entity\EntityPublishedInterface;
 use Drupal\relationship_nodes_search\SearchAPI\Processor\RelationProcessorProperty;
 use Drupal\search_api\Datasource\DatasourceInterface;
 use Drupal\search_api\Item\ItemInterface;
@@ -288,6 +290,11 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
         $calc_fld_nms = $this->calculatedFieldHelper->getCalculatedFieldNames(NULL, NULL, TRUE);
        
         foreach($entities as $relationship_entity){
+          // The index is public: skip unpublished relations and relations
+          // pointing to unpublished nodes.
+          if (!$this->isRelationPublished($relationship_entity, $join_field, $item->getLanguage())) {
+            continue;
+          }
           $nested_values = [];
           foreach ($child_fld_configs as $child_fld_nm => $child_fld_config){
             if(in_array($child_fld_nm, $calc_fld_nms)){
@@ -354,6 +361,54 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
         $sapi_fld->setValues($serialized);
       }
     }  
+  }
+
+
+  /**
+   * Checks that a relation and the node on its other side are published.
+   *
+   * Both are checked in the language of the indexed item, or in their
+   * default language when they have no translation in that language.
+   *
+   * @param EntityInterface $relationship_entity
+   *   The relationship entity.
+   * @param string $join_field
+   *   The join field that references the indexed entity.
+   * @param string $langcode
+   *   The language of the indexed item.
+   *
+   * @return bool
+   *   TRUE if both are published.
+   */
+  protected function isRelationPublished(EntityInterface $relationship_entity, string $join_field, string $langcode): bool {
+    if (!$this->isPublishedInLanguage($relationship_entity, $langcode)) {
+      return FALSE;
+    }
+    $other_field = $this->fieldResolver->getOppositeRelatedEntityField($join_field);
+    if (!$other_field || !$relationship_entity->hasField($other_field) || $relationship_entity->get($other_field)->isEmpty()) {
+      return TRUE;
+    }
+    $other_entity = $relationship_entity->get($other_field)->entity;
+    return $other_entity && $this->isPublishedInLanguage($other_entity, $langcode);
+  }
+
+
+  /**
+   * Checks whether an entity is published in a language.
+   *
+   * @param EntityInterface $entity
+   *   The entity.
+   * @param string $langcode
+   *   The language code.
+   *
+   * @return bool
+   *   TRUE if published, or if the entity has no published status.
+   */
+  protected function isPublishedInLanguage(EntityInterface $entity, string $langcode): bool {
+    if ($entity instanceof TranslatableInterface && $entity->hasTranslation($langcode)) {
+      $entity = $entity->getTranslation($langcode);
+    }
+    return !$entity instanceof EntityPublishedInterface || $entity->isPublished();
   }
 
 
