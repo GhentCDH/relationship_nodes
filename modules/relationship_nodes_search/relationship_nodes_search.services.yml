@@ -43,6 +43,11 @@ services:
       - '@logger.channel.elasticsearch_connector'
       - '@relationship_nodes_search.nested_query_structure_builder'
       - '@relationship_nodes_search.nested_index_field_helper'
+  relationship_nodes_search.nested_facet_result_parser_es:
+    class: Drupal\relationship_nodes_search\SearchAPI\Query\NestedFacetResultParser
+    decorates: elasticsearch_connector.facet_result_parser
+    arguments:
+      - '@logger.channel.elasticsearch_connector'
   relationship_nodes_search.nested_query_filter_builder:
     class: Drupal\relationship_nodes_search\SearchAPI\Query\NestedFilterBuilder
     decorates: elasticsearch_connector.query_filter_builder

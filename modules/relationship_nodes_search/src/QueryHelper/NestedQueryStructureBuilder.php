@@ -28,68 +28,56 @@ class NestedQueryStructureBuilder {
 
 
   /**
-   * Builds a nested aggregation for a specific field.
+   * Builds a terms aggregation on a field of nested relationship objects.
    *
-   * Creates an Elasticsearch nested aggregation with optional post-filtering
-   * for facet interaction. Structure varies based on whether a filter is provided:
-   * - With filter: nested → filter → terms aggregation
-   * - Without filter: nested → terms aggregation
+   * Structure, matching what NestedFacetResultParser reads:
+   * @code
+   *   {facet}_filtered: filter (other facets' filters, on the indexed items)
+   *     {facet}_nested: nested (path: the relationship field)
+   *       {facet}: terms (the child field)
+   *         parents: reverse_nested (counts items instead of relations)
+   * @endcode
    *
-   * The filter wrapper is needed when other active facets must narrow the
-   * aggregation bucket counts. Without it, an active facet on field A would not
-   * affect the bucket counts shown for field B — Facets expects counts to
-   * reflect the currently filtered result set, not the full index. Passing the
-   * combined active filter as $filter produces a "filtered aggregation" that
-   * counts only within the current selection, which is what Facets uses to
-   * show how many results each option would yield.
-   *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $field_id
-   *   The field identifier in "parent:child" format (e.g., "parent_field:child_field").
+   *   The facet field: "parent_field:child_field".
    * @param int $size
-   *   Maximum number of unique values to return (default: 10000).
+   *   The maximum number of buckets.
    * @param array|null $filter
-   *   Optional Elasticsearch filter for facet interaction/post-filters.
-   *   If NULL, no filter wrapper is added.
+   *   The filter from other active facets, or NULL.
    *
    * @return array
-   *   The Elasticsearch aggregation structure with key "{field_id}_filtered".
+   *   The aggregation.
    */
   public function buildNestedAggregation(Index $index, string $field_id, int $size = 10000, ?array $filter = NULL): array {
     [$parent, $child] = explode(':', $field_id, 2);
     $query_field_path = $this->getElasticQueryFieldPath($index, $parent, $child);
 
-    // Base terms aggregation
-    $agg_structure = [
-      $field_id => [
-        'terms' => [
-          'field' => $query_field_path,
-          'size' => $size,
-        ],
-      ],
-    ];
-
-    // Wrap in filter aggregation if needed (for facet interaction)
-    if ($filter !== NULL) {
-      $agg_structure = [
-        $field_id . '_filtered' => [
-          'filter' => $filter,
-          'aggs' => $agg_structure,
-        ],
-      ];
-    } 
-    
-    // Wrap in nested aggregation
     return [
       $field_id . '_filtered' => [
-        'nested' => [
-          'path' => $parent,
+        // The filter runs on the indexed items, outside the nested context.
+        'filter' => $filter ?? ['match_all' => new \stdClass()],
+        'aggs' => [
+          $field_id . '_nested' => [
+            'nested' => ['path' => $parent],
+            'aggs' => [
+              $field_id => [
+                'terms' => [
+                  'field' => $query_field_path,
+                  'size' => $size,
+                ],
+                'aggs' => [
+                  'parents' => ['reverse_nested' => new \stdClass()],
+                ],
+              ],
+            ],
+          ],
         ],
-        'aggs' => $agg_structure,
       ],
     ];
   }
+
 
   
   /**
