@@ -100,9 +100,7 @@ class ElasticMappingInspector {
       $client = $backend->getClient();
           
       // The Elasticsearch index name includes the server's prefix and suffix.
-      $es_index = method_exists($backend, 'getBackendClient')
-        ? $backend->getBackendClient()->getIndexId($index)
-        : $index_id;
+      $es_index = $backend->getBackendClient()->getIndexId($index);
       $response = $client->indices()->getMapping(['index' => $es_index]);
 
       // Extract properties from response

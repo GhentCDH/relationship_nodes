@@ -68,43 +68,13 @@ class NestedFacetParamBuilder extends FacetParamBuilder {
       }
 
       if (empty($parsed_names['parent'])) {
-        $aggs += $this->buildDefaultTermBucketAgg($query, $facet_id, $facet, $facetFilters, $indexFields);
+        $aggs += $this->buildTermBucketAgg($query, $facet_id, $facet, $facetFilters, $indexFields[$facet['field']] ?? NULL);
       } else {
         $result = $this->buildNestedTermBucketAgg($index, $facet_id, $facet, $facetFilters);
         $aggs += $result;
       }
     }
     return $aggs;
-  }
-
-
-  /**
-   * Builds a regular (non-nested) term aggregation with the parent class.
-   *
-   * elasticsearch_connector 8.0.0-alpha7 added the query as first and the
-   * index field as last parameter of buildTermBucketAgg().
-   *
-   * @param \Drupal\search_api\Query\QueryInterface $query
-   *   The search query.
-   * @param string $facet_id
-   *   The facet identifier.
-   * @param array $facet
-   *   The facet configuration.
-   * @param array $facetFilters
-   *   Post-filters for facet interaction.
-   * @param array $indexFields
-   *   The index fields.
-   *
-   * @return array
-   *   The aggregation.
-   */
-  protected function buildDefaultTermBucketAgg(QueryInterface $query, string $facet_id, array $facet, array $facetFilters, array $indexFields): array {
-    $method = new \ReflectionMethod(FacetParamBuilder::class, 'buildTermBucketAgg');
-    if ($method->getNumberOfParameters() >= 4) {
-      return parent::buildTermBucketAgg($query, $facet_id, $facet, $facetFilters, $indexFields[$facet['field']] ?? NULL);
-    }
-    // @phpstan-ignore arguments.count
-    return parent::buildTermBucketAgg($facet_id, $facet, $facetFilters);
   }
 
 

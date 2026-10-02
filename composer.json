@@ -18,7 +18,7 @@
   },
   "suggest": {
     "drupal/search_api": "Required by the relationship_nodes_search submodule (^1.38).",
-    "drupal/elasticsearch_connector": "Required by the relationship_nodes_search submodule (8.0.0-alpha7 or the 8.0.x branch).",
+    "drupal/elasticsearch_connector": "Required by the relationship_nodes_search submodule (^8.0@alpha, 8.0.0-alpha7 or later).",
     "drupal/facets": "Required by the relationship_nodes_search submodule (^3.0).",
     "drupal/better_exposed_filters": "Required by the relationship_nodes_search submodule (^7.0)."
   }

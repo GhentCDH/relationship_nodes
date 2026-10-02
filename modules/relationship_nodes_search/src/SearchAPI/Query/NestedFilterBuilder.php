@@ -45,8 +45,6 @@ class NestedFilterBuilder extends FilterBuilder {
    * {@inheritdoc}
    */
   public function buildFilters(ConditionGroupInterface $condition_group, array $index_fields, array $querySettings = []) {
-    // $querySettings was added in elasticsearch_connector 8.0.0-alpha7; older
-    // versions ignore the extra argument.
     if (!($condition_group instanceof NestedParentFieldConditionGroup)) {
       return parent::buildFilters($condition_group, $index_fields, $querySettings);
     }
@@ -65,7 +63,7 @@ class NestedFilterBuilder extends FilterBuilder {
    * @param array $index_fields
    *   The index fields configuration.
    * @param array $querySettings
-   *   The query settings (elasticsearch_connector 8.0.0-alpha7 and later).
+   *   The query settings.
    *
    * @return array
    *   Flat list of Elasticsearch filter fragments.

@@ -76,7 +76,7 @@ relationship_nodes_search.nested_facet_result_parser_es:
   decorates: elasticsearch_connector.facet_result_parser
 ```
 
-For relationship fields, they build and parse the Elasticsearch `nested` structures; all other fields are handled by the parent classes. They depend on protected methods of `elasticsearch_connector`, so check this module after updating it. Supported: `8.0.0-alpha7` and the `8.0.x` branch before it.
+For relationship fields, they build and parse the Elasticsearch `nested` structures; all other fields are handled by the parent classes. They depend on protected methods of `elasticsearch_connector`, so run this module's tests after updating it. Supported: `8.0.0-alpha7` and later.
 
 ### Query semantics
 
