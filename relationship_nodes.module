@@ -4,6 +4,7 @@
  * @file
  * Primary module hooks for Relationship Nodes module.
  */
+
 use Drupal\Core\Config\ConfigException;
 use Drupal\Core\Entity\EntityFormInterface;
 use Drupal\Core\Form\FormStateInterface;
@@ -27,13 +28,14 @@ function relationship_nodes_entity_bundle_field_info_alter(&$fields, $entity_typ
   if ($type_id === 'node') {
     $fieldAdder = \Drupal::service('relationship_nodes.virtual_field_manager');
     $fieldAdder->addFields($fields, $entity_type, $bundle);
-  } elseif ($type_id === 'taxonomy_term') {
+  }
+  elseif ($type_id === 'taxonomy_term') {
     $settingsManager = \Drupal::service('relationship_nodes.bundle_settings_manager');
     // Look up the vocabulary itself: a node type may share its machine name.
     $vocab = $settingsManager->ensureVocab($bundle);
     $bundle_info = $vocab ? $settingsManager->getBundleInfo($vocab) : NULL;
     $vocab_type = $bundle_info?->getMirrorType();
-    
+
     if ($vocab_type == 'entity_reference') {
       $fieldnameResolver = \Drupal::service('relationship_nodes.field_name_resolver');
       $mirror_field_name = $fieldnameResolver->getMirrorFields('entity_reference');
@@ -43,8 +45,7 @@ function relationship_nodes_entity_bundle_field_info_alter(&$fields, $entity_typ
       }
     }
   }
-} 
-
+}
 
 /**
  * Implements hook_theme().
@@ -58,7 +59,6 @@ function relationship_nodes_theme() {
   ];
 }
 
-
 /**
  * Implements hook_node_type_insert().
  */
@@ -71,7 +71,6 @@ function relationship_nodes_node_type_insert(NodeType $node_type) {
   $fieldManager = \Drupal::service('relationship_nodes.relationship_field_manager');
   $fieldManager->implementFieldUpdates($node_type);
 }
-
 
 /**
  * Implements hook_field_storage_config_update().
@@ -89,13 +88,12 @@ function relationship_nodes_field_storage_config_update(FieldStorageConfig $stor
   }
 }
 
-
 /**
  * Implements hook_field_config_update().
  */
 function relationship_nodes_field_config_update(FieldConfig $field) {
   $settingsManager = \Drupal::service('relationship_nodes.bundle_settings_manager');
-  $bundle_info = $settingsManager->getBundleInfo($field->getTargetBundle(), $field->getTargetEntityTypeId()); 
+  $bundle_info = $settingsManager->getBundleInfo($field->getTargetBundle(), $field->getTargetEntityTypeId());
   if (!$bundle_info || !$bundle_info->isRelation()) {
     return;
   }
@@ -103,7 +101,7 @@ function relationship_nodes_field_config_update(FieldConfig $field) {
   $field_name = $field->getName();
   $fieldResolver = \Drupal::service('relationship_nodes.field_name_resolver');
   $module_fields = $fieldResolver->getAllRelationFieldNames();
-  
+
   if (!in_array($field_name, $module_fields)) {
     return;
   }
@@ -120,7 +118,6 @@ function relationship_nodes_field_config_update(FieldConfig $field) {
   \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
 }
 
-
 /**
  * Implements hook_entity_type_alter().
  *
@@ -131,31 +128,30 @@ function relationship_nodes_entity_type_alter(array &$entity_types) {
   \Drupal::classResolver(RelationshipNodesHooks::class)->entityTypeAlter($entity_types);
 }
 
-
 /**
  * Implements hook_entity_bundle_info_alter().
  */
 function relationship_nodes_entity_bundle_info_alter(&$bundles) {
   $relation_bundles = [];
-  if (isset($bundles['node'])) {  
+  if (isset($bundles['node'])) {
     $settingsManager = \Drupal::service('relationship_nodes.bundle_settings_manager');
-    foreach ($bundles['node'] as $bundle_id => $bundle) { 
+    foreach ($bundles['node'] as $bundle_id => $bundle) {
       $bundle_info = $settingsManager->getBundleInfo($bundle_id, 'node');
       if (!$bundle_info || !$bundle_info->isRelation()) {
         $bundles['node'][$bundle_id]['relation_bundle'] = [];
         continue;
-      } 
-      $relation_bundles[] = $bundle_id; 
+      }
+      $relation_bundles[] = $bundle_id;
     }
   }
   if (!empty($relation_bundles)) {
     $bundleInfoService = \Drupal::service('relationship_nodes.bundle_info_service');
     foreach ($relation_bundles as $relation_bundle_id) {
-      // Add try-catch to handle missing field configs during install
+      // Add try-catch to handle missing field configs during install.
       try {
         $bundle_info = $bundleInfoService->getRelationBundleInfo($relation_bundle_id);
         $bundles['node'][$relation_bundle_id]['relation_bundle'] = $bundle_info;
-      } 
+      }
       catch (\Exception $e) {
         // During config import, fields might not exist yet.
         \Drupal::logger('relationship_nodes')->debug(
@@ -168,7 +164,6 @@ function relationship_nodes_entity_bundle_info_alter(&$bundles) {
   }
 }
 
-
 /**
  * Implements hook_entity_type_build().
  */
@@ -177,7 +172,6 @@ function relationship_nodes_entity_type_build(array &$entity_types) {
     $entity_types['node']->setHandlerClass('inline_form', RelationInlineEntityForm::class);
   }
 }
-
 
 /**
  * Implements hook_form_alter().
@@ -195,12 +189,14 @@ function relationship_nodes_form_alter(array &$form, FormStateInterface $form_st
     case 'node_type_edit_form':
       $alter_form_service = \Drupal::service('relationship_nodes.node_type_form_alter');
       break;
-    case 'taxonomy_vocabulary_form': 
+
+    case 'taxonomy_vocabulary_form':
       $alter_form_service = \Drupal::service('relationship_nodes.vocab_form_alter');
       break;
+
     default:
       if ($form_state->getFormObject() instanceof EntityFormInterface) {
-        $alter_form_service = \Drupal::service('relationship_nodes.parent_node_form_alter');    
+        $alter_form_service = \Drupal::service('relationship_nodes.parent_node_form_alter');
       }
       break;
   }
@@ -210,7 +206,6 @@ function relationship_nodes_form_alter(array &$form, FormStateInterface $form_st
   }
 }
 
-
 /**
  * Implements hook_local_tasks_alter().
  */
@@ -218,7 +213,6 @@ function relationship_nodes_local_tasks_alter(&$local_tasks) {
   $field_config_updater = \Drupal::service('relationship_nodes.field_ui_manager');
   $field_config_updater->overrideLocalTasksEdit($local_tasks);
 }
-
 
 /**
  * Implements hook_module_implements_alter().

@@ -17,13 +17,13 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
  * Plugin implementation of the 'relationship_formatter' formatter.
  *
  * Displays relationship nodes with their connected entities and metadata.
- * 
+ *
  * Supports:
  * - Calculated fields (resolved at render time based on viewing context)
  * - Real fields (direct values from relation nodes)
  * - Sorting and grouping of relationships
  * - Configurable display modes (raw ID, label, link)
- * 
+ *
  * The formatter uses FormatterConfigurator to build configuration
  * forms and RelationshipDataBuilder to process and render the data.
  */
@@ -69,7 +69,7 @@ class RelationshipFormatter extends EntityReferenceFormatterBase implements Cont
     $view_mode,
     array $third_party_settings,
     RelationshipDataBuilder $displayBuilder,
-    FormatterConfigurator $configurator
+    FormatterConfigurator $configurator,
   ) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings);
     $this->displayBuilder = $displayBuilder;
@@ -104,47 +104,46 @@ class RelationshipFormatter extends EntityReferenceFormatterBase implements Cont
     ] + parent::defaultSettings();
   }
 
-  
- /**
- * {@inheritdoc}
- */
+  /**
+   * {@inheritdoc}
+   */
   public function settingsForm(array $form, FormStateInterface $form_state) {
     $elements = parent::settingsForm($form, $form_state);
 
-    // Get relation bundle
+    // Get relation bundle.
     $relation_bundle = $this->getRelationBundle();
     if (empty($relation_bundle)) {
       $this->configurator->addErrorMessage($elements, $this->t('Cannot determine relation bundle for this field.'));
       return $elements;
     }
 
-    // Get available field names using configurator
+    // Get available field names using configurator.
     $field_names = $this->configurator->getAvailableFieldNames($relation_bundle);
     if (empty($field_names)) {
       $this->configurator->addErrorMessage($elements, $this->t('No relationship fields available.'));
       return $elements;
     }
 
-    // Ensure settings structure exists
+    // Ensure settings structure exists.
     $settings = $this->getSettings();
     if (!isset($settings['field_settings'])) {
       $settings['field_settings'] = [];
     }
 
-    // PREPARE: Get field configurations with formatter context
+    // PREPARE: Get field configurations with formatter context.
     $field_configs = $this->configurator->prepareFormatterFieldConfigurations(
       $relation_bundle,
       $field_names,
       $settings
     );
 
-    // Extract global settings
+    // Extract global settings.
     $global_settings = [
       'sort_by_field' => $this->getSetting('sort_by_field'),
       'group_by_field' => $this->getSetting('group_by_field'),
     ];
 
-    // RENDER: Build the configuration form
+    // RENDER: Build the configuration form.
     $this->configurator->buildConfigurationForm(
       $elements,
       $field_configs,
@@ -172,27 +171,27 @@ class RelationshipFormatter extends EntityReferenceFormatterBase implements Cont
       return $summary;
     }
 
-    // Get available field names using configurator
+    // Get available field names using configurator.
     $field_names = $this->configurator->getAvailableFieldNames($relation_bundle);
     if (empty($field_names)) {
       $summary[] = $this->t('No fields configured');
       return $summary;
     }
 
-    // Ensure settings structure exists
+    // Ensure settings structure exists.
     $settings = $this->getSettings();
     if (!isset($settings['field_settings'])) {
       $settings['field_settings'] = [];
     }
 
-    // Prepare field configurations
+    // Prepare field configurations.
     $field_configs = $this->configurator->prepareFormatterFieldConfigurations(
       $relation_bundle,
       $field_names,
       $settings
     );
 
-    // Build summary using configurator
+    // Build summary using configurator.
     $global_settings = [
       'sort_by_field' => $this->getSetting('sort_by_field'),
       'group_by_field' => $this->getSetting('group_by_field'),
@@ -213,7 +212,7 @@ class RelationshipFormatter extends EntityReferenceFormatterBase implements Cont
       return $elements;
     }
 
-    // Collect relation nodes
+    // Collect relation nodes.
     $relation_nodes = [];
     foreach ($items as $item) {
       if ($relation_node = $item->entity) {
@@ -225,25 +224,25 @@ class RelationshipFormatter extends EntityReferenceFormatterBase implements Cont
       return $elements;
     }
 
-    // Get relation bundle
+    // Get relation bundle.
     $relation_bundle = $this->getRelationBundle();
     if (empty($relation_bundle)) {
       return $elements;
     }
 
-    // Get available field names using configurator
+    // Get available field names using configurator.
     $field_names = $this->configurator->getAvailableFieldNames($relation_bundle);
     if (empty($field_names)) {
       return $elements;
     }
 
-    // Ensure settings structure exists
+    // Ensure settings structure exists.
     $settings = $this->getSettings();
     if (!isset($settings['field_settings'])) {
       $settings['field_settings'] = [];
     }
 
-    // Prepare field configurations
+    // Prepare field configurations.
     $field_configs = $this->configurator->prepareFormatterFieldConfigurations(
       $relation_bundle,
       $field_names,
@@ -253,7 +252,7 @@ class RelationshipFormatter extends EntityReferenceFormatterBase implements Cont
     // Get viewing context (the entity that owns this field)
     $viewing_node = $items->getEntity();
 
-    // Build relationship data with viewing context for calculated fields
+    // Build relationship data with viewing context for calculated fields.
     $rel_data = $this->displayBuilder->buildRelationshipData(
       $relation_nodes,
       [
@@ -264,18 +263,18 @@ class RelationshipFormatter extends EntityReferenceFormatterBase implements Cont
 
     $relationships = $rel_data['items'];
 
-    // Apply sorting if configured
+    // Apply sorting if configured.
     if ($sort_field = $this->getSetting('sort_by_field')) {
       $relationships = $this->displayBuilder->sortByField($relationships, $sort_field);
     }
 
-    // Apply grouping if configured
+    // Apply grouping if configured.
     $grouped = [];
     if ($group_field = $this->getSetting('group_by_field')) {
       $grouped = $this->displayBuilder->groupByField($relationships, $group_field);
     }
 
-    // Build field metadata for template
+    // Build field metadata for template.
     $fields_metadata = $this->configurator->buildFieldsMetadata($field_configs);
     $elements[0] = [
       '#theme' => 'relationship_field',
@@ -297,7 +296,7 @@ class RelationshipFormatter extends EntityReferenceFormatterBase implements Cont
 
   /**
    * Gets the relation bundle from the field definition.
-   * 
+   *
    * Extracts the target bundle configuration from the entity reference field.
    * For relationship formatters, this should be a relation node bundle.
    *
@@ -306,7 +305,7 @@ class RelationshipFormatter extends EntityReferenceFormatterBase implements Cont
    */
   protected function getRelationBundle(): ?string {
     $target_bundles = $this->fieldDefinition->getSetting('handler_settings')['target_bundles'] ?? [];
-    
+
     if (empty($target_bundles)) {
       return NULL;
     }
@@ -314,4 +313,5 @@ class RelationshipFormatter extends EntityReferenceFormatterBase implements Cont
     // Get first target bundle (relation bundle)
     return reset($target_bundles);
   }
+
 }

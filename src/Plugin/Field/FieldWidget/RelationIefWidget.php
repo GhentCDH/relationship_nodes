@@ -33,227 +33,219 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 )]
 class RelationIefWidget extends InlineEntityFormComplex {
 
-	/**
-	 * The widget's plugin ID, as in the annotation.
-	 */
-	const PLUGIN_ID = 'relation_extended_ief_complex_widget';
+  /**
+   * The widget's plugin ID, as in the annotation.
+   */
+  const PLUGIN_ID = 'relation_extended_ief_complex_widget';
 
-	protected RelationEntityFormHandler $relationFormHandler;
+  protected RelationEntityFormHandler $relationFormHandler;
 
+  /**
+   * {@inheritdoc}
+   */
+  public function __construct(
+    $plugin_id,
+    $plugin_definition,
+    FieldDefinitionInterface $field_definition,
+    array $settings,
+    array $third_party_settings,
+    EntityTypeBundleInfoInterface $entity_type_bundle_info,
+    EntityTypeManagerInterface $entity_type_manager,
+    EntityDisplayRepositoryInterface $entity_display_repository,
+    ModuleHandlerInterface $module_handler,
+    SelectionPluginManagerInterface $selection_manager,
+    RelationEntityFormHandler $relationFormHandler,
+  ) {
+    parent::__construct(
+    $plugin_id,
+    $plugin_definition,
+    $field_definition,
+    $settings,
+    $third_party_settings,
+    $entity_type_bundle_info,
+    $entity_type_manager,
+    $entity_display_repository,
+    $module_handler,
+    $selection_manager
+    );
+    $this->relationFormHandler = $relationFormHandler;
+  }
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function __construct(
-		$plugin_id,
-		$plugin_definition,
-		FieldDefinitionInterface $field_definition,
-		array $settings,
-		array $third_party_settings,
-		EntityTypeBundleInfoInterface $entity_type_bundle_info,
-		EntityTypeManagerInterface $entity_type_manager,
-		EntityDisplayRepositoryInterface $entity_display_repository,
-		ModuleHandlerInterface $module_handler,
-		SelectionPluginManagerInterface $selection_manager,
-		RelationEntityFormHandler $relationFormHandler
-	) {
-		parent::__construct(
-			$plugin_id,
-			$plugin_definition,
-			$field_definition,
-			$settings,
-			$third_party_settings,
-			$entity_type_bundle_info,
-			$entity_type_manager,
-			$entity_display_repository,
-			$module_handler,
-			$selection_manager
-		);
-		$this->relationFormHandler = $relationFormHandler;
-	}
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+    $plugin_id,
+    $plugin_definition,
+    $configuration['field_definition'],
+    $configuration['settings'],
+    $configuration['third_party_settings'],
+    $container->get('entity_type.bundle.info'),
+    $container->get('entity_type.manager'),
+    $container->get('entity_display.repository'),
+    $container->get('module_handler'),
+    $container->get('plugin.manager.entity_reference_selection'),
+    $container->get('relationship_nodes.relation_entity_form_handler')
+    );
+  }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
+    $element = parent::formElement($items, $delta, $element, $form, $form_state);
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-		return new static(
-			$plugin_id,
-			$plugin_definition,
-			$configuration['field_definition'],
-			$configuration['settings'],
-			$configuration['third_party_settings'],
-			$container->get('entity_type.bundle.info'),
-			$container->get('entity_type.manager'),
-			$container->get('entity_display.repository'),
-			$container->get('module_handler'),
-			$container->get('plugin.manager.entity_reference_selection'),
-			$container->get('relationship_nodes.relation_entity_form_handler')
-		);
-	}
+    $element['#relation_extended_widget'] = TRUE;
+    // Runs on every build, also when a cached form is submitted.
+    $element['#after_build'][] = [static::class, 'registerParentNode'];
+    $ief_id = $this->getIefId();
 
+    // Set flag in widget state so RelationFormHelper can detect these widgets
+    // during form build (before extractFormValues runs).
+    $form_state->set(['inline_entity_form', $ief_id, 'relation_extended_widget'], TRUE);
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
-		$element = parent::formElement($items, $delta, $element, $form, $form_state);
+    if (!empty($element['entities'])) {
+      foreach ($element['entities'] as $key => &$entity_row) {
+        if (!is_numeric($key)) {
+          continue;
+        }
 
-		$element['#relation_extended_widget'] = TRUE;
-		// Runs on every build, also when a cached form is submitted.
-		$element['#after_build'][] = [static::class, 'registerParentNode'];
-		$ief_id = $this->getIefId();
+        $widget_state = $form_state->get(['inline_entity_form', $ief_id]) ?? [];
+        $has_form = !empty($widget_state['entities'][$key]['form']);
 
-		// Set flag in widget state so RelationFormHelper can detect these widgets
-		// during form build (before extractFormValues runs).
-		$form_state->set(['inline_entity_form', $ief_id, 'relation_extended_widget'], TRUE);
+        if ($has_form) {
+          if ($widget_state['entities'][$key]['form'] === 'edit'
+          && !empty($entity_row['form']['inline_entity_form'])) {
+            $entity_row['form']['inline_entity_form']['#relation_extended_widget'] = TRUE;
+          }
+          continue;
+        }
 
-		if (!empty($element['entities'])) {
-			foreach ($element['entities'] as $key => &$entity_row) {
-				if (!is_numeric($key)) {
-					continue;
-				}
+        // Replace Remove button — no confirmation dialog.
+        if (isset($entity_row['actions']['ief_entity_remove'])) {
+          $entity_row['actions']['ief_entity_remove']['#submit'] = [
+          [static::class, 'submitRemoveDirectly'],
+          ];
+          $entity_row['actions']['ief_entity_remove']['#ief_id'] = $ief_id;
+          $entity_row['actions']['ief_entity_remove']['#ief_row_delta'] = $key;
+          $entity_row['actions']['ief_entity_remove']['#limit_validation_errors'] = [];
+        }
+      }
+    }
 
-				$widget_state = $form_state->get(['inline_entity_form', $ief_id]) ?? [];
-				$has_form = !empty($widget_state['entities'][$key]['form']);
+    if (!empty($element['form']['inline_entity_form'])) {
+      $element['form']['inline_entity_form']['#relation_extended_widget'] = TRUE;
+      $element['form']['inline_entity_form']['#after_build'][] = [
+        static::class, 'customizeButtonLabels',
+      ];
+    }
 
-				if ($has_form) {
-					if ($widget_state['entities'][$key]['form'] === 'edit'
-						&& !empty($entity_row['form']['inline_entity_form'])) {
-						$entity_row['form']['inline_entity_form']['#relation_extended_widget'] = TRUE;
-					}
-					continue;
-				}
+    return $element;
+  }
 
-				// Replace Remove button — no confirmation dialog.
-				if (isset($entity_row['actions']['ief_entity_remove'])) {
-					$entity_row['actions']['ief_entity_remove']['#submit'] = [
-						[static::class, 'submitRemoveDirectly'],
-					];
-					$entity_row['actions']['ief_entity_remove']['#ief_id'] = $ief_id;
-					$entity_row['actions']['ief_entity_remove']['#ief_row_delta'] = $key;
-					$entity_row['actions']['ief_entity_remove']['#limit_validation_errors'] = [];
-				}
-			}
-		}
+  /**
+   * {@inheritdoc}
+   */
+  public static function defaultSettings() {
+    $defaults = parent::defaultSettings();
+    $defaults['removed_reference'] = self::REMOVED_DELETE;
+    $defaults['allow_duplicate'] = FALSE;
+    return $defaults;
+  }
 
-		if (!empty($element['form']['inline_entity_form'])) {
-			$element['form']['inline_entity_form']['#relation_extended_widget'] = TRUE;
-			$element['form']['inline_entity_form']['#after_build'][] = [
-				static::class, 'customizeButtonLabels',
-			];
-		}
-
-		return $element;
-	}
-
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public static function defaultSettings() {
-		$defaults = parent::defaultSettings();
-		$defaults['removed_reference'] = self::REMOVED_DELETE;
-		$defaults['allow_duplicate'] = FALSE;
-		return $defaults;
-	}
-
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function settingsForm(array $form, FormStateInterface $form_state) {
-		$element = parent::settingsForm($form, $form_state);
+  /**
+   * {@inheritdoc}
+   */
+  public function settingsForm(array $form, FormStateInterface $form_state) {
+    $element = parent::settingsForm($form, $form_state);
     $unset_els = ['removed_reference', 'allow_existing', 'match_operator', 'allow_duplicate'];
-    foreach($unset_els as $unset_el){
+    foreach ($unset_els as $unset_el) {
       unset($element[$unset_el]);
     }
-		return $element;
-	}
+    return $element;
+  }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function settingsSummary() {
+    $summary = [];
+    $labels = $this->getEntityTypeLabels();
 
-	/**
-	 * {@inheritdoc}
-	 */
-	public function settingsSummary() {
-		$summary = [];
-		$labels = $this->getEntityTypeLabels();
+    $form_modes = $this->entityDisplayRepository
+      ->getFormModeOptions($this->getFieldSetting('target_type'));
+    $form_mode = $this->getSetting('form_mode');
+    $summary[] = $this->t('Form mode: @mode', [
+      '@mode' => $form_modes[$form_mode] ?? $form_mode,
+    ]);
 
-		$form_modes = $this->entityDisplayRepository
-			->getFormModeOptions($this->getFieldSetting('target_type'));
-		$form_mode = $this->getSetting('form_mode');
-		$summary[] = $this->t('Form mode: @mode', [
-			'@mode' => $form_modes[$form_mode] ?? $form_mode,
-		]);
+    $summary[] = $this->getSetting('allow_new')
+    ? $this->t('New @label can be added.', ['@label' => $labels['plural']])
+    : $this->t('New @label can not be created.', ['@label' => $labels['plural']]);
 
-		$summary[] = $this->getSetting('allow_new')
-			? $this->t('New @label can be added.', ['@label' => $labels['plural']])
-			: $this->t('New @label can not be created.', ['@label' => $labels['plural']]);
+    $summary[] = $this->t('Removed @label are always deleted.', [
+      '@label' => $labels['plural'],
+    ]);
 
-		$summary[] = $this->t('Removed @label are always deleted.', [
-			'@label' => $labels['plural'],
-		]);
+    return $summary;
+  }
 
-		return $summary;
-	}
+  /**
+   * After build callback: customize button labels for relation forms.
+   */
+  public static function customizeButtonLabels(array $element, FormStateInterface $form_state): array {
+    if (($element['#op'] ?? NULL) !== 'add') {
+      return $element;
+    }
 
+    if (isset($element['actions']['ief_add_save'])) {
+      $labels = $element['#ief_labels'] ?? ['singular' => 'item'];
+      $element['actions']['ief_add_save']['#value'] = t(
+      'Add @type (saved with parent)',
+      ['@type' => $labels['singular']]
+      );
+    }
 
-	/**
-	 * After build callback: customize button labels for relation forms.
-	 */
-	public static function customizeButtonLabels(array $element, FormStateInterface $form_state): array {
-		if (($element['#op'] ?? NULL) !== 'add') {
-			return $element;
-		}
+    return $element;
+  }
 
-		if (isset($element['actions']['ief_add_save'])) {
-			$labels = $element['#ief_labels'] ?? ['singular' => 'item'];
-			$element['actions']['ief_add_save']['#value'] = t(
-				'Add @type (saved with parent)',
-				['@type' => $labels['singular']]
-			);
-		}
+  /**
+   * After build callback: registers the node whose relations are edited.
+   */
+  public static function registerParentNode(array $element, FormStateInterface $form_state): array {
+    \Drupal::service('relationship_nodes.parent_node_context')->setFromFormState($form_state);
+    return $element;
+  }
 
-		return $element;
-	}
+  /**
+   * Submit handler: remove entity directly without confirmation.
+   *
+   * Follows the same pattern as InlineEntityFormComplex::submitConfirmRemove(),
+   * but skips the confirmation form.
+   */
+  public static function submitRemoveDirectly(array $form, FormStateInterface $form_state): void {
+    $trigger = $form_state->getTriggeringElement();
+    $ief_id = $trigger['#ief_id'];
+    $delta = $trigger['#ief_row_delta'];
 
+    $widget_state = $form_state->get(['inline_entity_form', $ief_id]) ?? [];
 
-	/**
-	 * After build callback: registers the node whose relations are edited.
-	 */
-	public static function registerParentNode(array $element, FormStateInterface $form_state): array {
-		\Drupal::service('relationship_nodes.parent_node_context')->setFromFormState($form_state);
-		return $element;
-	}
+    if (!isset($widget_state['entities'][$delta])) {
+      return;
+    }
 
+    $entity = $widget_state['entities'][$delta]['entity'];
+    $entity_id = $entity->id();
 
-	/**
-	 * Submit handler: remove entity directly without confirmation.
-	 *
-	 * Follows the same pattern as InlineEntityFormComplex::submitConfirmRemove(),
-	 * but skips the confirmation form.
-	 */
-	public static function submitRemoveDirectly(array $form, FormStateInterface $form_state): void {
-		$trigger = $form_state->getTriggeringElement();
-		$ief_id = $trigger['#ief_id'];
-		$delta = $trigger['#ief_row_delta'];
+    unset($widget_state['entities'][$delta]);
 
-		$widget_state = $form_state->get(['inline_entity_form', $ief_id]) ?? [];
+    if ($entity_id) {
+      $widget_state['delete'][] = $entity;
+    }
 
-		if (!isset($widget_state['entities'][$delta])) {
-			return;
-		}
+    $form_state->set(['inline_entity_form', $ief_id], $widget_state);
+    $form_state->setRebuild();
+  }
 
-		$entity = $widget_state['entities'][$delta]['entity'];
-		$entity_id = $entity->id();
-
-		unset($widget_state['entities'][$delta]);
-
-		if ($entity_id) {
-			$widget_state['delete'][] = $entity;
-		}
-
-		$form_state->set(['inline_entity_form', $ief_id], $widget_state);
-		$form_state->setRebuild();
-	}
 }

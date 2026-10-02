@@ -4,11 +4,9 @@ namespace Drupal\relationship_nodes\Form\Admin;
 
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Url;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-
 
 /**
  * Confirmation form for deleting a Relationship Nodes field.
@@ -22,11 +20,10 @@ class FieldDeleteForm extends ConfirmFormBase {
   protected FieldUiManager $uiUpdater;
   protected ?FieldConfig $fieldConfig = NULL;
 
-
   /**
    * Constructs a FieldDeleteForm object.
    *
-   * @param BundleSettingsManager $settingsManager
+   * @param \Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager $settingsManager
    *   The settings manager service.
    * @param FieldUiManager $uiUpdater
    *   The UI updater service.
@@ -35,7 +32,6 @@ class FieldDeleteForm extends ConfirmFormBase {
     $this->settingsManager = $settingsManager;
     $this->uiUpdater = $uiUpdater;
   }
-
 
   /**
    * {@inheritdoc}
@@ -47,14 +43,12 @@ class FieldDeleteForm extends ConfirmFormBase {
     );
   }
 
-
   /**
    * {@inheritdoc}
    */
   public function getFormId() {
     return 'relationship_nodes_field_delete_form';
   }
-
 
   /**
    * {@inheritdoc}
@@ -65,7 +59,6 @@ class FieldDeleteForm extends ConfirmFormBase {
     ]);
   }
 
-
   /**
    * {@inheritdoc}
    */
@@ -73,14 +66,12 @@ class FieldDeleteForm extends ConfirmFormBase {
     return $this->t('All data stored in this field will be deleted. This action cannot be undone.');
   }
 
-
   /**
    * {@inheritdoc}
    */
   public function getCancelUrl() {
     return $this->uiUpdater->getRedirectUrl($this->fieldConfig);
   }
-
 
   /**
    * {@inheritdoc}
@@ -96,7 +87,6 @@ class FieldDeleteForm extends ConfirmFormBase {
     return parent::buildForm($form, $form_state);
   }
 
-
   /**
    * {@inheritdoc}
    */
@@ -107,7 +97,6 @@ class FieldDeleteForm extends ConfirmFormBase {
     }
     $form_state->setRedirectUrl($this->getCancelUrl());
   }
-
 
   /**
    * Checks whether the field belongs to a relation bundle.

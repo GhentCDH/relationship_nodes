@@ -16,5 +16,5 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 class ValidRelationReferenceConstraint extends Constraint {
   public $incomplete = 'A relation cannot have empty related item fields.';
   public $selfReferring = 'An item cannot have a relation with itself.';
-}
 
+}

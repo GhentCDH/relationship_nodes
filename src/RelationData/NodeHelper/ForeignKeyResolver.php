@@ -6,7 +6,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\relationship_nodes\Form\Entity\ParentNodeContext;
 use Drupal\node\NodeInterface;
 use Drupal\relationship_nodes\RelationBundle\BundleInfoService;
-use Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo;
 
 /**
  * Service for resolving foreign key fields in relationship nodes.
@@ -17,15 +16,14 @@ class ForeignKeyResolver {
   protected BundleInfoService $bundleInfoService;
   protected RelationInfo $nodeInfoService;
 
-
   /**
    * Constructs a ForeignKeyResolver object.
    *
-   * @param ParentNodeContext $parentNodeContext
+   * @param \Drupal\relationship_nodes\Form\Entity\ParentNodeContext $parentNodeContext
    *   The parent node context.
-   * @param BundleInfoService $bundleInfoService
+   * @param \Drupal\relationship_nodes\RelationBundle\BundleInfoService $bundleInfoService
    *   The bundle info service.
-   * @param RelationInfo $nodeInfoService
+   * @param \Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo $nodeInfoService
    *   The node info service.
    */
   public function __construct(
@@ -38,7 +36,6 @@ class ForeignKeyResolver {
     $this->nodeInfoService = $nodeInfoService;
   }
 
-
   /**
    * Gets the default foreign key field for a relation bundle.
    *
@@ -50,42 +47,44 @@ class ForeignKeyResolver {
    * @return string|null
    *   The foreign key field name or NULL.
    */
-  public function getDefaultBundleForeignKeyField(string $relation_bundle, string $target_bundle = null): ?string {       
+  public function getDefaultBundleForeignKeyField(string $relation_bundle, ?string $target_bundle = NULL): ?string {
     if (!$target_bundle) {
       $target_entity = $this->ensureTargetNode();
       if (!($target_entity instanceof NodeInterface)) {
-        return null;
+        return NULL;
       }
       $target_bundle = $target_entity->getType();
-    }        
-    
+    }
+
     $connection_info = $this->bundleInfoService->getBundleConnectionInfo($relation_bundle, $target_bundle) ?? [];
     return $this->connectionInfoToForeignKey($connection_info);
   }
 
-
+  /**
+   *
+   */
   public function getEntityForeignKeyField(NodeInterface $relation_entity, ?NodeInterface $target_entity = NULL): ?string {
     $target_entity = $this->ensureTargetNode($target_entity);
     if (!$target_entity) {
-      return null;
+      return NULL;
     }
     $relation_type = $relation_entity->getType();
     $target_entity_type = $target_entity->getType();
     if ($relation_entity->isNew() || $target_entity->isNew()) {
       $connection_info = $this->bundleInfoService->getBundleConnectionInfo($relation_type, $target_entity_type) ?? [];
-    } else {
+    }
+    else {
       $connection_info = $this->nodeInfoService->getEntityConnectionInfo($relation_entity, $target_entity) ?? [];
     }
     return $this->connectionInfoToForeignKey($connection_info);
   }
 
-
   /**
    * Gets the foreign key field from an entity form.
    *
-   * @param NodeInterface $relation_node
+   * @param \Drupal\node\NodeInterface $relation_node
    *   The entity form array.
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    *
    * @return string|null
@@ -93,27 +92,25 @@ class ForeignKeyResolver {
    */
   public function getEntityFormForeignKeyField(NodeInterface $relation_node, FormStateInterface $form_state): ?string {
     $form_entity = $form_state->getFormObject()->getEntity();
-    return $this->getEntityForeignKeyField($relation_node,  $form_entity);   
+    return $this->getEntityForeignKeyField($relation_node, $form_entity);
   }
-
 
   /**
    * Ensures a target node is available.
    *
-   * @param NodeInterface|null $node
+   * @param \Drupal\node\NodeInterface|null $node
    *   The node or NULL.
    *
-   * @return NodeInterface|null
+   * @return \Drupal\node\NodeInterface|null
    *   The node or NULL.
    */
-  private function ensureTargetNode(?NodeInterface $node = null): ?NodeInterface {
+  private function ensureTargetNode(?NodeInterface $node = NULL): ?NodeInterface {
     if ($node instanceof NodeInterface) {
       return $node;
     }
     $current_node = $this->parentNodeContext->getParentNode();
-    return $current_node instanceof NodeInterface ? $current_node : null;
+    return $current_node instanceof NodeInterface ? $current_node : NULL;
   }
-
 
   /**
    * Converts connection info to foreign key field name.
@@ -126,13 +123,14 @@ class ForeignKeyResolver {
    */
   private function connectionInfoToForeignKey(array $connection_info): ?string {
     if (empty($connection_info['join_fields'])) {
-      return null;
+      return NULL;
     }
     $join_fields = $connection_info['join_fields'];
 
     if (!is_array($join_fields)) {
-      return null;
+      return NULL;
     }
-    return $join_fields[0] ?? null;
+    return $join_fields[0] ?? NULL;
   }
+
 }

@@ -1,8 +1,8 @@
 <?php
+
 // ============================================================
 // 1. Value object: src/Display/RelationAvailability.php
 // ============================================================
-
 namespace Drupal\relationship_nodes\Display;
 
 /**

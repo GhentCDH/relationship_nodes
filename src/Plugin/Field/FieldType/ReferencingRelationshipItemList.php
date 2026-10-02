@@ -10,8 +10,6 @@ use Drupal\node\Entity\Node;
 use Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo;
 use Drupal\relationship_nodes\RelationData\NodeHelper\RelationWeightManager;
 
-
-
 /**
  * Computed entity reference field listing all relation nodes for a bundle.
  *
@@ -24,13 +22,12 @@ class ReferencingRelationshipItemList extends EntityReferenceFieldItemList imple
 
   use ComputedItemListTrait;
 
-
   /**
    * {@inheritdoc}
    */
   protected function computeValue() : void {
     $related_nodes = $this->collectExistingRelations();
-    if(empty($related_nodes)){
+    if (empty($related_nodes)) {
       return;
     }
 
@@ -38,9 +35,8 @@ class ReferencingRelationshipItemList extends EntityReferenceFieldItemList imple
     foreach ($related_nodes as $target_id => $related_node) {
       $this->list[$delta] = $this->createItem($delta, ['target_id' => $target_id, 'entity' => $related_node]);
       $delta++;
-    }     
-  }   
-  
+    }
+  }
 
   /**
    * Queries and returns all existing relation nodes for the host entity.
@@ -48,28 +44,27 @@ class ReferencingRelationshipItemList extends EntityReferenceFieldItemList imple
    * @return array
    *   Relation node entities keyed by ID, sorted by weight.
    */
-  public function collectExistingRelations(): array{
-    $current_node = $this->getParent()->getEntity() ?? null;
-    if(!($current_node instanceof Node) || $current_node->isNew()){
+  public function collectExistingRelations(): array {
+    $current_node = $this->getParent()->getEntity() ?? NULL;
+    if (!($current_node instanceof Node) || $current_node->isNew()) {
       return [];
     }
     $relation_bundle = $this->definition['bundle'] ?? '';
-    if(empty($relation_bundle)){
+    if (empty($relation_bundle)) {
       return [];
     }
     $join_fields = $this->getSettings()['join_field'] ?? [];
-    if(empty($join_fields)){
+    if (empty($join_fields)) {
       return [];
     }
     $relations_by_field = $this->getRelationInfoService()->getReferencingRelations($current_node, $relation_bundle, $join_fields, TRUE) ?? [];
     if (empty($relations_by_field)) {
       return [];
     }
-    
-    // Sort each group by weight and flatten
+
+    // Sort each group by weight and flatten.
     return $this->getRelationWeightManager()->sortByWeight($relations_by_field);
   }
-
 
   /**
    * {@inheritdoc}
@@ -81,7 +76,6 @@ class ReferencingRelationshipItemList extends EntityReferenceFieldItemList imple
    */
   public function preSave() {
   }
-
 
   /**
    * {@inheritdoc}
@@ -127,4 +121,5 @@ class ReferencingRelationshipItemList extends EntityReferenceFieldItemList imple
   protected function getRelationWeightManager(): RelationWeightManager {
     return \Drupal::service('relationship_nodes.relation_weight_manager');
   }
+
 }

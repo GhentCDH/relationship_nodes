@@ -6,7 +6,6 @@ use Drupal\elasticsearch_connector\Event\FieldMappingEvent;
 use Drupal\elasticsearch_connector\Event\SupportsDataTypeEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-
 /**
  * Event subscriber for Elasticsearch nested relationship field mapping.
  *
@@ -20,16 +19,15 @@ class NestedRelationshipMappingSubscriber implements EventSubscriberInterface {
    */
   public static function getSubscribedEvents(): array {
     return [
-        FieldMappingEvent::class => 'onFieldMapping',
-        SupportsDataTypeEvent::class => 'onSupportsDataType',
+      FieldMappingEvent::class => 'onFieldMapping',
+      SupportsDataTypeEvent::class => 'onSupportsDataType',
     ];
   }
-
 
   /**
    * Marks relationship_nodes_search_nested_relationship as supported.
    *
-   * @param SupportsDataTypeEvent $event
+   * @param \Drupal\elasticsearch_connector\Event\SupportsDataTypeEvent $event
    *   The supports data type event.
    */
   public function onSupportsDataType(SupportsDataTypeEvent $event): void {
@@ -40,16 +38,15 @@ class NestedRelationshipMappingSubscriber implements EventSubscriberInterface {
     $event->setIsSupported(TRUE);
   }
 
-
   /**
    * Maps relationship fields to Elasticsearch nested type.
    *
-   * @param FieldMappingEvent $event
+   * @param \Drupal\elasticsearch_connector\Event\FieldMappingEvent $event
    *   The field mapping event.
    */
   public function onFieldMapping(FieldMappingEvent $event): void {
     $sapi_fld = $event->getField();
-    
+
     if ($sapi_fld->getType() !== 'relationship_nodes_search_nested_relationship') {
       return;
     }
@@ -68,7 +65,6 @@ class NestedRelationshipMappingSubscriber implements EventSubscriberInterface {
     }
     $event->setParam($param);
   }
-
 
   /**
    * Maps a Search API data type to an Elasticsearch field mapping.
@@ -91,4 +87,5 @@ class NestedRelationshipMappingSubscriber implements EventSubscriberInterface {
       default => ['type' => 'keyword'],
     };
   }
+
 }

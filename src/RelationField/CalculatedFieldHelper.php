@@ -22,7 +22,7 @@ class CalculatedFieldHelper {
 
   /**
    * Calculated field definitions.
-   * 
+   *
    * Structure:
    * - Key: Logical field group (this_entity, related_entity, relation_type)
    * - Value: Array of field variants (id, name, etc.)
@@ -66,12 +66,12 @@ class CalculatedFieldHelper {
    */
   public function getCalculatedFieldNames(?string $calc_entity_key = NULL, ?string $property = NULL, bool $flatten = FALSE): array {
 
-    // Return all fields
+    // Return all fields.
     if ($calc_entity_key === NULL) {
       if ($property === NULL) {
         return $flatten ? $this->flattenFieldsArray(self::CALCULATED_FIELDS) : self::CALCULATED_FIELDS;
       }
-      
+
       $result = [];
       foreach (self::CALCULATED_FIELDS as $key => $props) {
         if (isset($props[$property])) {
@@ -81,21 +81,20 @@ class CalculatedFieldHelper {
       return $flatten ? array_values($result) : $result;
     }
 
-    // Return specific entity fields
+    // Return specific entity fields.
     $calculated_entity = self::CALCULATED_FIELDS[$calc_entity_key] ?? [];
-    
+
     if (empty($calculated_entity)) {
       return [];
     }
-    
-    // Filter by property if specified
+
+    // Filter by property if specified.
     if ($property === NULL) {
       return $flatten ? array_values($calculated_entity) : $calculated_entity;
     }
-    
+
     return isset($calculated_entity[$property]) ? [$calculated_entity[$property]] : [];
   }
-
 
   /**
    * Gets the target entity type for a calculated field.
@@ -119,7 +118,6 @@ class CalculatedFieldHelper {
     return NULL;
   }
 
-  
   /**
    * Checks if a field name is a calculated field.
    *
@@ -133,7 +131,6 @@ class CalculatedFieldHelper {
     $all_calculated = $this->getCalculatedFieldNames(NULL, NULL, TRUE);
     return in_array($child_fld_nm, $all_calculated, TRUE);
   }
-
 
   /**
    * Formats a calculated field name into a human-readable label.
@@ -150,7 +147,6 @@ class CalculatedFieldHelper {
     $label = str_replace(['calculated_', '_'], ['', ' '], $calc_fld_nm);
     return ucfirst(trim($label));
   }
-
 
   /**
    * Flattens a nested array of calculated fields.
@@ -172,4 +168,5 @@ class CalculatedFieldHelper {
     }
     return $result;
   }
+
 }

@@ -15,7 +15,7 @@ use Drupal\relationship_nodes_search\FieldHelper\NestedIndexFieldHelper;
  * - Widget type selection (textfield, select)
  * - Operator configuration
  * - Filter exposure settings
- * - Required/placeholder configuration
+ * - Required/placeholder configuration.
  */
 class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBase {
 
@@ -24,20 +24,20 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
   /**
    * Constructs a NestedFieldViewsFilterConfigurator object.
    *
-   * @param FieldNameResolver $fieldNameResolver
+   * @param \Drupal\relationship_nodes\RelationField\FieldNameResolver $fieldNameResolver
    *   The field name resolver service.
-   * @param NestedIndexFieldHelper $nestedFieldHelper
+   * @param \Drupal\relationship_nodes_search\FieldHelper\NestedIndexFieldHelper $nestedFieldHelper
    *   The nested field helper service.
-   * @param CalculatedFieldHelper $calculatedFieldHelper
+   * @param \Drupal\relationship_nodes\RelationField\CalculatedFieldHelper $calculatedFieldHelper
    *   The calculated field helper service.
-   * @param FilterOperatorHelper $operatorHelper
+   * @param \Drupal\relationship_nodes_search\QueryHelper\FilterOperatorHelper $operatorHelper
    *   The operator helper service.
    */
   public function __construct(
     FieldNameResolver $fieldNameResolver,
     NestedIndexFieldHelper $nestedFieldHelper,
     CalculatedFieldHelper $calculatedFieldHelper,
-    FilterOperatorHelper $operatorHelper
+    FilterOperatorHelper $operatorHelper,
   ) {
     parent::__construct($fieldNameResolver, $nestedFieldHelper, $calculatedFieldHelper);
     $this->operatorHelper = $operatorHelper;
@@ -50,7 +50,7 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
    *
    * @param array &$form
    *   The form array.
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $sapi_fld_nm
    *   Parent field name.
@@ -64,7 +64,7 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
     Index $index,
     string $sapi_fld_nm,
     array $child_fld_nms,
-    array $saved_settings
+    array $saved_settings,
   ): void {
     $context_prefix = $this->getViewsContextPrefix();
 
@@ -102,7 +102,7 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
   /**
    * Prepares field configurations for filter context.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $sapi_fld_nm
    *   The parent Search API field name.
@@ -118,7 +118,7 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
     Index $index,
     string $sapi_fld_nm,
     array $child_fld_nms,
-    array $saved_settings
+    array $saved_settings,
   ): array {
     $context = $this->buildViewsContext($index, $sapi_fld_nm, $child_fld_nms);
     $configs = $this->prepareFieldConfigurations($child_fld_nms, $saved_settings, $context);
@@ -142,7 +142,6 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
 
     return $configs;
   }
-
 
   /**
    * Builds form elements for a single filter field.
@@ -268,7 +267,7 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
     array &$form,
     array $config,
     array $disabled_state,
-    ?string $context_prefix
+    ?string $context_prefix,
   ): void {
     $field_name = $config['field_name'];
     $widget_options = [
@@ -291,7 +290,8 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
 
     if ($context_prefix) {
       $input_name = $context_prefix . '[field_settings][' . $field_name . '][widget]';
-    } else {
+    }
+    else {
       $input_name = 'field_settings[' . $field_name . '][widget]';
     }
 
@@ -315,7 +315,8 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
     if ($config['supports_range'] ?? FALSE) {
       if ($context_prefix) {
         $int_range_base = $context_prefix . '[field_settings][' . $field_name . '][int_range]';
-      } else {
+      }
+      else {
         $int_range_base = 'field_settings[' . $field_name . '][int_range]';
       }
       $this->buildIntRangeSubForm(
@@ -328,19 +329,22 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
     }
   }
 
-
+  /**
+   *
+   */
   public function buildRangePairForm(
     array &$form,
     array $rangeable_fields,
     array $saved_settings,
-    ?string $context_prefix
+    ?string $context_prefix,
   ): void {
     $pair = $saved_settings['field_settings']['range_pair'] ?? [];
     $is_enabled = !empty($pair['enabled']);
 
     if ($context_prefix) {
       $enabled_input = ':input[name="' . $context_prefix . '[field_settings][range_pair][enabled]"]';
-    } else {
+    }
+    else {
       $enabled_input = ':input[name="field_settings[range_pair][enabled]"]';
     }
     $disabled_state = ['disabled' => [$enabled_input => ['checked' => FALSE]]];
@@ -414,7 +418,8 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
     if ($context_prefix) {
       $widget_input = $context_prefix . '[field_settings][range_pair][widget]';
       $int_range_base = $context_prefix . '[field_settings][range_pair][int_range]';
-    } else {
+    }
+    else {
       $widget_input = 'field_settings[range_pair][widget]';
       $int_range_base = 'field_settings[range_pair][int_range]';
     }
@@ -439,7 +444,6 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
       ['max' => (int) date('Y'), 'use_current_year_max' => TRUE]
     );
   }
-
 
   /**
    * Builds the int_range sub-form elements into a parent form container.
@@ -466,7 +470,7 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
     string $int_range_base,
     array $disabled_state,
     array $saved,
-    array $defaults = []
+    array $defaults = [],
   ): void {
     $cur_year_min = $int_range_base . '[use_current_year_min]';
     $cur_year_max = $int_range_base . '[use_current_year_max]';
@@ -534,9 +538,12 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
     ];
   }
 
-
+  /**
+   *
+   */
   private function generateChildfieldFilterId(string $child_field_name): string {
     $key = preg_replace('/^(field_|rn_|calculated_)/', '', $child_field_name);
     return substr($key, 0, 20);
   }
+
 }

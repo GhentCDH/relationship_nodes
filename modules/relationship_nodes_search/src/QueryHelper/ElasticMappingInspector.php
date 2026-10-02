@@ -5,10 +5,9 @@ namespace Drupal\relationship_nodes_search\QueryHelper;
 use Drupal\search_api\Entity\Index;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 
-
 /**
  * Service for inspecting and working with Elasticsearch field mappings.
- * 
+ *
  * Provides utilities to determine correct field paths for queries and aggregations,
  * handling the complexity of Elasticsearch's text/keyword field patterns.
  */
@@ -18,22 +17,20 @@ class ElasticMappingInspector {
   protected array $fieldMappingCache = [];
   protected LoggerChannelFactoryInterface $loggerFactory;
 
-  
   /**
    * Constructs an ElasticMappingInspector object.
    *
-   * @param LoggerChannelFactoryInterface $loggerFactory
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
    *   The logger factory service.
    */
   public function __construct(LoggerChannelFactoryInterface $loggerFactory) {
     $this->loggerFactory = $loggerFactory;
   }
 
-
   /**
    * Retrieves the Elasticsearch mapping info for a specific field.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $sapi_fld_nm
    *   The parent field name.
@@ -58,30 +55,29 @@ class ElasticMappingInspector {
 
     $parent_mapping = $all_mappings[$sapi_fld_nm];
 
-    // Check nested field properties
+    // Check nested field properties.
     if (($parent_mapping['type'] ?? '') === 'nested' && isset($parent_mapping['properties'][$child_fld_nm])) {
       $result = $parent_mapping['properties'][$child_fld_nm];
       $this->fieldMappingCache[$cache_key] = $result;
       return $result;
     }
 
-    // Fallback to direct properties
+    // Fallback to direct properties.
     if (isset($parent_mapping['properties'][$child_fld_nm])) {
       $result = $parent_mapping['properties'][$child_fld_nm];
       $this->fieldMappingCache[$cache_key] = $result;
       return $result;
     }
 
-    $this->fieldMappingCache[$cache_key] = NULL; 
+    $this->fieldMappingCache[$cache_key] = NULL;
     return NULL;
   }
-
 
   /**
    * Retrieves all field mappings for a Search API index from Elasticsearch.
    * Results are cached to avoid repeated API calls.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    *
    * @return array
@@ -89,7 +85,7 @@ class ElasticMappingInspector {
    */
   public function getIndexMappings(Index $index): array {
     $index_id = $index->id();
-    
+
     if (isset($this->mappingCache[$index_id])) {
       return $this->mappingCache[$index_id];
     }
@@ -98,32 +94,32 @@ class ElasticMappingInspector {
       $server = $index->getServerInstance();
       $backend = $server->getBackend();
       $client = $backend->getClient();
-          
+
       // The Elasticsearch index name includes the server's prefix and suffix.
       $es_index = $backend->getBackendClient()->getIndexId($index);
       $response = $client->indices()->getMapping(['index' => $es_index]);
 
-      // Extract properties from response
+      // Extract properties from response.
       $properties = $response[$es_index]['mappings']['properties'] ?? [];
-      
+
       $this->mappingCache[$index_id] = $properties;
-      
+
       return $properties;
-    } catch (\Exception $e) {
+    }
+    catch (\Exception $e) {
       $this->loggerFactory->get('relationship_nodes_search')->error(
         'Failed to retrieve Elasticsearch mappings for index @index: @message',
         ['@index' => $index_id, '@message' => $e->getMessage()]
-      );
+          );
       return [];
     }
   }
-
 
   /**
    * Clears cached mappings (for a specific index or all indices).
    *
    * @param string|null $index_id
-   *    Optional index ID to clear. If NULL, clears all cached mappings.
+   *   Optional index ID to clear. If NULL, clears all cached mappings.
    */
   public function clearCache(?string $index_id = NULL): void {
     if ($index_id) {
@@ -133,9 +129,11 @@ class ElasticMappingInspector {
           unset($this->fieldMappingCache[$key]);
         }
       }
-    } else {
+    }
+    else {
       $this->mappingCache = [];
       $this->fieldMappingCache = [];
     }
   }
+
 }

@@ -4,7 +4,6 @@ namespace Drupal\relationship_nodes\RelationData\NodeHelper;
 
 use Drupal\relationship_nodes\Form\Entity\ParentNodeContext;
 use Drupal\node\Entity\Node;
-use Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo;
 
 /**
  * Service for validating relationship entities.
@@ -15,13 +14,12 @@ class RelationEntityValidator {
   protected RelationInfo $nodeInfoService;
   protected ForeignKeyResolver $foreignKeyResolver;
 
-
   /**
    * Constructs a RelationEntityValidator object.
    *
-   * @param ParentNodeContext $parentNodeContext
+   * @param \Drupal\relationship_nodes\Form\Entity\ParentNodeContext $parentNodeContext
    *   The parent node context.
-   * @param RelationInfo $nodeInfoService
+   * @param \Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo $nodeInfoService
    *   The node info service.
    * @param ForeignKeyResolver $foreignKeyResolver
    *   The foreign key field resolver.
@@ -29,33 +27,32 @@ class RelationEntityValidator {
   public function __construct(
     ParentNodeContext $parentNodeContext,
     RelationInfo $nodeInfoService,
-    ForeignKeyResolver $foreignKeyResolver
+    ForeignKeyResolver $foreignKeyResolver,
   ) {
     $this->parentNodeContext = $parentNodeContext;
     $this->nodeInfoService = $nodeInfoService;
     $this->foreignKeyResolver = $foreignKeyResolver;
   }
 
-
   /**
    * Checks the validity of a relation entity.
    *
-   * @param Node $relation_entity
+   * @param \Drupal\node\Entity\Node $relation_entity
    *   The relation node to validate.
    *
    * @return string|null
    *   Error type ('incomplete' or 'selfReferring') or NULL if valid.
    */
   public function checkRelationsValidity(Node $relation_entity): ?string {
-    $related_entities = $this->nodeInfoService->getRelatedEntityValues($relation_entity); 
-    if ($related_entities === null) {
-      return null;
+    $related_entities = $this->nodeInfoService->getRelatedEntityValues($relation_entity);
+    if ($related_entities === NULL) {
+      return NULL;
     }
 
-    $new_relation = false;
+    $new_relation = FALSE;
     if ($relation_entity->isNew()) {
       $current_node = $this->parentNodeContext->getParentNode();
-      $new_relation = true;
+      $new_relation = TRUE;
       if ($current_node instanceof Node && $current_node !== $relation_entity) {
         // Relation is added in a subform (IEF)
         $foreign_key_field = $this->foreignKeyResolver->getEntityForeignKeyField($relation_entity, $current_node);
@@ -68,12 +65,13 @@ class RelationEntityValidator {
       return 'incomplete';
     }
 
-    $related_entities = array_values($related_entities);   
+    $related_entities = array_values($related_entities);
     foreach ($related_entities[0] as $reference) {
       if (in_array($reference, $related_entities[1] ?? [])) {
-        return 'selfReferring'; 
+        return 'selfReferring';
       }
     }
-    return null;
+    return NULL;
   }
+
 }

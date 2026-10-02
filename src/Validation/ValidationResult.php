@@ -32,7 +32,8 @@ final class ValidationResult {
     return new self([[
       'error_code' => $errorCode,
       'context' => $context,
-    ]]);
+    ],
+    ]);
   }
 
   /**
@@ -56,7 +57,7 @@ final class ValidationResult {
     if ($this->isValid() && $other->isValid()) {
       return self::valid();
     }
-    
+
     return new self(array_merge($this->errors, $other->errors));
   }
 
@@ -71,7 +72,7 @@ final class ValidationResult {
       }
       $allErrors = array_merge($allErrors, $result->errors);
     }
-    
+
     return empty($allErrors) ? self::valid() : new self($allErrors);
   }
 
@@ -94,7 +95,6 @@ final class ValidationResult {
     return new self($mappedErrors);
   }
 
-
   /**
    * Get formatted error messages.
    */
@@ -102,7 +102,8 @@ final class ValidationResult {
     if ($this->isValid()) {
       return '';
     }
-    
+
     return $formatter->formatValidationErrors($name, $this->errors);
   }
+
 }

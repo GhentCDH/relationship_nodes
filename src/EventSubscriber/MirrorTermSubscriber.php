@@ -9,7 +9,6 @@ use Drupal\relationship_nodes\RelationData\TermHelper\MirrorSync;
 use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-
 /**
  * Event subscriber for mirror term operations.
  *
@@ -20,23 +19,21 @@ class MirrorTermSubscriber implements EventSubscriberInterface {
   protected MirrorSync $mirrorUpdater;
   protected BundleSettingsManager $settingsManager;
 
-
   /**
    * Constructs a MirrorTermSubscriber object.
    *
-   * @param MirrorSync $mirrorUpdater
+   * @param \Drupal\relationship_nodes\RelationData\TermHelper\MirrorSync $mirrorUpdater
    *   The mirror updater service.
-   * @param BundleSettingsManager $settingsManager
+   * @param \Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager $settingsManager
    *   The settings manager service.
    */
   public function __construct(
     MirrorSync $mirrorUpdater,
-    BundleSettingsManager $settingsManager
+    BundleSettingsManager $settingsManager,
   ) {
     $this->mirrorUpdater = $mirrorUpdater;
     $this->settingsManager = $settingsManager;
   }
-
 
   /**
    * {@inheritdoc}
@@ -49,11 +46,10 @@ class MirrorTermSubscriber implements EventSubscriberInterface {
     ];
   }
 
-
   /**
    * Adds mirror logic when terms are created, updated, or deleted.
    *
-   * @param EntityEvent $event
+   * @param \Drupal\entity_events\Event\EntityEvent $event
    *   The entity event.
    * @param string $event_name
    *   The event name.
@@ -61,20 +57,19 @@ class MirrorTermSubscriber implements EventSubscriberInterface {
   public function addMirrorLogic(EntityEvent $event, string $event_name): void {
     $term = $event->getEntity();
     if (!$term instanceof TermInterface) {
-      return;      
+      return;
     }
 
-    $bundle_info = $this->settingsManager->getBundleInfo($term->bundle(), 'taxonomy_term');    
+    $bundle_info = $this->settingsManager->getBundleInfo($term->bundle(), 'taxonomy_term');
     if (!$bundle_info || !$bundle_info->isRelation() || $bundle_info->getMirrorType() !== 'entity_reference') {
-        return;
+      return;
     }
     $hook = $this->mapEventNameToHook($event_name);
-    if ($hook === null) {
+    if ($hook === NULL) {
       return;
     }
     $this->mirrorUpdater->setMirrorTermLink($term, $hook);
   }
-
 
   /**
    * Maps event name to hook name.
@@ -90,7 +85,8 @@ class MirrorTermSubscriber implements EventSubscriberInterface {
       EntityEventType::INSERT => 'insert',
       EntityEventType::UPDATE => 'update',
       EntityEventType::DELETE => 'delete',
-      default => null,
+      default => NULL,
     };
   }
+
 }

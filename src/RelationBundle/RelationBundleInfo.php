@@ -8,7 +8,7 @@ use Drupal\taxonomy\Entity\Vocabulary;
 
 /**
  * Value object for relation bundle configuration.
- * 
+ *
  * Encapsulates all bundle-related logic in one place.
  */
 final class RelationBundleInfo {
@@ -26,17 +26,17 @@ final class RelationBundleInfo {
   /**
    * Creates a RelationBundleInfo from a bundle entity and its third-party settings.
    *
-   * @param ConfigEntityBundleBase $bundle
+   * @param \Drupal\Core\Config\Entity\ConfigEntityBundleBase $bundle
    *   The node type or vocabulary entity.
    * @param array $properties
    *   The relationship_nodes third-party settings for this entity.
    */
   public static function create(
     ConfigEntityBundleBase $bundle,
-    array $properties
+    array $properties,
   ): self {
     $isRelation = !empty($properties['enabled']);
-    
+
     return new self(
       bundle: $bundle,
       entityTypeId: $bundle->getEntityTypeId(),
@@ -44,20 +44,27 @@ final class RelationBundleInfo {
       isRelation: $isRelation,
       isTyped: $isRelation && !empty($properties['typed_relation']),
       autoTitle: !empty($properties['auto_title']),
-      mirrorType: $properties['referencing_type'] ?? null,
+      mirrorType: $properties['referencing_type'] ?? NULL,
     );
   }
 
-  // ===== Public API =====
-
+  /**
+   * ===== Public API =====
+   */
   public function getBundle(): ConfigEntityBundleBase {
     return $this->bundle;
   }
 
+  /**
+   *
+   */
   public function getBundleId(): string {
     return $this->bundleId;
   }
 
+  /**
+   *
+   */
   public function getEntityTypeId(): string {
     return $this->entityTypeId;
   }
@@ -94,13 +101,19 @@ final class RelationBundleInfo {
    * Returns TRUE if this vocabulary has a configured bidirectional mirror field.
    */
   public function isMirroringVocab(): bool {
-    return in_array($this->mirrorType, ['string', 'entity_reference'], true);
+    return in_array($this->mirrorType, ['string', 'entity_reference'], TRUE);
   }
 
+  /**
+   *
+   */
   public function isNodeType(): bool {
     return $this->bundle instanceof NodeType;
   }
 
+  /**
+   *
+   */
   public function isVocabulary(): bool {
     return $this->bundle instanceof Vocabulary;
   }
@@ -122,7 +135,6 @@ final class RelationBundleInfo {
     };
   }
 
-  
   /**
    * Returns the rn_* field names that must exist for this bundle configuration.
    *
@@ -133,24 +145,24 @@ final class RelationBundleInfo {
     if (!$this->isRelation) {
       return [];
     }
-    
+
     $fields = [];
-    
+
     if ($this->isNodeType()) {
       $fields[] = 'rn_related_entity_1';
       $fields[] = 'rn_related_entity_2';
-      
+
       if ($this->isTyped) {
         $fields[] = 'rn_relation_type';
       }
     }
-    
+
     if ($this->isVocabulary() && $this->mirrorType && $this->mirrorType !== 'none') {
-      $fields[] = $this->mirrorType === 'string' 
-        ? 'rn_mirror_string' 
+      $fields[] = $this->mirrorType === 'string'
+        ? 'rn_mirror_string'
         : 'rn_mirror_reference';
     }
-    
+
     return $fields;
   }
 
@@ -159,19 +171,20 @@ final class RelationBundleInfo {
    */
   public function toArray(): array {
     $array = ['enabled' => $this->isRelation];
-    
+
     if ($this->isRelation) {
       if ($this->isTyped) {
-        $array['typed_relation'] = true;
+        $array['typed_relation'] = TRUE;
       }
       if ($this->autoTitle) {
-        $array['auto_title'] = true;
+        $array['auto_title'] = TRUE;
       }
-      if ($this->mirrorType !== null) {
+      if ($this->mirrorType !== NULL) {
         $array['referencing_type'] = $this->mirrorType;
       }
     }
-    
+
     return $array;
   }
+
 }

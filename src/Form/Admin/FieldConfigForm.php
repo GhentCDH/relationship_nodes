@@ -11,11 +11,9 @@ use Drupal\Core\Url;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\node\Entity\NodeType;
 use Drupal\taxonomy\Entity\Vocabulary;
-use Drupal\relationship_nodes\Form\Admin\FieldUiManager;
 use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
 use Drupal\relationship_nodes\RelationField\FieldNameResolver;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-
 
 /**
  * Form for editing relationship node field configurations.
@@ -28,36 +26,34 @@ class FieldConfigForm extends FormBase {
   protected FieldNameResolver $fieldResolver;
   protected BundleSettingsManager $settingsManager;
   protected FieldUiManager $uiUpdater;
-  protected ?FieldConfig $fieldConfig = null;
-  protected ?string $fieldName = null;
-  protected ?string $entityType = null;
-  protected ?string $bundle = null;
-
+  protected ?FieldConfig $fieldConfig = NULL;
+  protected ?string $fieldName = NULL;
+  protected ?string $entityType = NULL;
+  protected ?string $bundle = NULL;
 
   /**
    * Constructs a FieldConfigForm object.
    *
-   * @param EntityTypeManagerInterface $entityTypeManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
-   * @param FieldNameResolver $fieldResolver
+   * @param \Drupal\relationship_nodes\RelationField\FieldNameResolver $fieldResolver
    *   The field name resolver.
-   * @param BundleSettingsManager $settingsManager
+   * @param \Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager $settingsManager
    *   The settings manager.
-   * @param FieldUiManager $uiUpdater
+   * @param \Drupal\relationship_nodes\Form\Admin\FieldUiManager $uiUpdater
    *   The UI updater.
    */
   public function __construct(
-    EntityTypeManagerInterface $entityTypeManager, 
-    FieldNameResolver $fieldResolver, 
+    EntityTypeManagerInterface $entityTypeManager,
+    FieldNameResolver $fieldResolver,
     BundleSettingsManager $settingsManager,
-    FieldUiManager $uiUpdater
+    FieldUiManager $uiUpdater,
   ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->fieldResolver = $fieldResolver;
     $this->settingsManager = $settingsManager;
     $this->uiUpdater = $uiUpdater;
   }
-
 
   /**
    * {@inheritdoc}
@@ -71,14 +67,12 @@ class FieldConfigForm extends FormBase {
     );
   }
 
-
   /**
    * {@inheritdoc}
    */
   public function getFormId() {
     return 'relation_field_config_form';
   }
-
 
   /**
    * Gets the form title.
@@ -88,7 +82,7 @@ class FieldConfigForm extends FormBase {
    * @param string $field_name
    *   The field name.
    *
-   * @return TranslatableMarkup
+   * @return \Drupal\Core\StringTranslation\TranslatableMarkup
    *   The form title.
    */
   public function getTitle(string $bundle, string $field_name): TranslatableMarkup {
@@ -104,7 +98,6 @@ class FieldConfigForm extends FormBase {
     ]);
   }
 
-
   /**
    * {@inheritdoc}
    */
@@ -118,14 +111,12 @@ class FieldConfigForm extends FormBase {
     $this->fieldName = $field_config->getName();
     $this->bundle = $field_config->getTargetBundle();
 
-
     $form['label'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Label'),
       '#default_value' => $field_config->label(),
       '#required' => TRUE,
     ];
-
 
     if ($this->entityType === 'node') {
       $form['target_bundle'] = [
@@ -139,9 +130,10 @@ class FieldConfigForm extends FormBase {
       if ($this->fieldName == $this->fieldResolver->getRelationTypeField()) {
         $form['target_bundle']['#title'] = $this->t('Target relation type vocabulary');
         $form['target_bundle']['#options'] = $this->getAllRelationVocabs();
-      } elseif (in_array($this->fieldName, $this->fieldResolver->getRelatedEntityFields())) {
-          $form['target_bundle']['#title'] = $this->t('Target node type');
-          $form['target_bundle']['#options'] = $this->getAllNodeTypes();
+      }
+      elseif (in_array($this->fieldName, $this->fieldResolver->getRelatedEntityFields())) {
+        $form['target_bundle']['#title'] = $this->t('Target node type');
+        $form['target_bundle']['#options'] = $this->getAllNodeTypes();
       }
     }
 
@@ -149,23 +141,22 @@ class FieldConfigForm extends FormBase {
       '#type' => 'submit',
       '#value' => $this->t('Save'),
     ];
-    $bundle_info = $this->settingsManager->getBundleInfo($this->bundle, $this->entityType);    
+    $bundle_info = $this->settingsManager->getBundleInfo($this->bundle, $this->entityType);
     if (!$bundle_info || !$bundle_info->isRelation()) {
       $form['delete'] = [
         '#type' => 'link',
         '#title' => $this->t('Delete RN Field'),
         '#url' => Url::fromRoute('relationship_nodes.rn_field_delete', [
-            'field_config' => $this->fieldConfig->id(),
+          'field_config' => $this->fieldConfig->id(),
         ]),
         '#attributes' => [
-            'class' => ['button', 'button--danger'],
+          'class' => ['button', 'button--danger'],
         ],
       ];
     }
 
     return $form;
   }
-
 
   /**
    * {@inheritdoc}
@@ -217,7 +208,6 @@ class FieldConfigForm extends FormBase {
     }
   }
 
-
   /**
    * {@inheritdoc}
    */
@@ -229,7 +219,6 @@ class FieldConfigForm extends FormBase {
     }
 
     $field->setLabel($form_state->getValue('label'));
-
 
     if ($this->entityType === 'node') {
       $target = $form_state->getValue('target_bundle');
@@ -247,7 +236,6 @@ class FieldConfigForm extends FormBase {
     $form_state->setRedirectUrl($this->uiUpdater->getRedirectUrl($field));
   }
 
-
   /**
    * Gets all available node types.
    *
@@ -262,7 +250,6 @@ class FieldConfigForm extends FormBase {
     return $options;
   }
 
-
   /**
    * Gets all relation vocabularies.
    *
@@ -272,14 +259,13 @@ class FieldConfigForm extends FormBase {
   protected function getAllRelationVocabs(): array {
     $options = [];
     foreach (Vocabulary::loadMultiple() as $type) {
-      $bundle_info = $this->settingsManager->getBundleInfo($type); 
+      $bundle_info = $this->settingsManager->getBundleInfo($type);
       if ($bundle_info && $bundle_info->isRelation()) {
         $options[$type->id()] = $type->label();
-      } 
+      }
     }
     return $options;
   }
-
 
   /**
    * Gets the current target bundle for a field.
@@ -305,4 +291,5 @@ class FieldConfigForm extends FormBase {
     }
     return NULL;
   }
+
 }

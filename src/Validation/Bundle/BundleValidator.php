@@ -15,7 +15,7 @@ final class BundleValidator {
     private readonly array $rnSettings,
     private readonly array $dependentBundles,
     private readonly FieldNameResolver $fieldResolver,
-    private readonly ?string $bundleId = null,
+    private readonly ?string $bundleId = NULL,
   ) {}
 
   /**
@@ -30,16 +30,22 @@ final class BundleValidator {
       ? $this->validateDependencies()
       : $this->validateEnabledBundle();
 
-    // Add bundle context if provided
+    // Add bundle context if provided.
     return $this->bundleId
       ? $result->withContext(['@bundle' => $this->bundleId])
       : $result;
   }
 
+  /**
+   *
+   */
   private function isRelevantEntityType(): bool {
-    return in_array($this->entityTypeId, ['node_type', 'taxonomy_vocabulary'], true);
+    return in_array($this->entityTypeId, ['node_type', 'taxonomy_vocabulary'], TRUE);
   }
 
+  /**
+   *
+   */
   private function validateDependencies(): ValidationResult {
     if ($this->entityTypeId === 'taxonomy_vocabulary' && !empty($this->dependentBundles)) {
       return ValidationResult::fromErrorCode('disabled_with_dependencies');
@@ -47,6 +53,9 @@ final class BundleValidator {
     return ValidationResult::valid();
   }
 
+  /**
+   *
+   */
   private function validateEnabledBundle(): ValidationResult {
     return ValidationResult::mergeAll([
       $this->validateFieldNameConfig(),
@@ -54,11 +63,14 @@ final class BundleValidator {
     ]);
   }
 
+  /**
+   *
+   */
   private function validateFieldNameConfig(): ValidationResult {
     if ($this->entityTypeId === 'node_type') {
       return $this->validateNodeTypeFields();
     }
-    
+
     if ($this->entityTypeId === 'taxonomy_vocabulary') {
       return $this->validateVocabularyFields();
     }
@@ -66,6 +78,9 @@ final class BundleValidator {
     return ValidationResult::valid();
   }
 
+  /**
+   *
+   */
   private function validateNodeTypeFields(): ValidationResult {
     if (!$this->validBasicRelationConfig()) {
       return ValidationResult::fromErrorCode('missing_field_name_config');
@@ -78,30 +93,39 @@ final class BundleValidator {
     return ValidationResult::valid();
   }
 
+  /**
+   *
+   */
   private function validateVocabularyFields(): ValidationResult {
     return $this->validRelationVocabConfig()
       ? ValidationResult::valid()
       : ValidationResult::fromErrorCode('missing_field_name_config');
   }
 
+  /**
+   *
+   */
   private function validateMirrorType(): ValidationResult {
     if ($this->entityTypeId !== 'taxonomy_vocabulary') {
       return ValidationResult::valid();
     }
 
-    $referencing = $this->rnSettings['referencing_type'] ?? null;
-    
+    $referencing = $this->rnSettings['referencing_type'] ?? NULL;
+
     if (empty($referencing)) {
       return ValidationResult::valid();
     }
 
     $validTypes = ['none', 'entity_reference', 'string'];
-    
-    return in_array($referencing, $validTypes, true)
+
+    return in_array($referencing, $validTypes, TRUE)
       ? ValidationResult::valid()
       : ValidationResult::fromErrorCode('invalid_mirror_type');
   }
 
+  /**
+   *
+   */
   private function validBasicRelationConfig(): bool {
     return $this->validChildFieldConfig(
       $this->fieldResolver->getRelatedEntityFields(),
@@ -109,11 +133,17 @@ final class BundleValidator {
     );
   }
 
+  /**
+   *
+   */
   private function validTypedRelationConfig(): bool {
     return !empty($this->fieldResolver->getRelationTypeField())
       && $this->validRelationVocabConfig();
   }
 
+  /**
+   *
+   */
   private function validRelationVocabConfig(): bool {
     return $this->validChildFieldConfig(
       $this->fieldResolver->getMirrorFields(),
@@ -121,23 +151,27 @@ final class BundleValidator {
     );
   }
 
+  /**
+   *
+   */
   private function validChildFieldConfig(array $fields, string $configKey): bool {
     if (!is_array($fields)) {
-      return false;
+      return FALSE;
     }
 
     $subfields = $this->fieldResolver->getConfig($configKey);
-    
+
     if (empty($subfields) || !is_array($subfields)) {
-      return false;
+      return FALSE;
     }
 
     foreach (array_keys($subfields) as $subfield) {
       if (!array_key_exists($subfield, $fields) || empty($fields[$subfield])) {
-        return false;
+        return FALSE;
       }
     }
 
-    return true;
+    return TRUE;
   }
+
 }

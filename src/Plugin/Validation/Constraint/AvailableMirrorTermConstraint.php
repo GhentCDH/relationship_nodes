@@ -6,8 +6,6 @@ use Symfony\Component\Validator\Constraint;
 use Drupal\Core\Validation\Attribute\Constraint as ConstraintAttribute;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 
-
-
 /**
  * Validates that a mirror term is not already used by another relation type.
  */
@@ -18,4 +16,5 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 class AvailableMirrorTermConstraint extends Constraint {
   public $termAlreadyMirrored = 'The selected mirror term is already linked to another relationship type. Please choose a different mirror term or remove the existing link before proceeding.';
   public $noSelfMirroring = 'A relationship type cannot mirror itself. For one-way (unidirectional) relationships, leave the mirror field blank. For directional relationships, select a different term for the reverse relationship or remove the existing link first.';
+
 }

@@ -2,7 +2,6 @@
 
 namespace Drupal\relationship_nodes_search\Plugin\search_api\processor;
 
-
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\TypedData\TranslatableInterface;
 use Drupal\Core\Entity\EntityPublishedInterface;
@@ -17,7 +16,6 @@ use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\search_api\SearchApiException;
 use Drupal\relationship_nodes\RelationField\FieldNameResolver;
-use Drupal\search_api\Processor\ProcessorProperty;
 use Drupal\relationship_nodes\RelationData\TermHelper\MirrorProvider;
 use Drupal\relationship_nodes_search\Views\Parser\NestedFieldResultViewsParser;
 use Drupal\relationship_nodes\RelationField\CalculatedFieldHelper;
@@ -27,7 +25,6 @@ use Drupal\search_api\IndexInterface;
 use Drupal\node\NodeInterface;
 use Drupal\search_api\Attribute\SearchApiProcessor;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
-
 
 /**
  * Adds nested relationship data to specified fields.
@@ -50,8 +47,7 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
   protected BundleSettingsManager $settingsManager;
   protected MirrorProvider $mirrorProvider;
   protected NestedFieldResultViewsParser $resultParser;
-  protected CalculatedFieldHelper $calculatedFieldHelper; 
-
+  protected CalculatedFieldHelper $calculatedFieldHelper;
 
   /**
    * Constructs a RelationshipIndexer object.
@@ -62,38 +58,38 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
    *   The plugin ID for the plugin instance.
    * @param mixed $plugin_definition
    *   The plugin implementation definition.
-   * @param EntityTypeManagerInterface $entity_type_manager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager service.
-   * @param EntityFieldManagerInterface $entityFieldManager
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entityFieldManager
    *   The entity field manager service.
-   * @param LoggerChannelFactoryInterface $loggerFactory
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
    *   The logger factory service.
-   * @param BundleInfoService $bundleInfoService
+   * @param \Drupal\relationship_nodes\RelationBundle\BundleInfoService $bundleInfoService
    *   The relation bundle info service.
-   * @param FieldNameResolver $fieldResolver
+   * @param \Drupal\relationship_nodes\RelationField\FieldNameResolver $fieldResolver
    *   The field name resolver service.
-   * @param BundleSettingsManager $settingsManager
+   * @param \Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager $settingsManager
    *   The relation bundle settings manager service.
-   * @param MirrorProvider $mirrorProvider
+   * @param \Drupal\relationship_nodes\RelationData\TermHelper\MirrorProvider $mirrorProvider
    *   The mirror term provider service.
-   * @param NestedFieldResultViewsParser $resultParser
+   * @param \Drupal\relationship_nodes_search\Views\Parser\NestedFieldResultViewsParser $resultParser
    *   The child field entity reference helper service.
-   * @param CalculatedFieldHelper $calculatedFieldHelper
+   * @param \Drupal\relationship_nodes\RelationField\CalculatedFieldHelper $calculatedFieldHelper
    *   The calculated field helper service.
    */
   public function __construct(
-    array $configuration, 
-    $plugin_id, 
-    $plugin_definition, 
+    array $configuration,
+    $plugin_id,
+    $plugin_definition,
     EntityTypeManagerInterface $entity_type_manager,
     EntityFieldManagerInterface $entityFieldManager,
-    LoggerChannelFactoryInterface $loggerFactory, 
+    LoggerChannelFactoryInterface $loggerFactory,
     BundleInfoService $bundleInfoService,
-    FieldNameResolver $fieldResolver, 
-    BundleSettingsManager $settingsManager, 
+    FieldNameResolver $fieldResolver,
+    BundleSettingsManager $settingsManager,
     MirrorProvider $mirrorProvider,
     NestedFieldResultViewsParser $resultParser,
-    CalculatedFieldHelper $calculatedFieldHelper
+    CalculatedFieldHelper $calculatedFieldHelper,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->entityTypeManager = $entity_type_manager;
@@ -111,10 +107,10 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
    * {@inheritdoc}
    */
   public static function create(
-    ContainerInterface $container, 
-    array $configuration, 
-    $plugin_id, 
-    $plugin_definition
+    ContainerInterface $container,
+    array $configuration,
+    $plugin_id,
+    $plugin_definition,
   ) {
     return new static(
       $configuration,
@@ -132,15 +128,13 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
     );
   }
 
-
   /**
    * {@inheritdoc}
    */
-    public static function supportsIndex(IndexInterface $index) {
+  public static function supportsIndex(IndexInterface $index) {
     // Relations only exist between nodes.
     return $index->isValidDatasource('entity:node');
   }
-
 
   /**
    * {@inheritdoc}
@@ -157,15 +151,15 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
     $index_bundles = !empty($bundle_settings['default'])
       ? array_diff(array_keys($datasource->getBundles()), $selected)
       : $selected;
-    
+
     $relation_bundles = [];
-    foreach($index_bundles as $index_bundle){
+    foreach ($index_bundles as $index_bundle) {
       $related_relationships = $this->bundleInfoService->getRelationInfoForTargetBundle($index_bundle);
       if (!is_array($related_relationships)) {
         continue;
       }
-      foreach($related_relationships as $relation_bundle => $info){
-        if(!in_array($relation_bundle, $relation_bundles)){
+      foreach ($related_relationships as $relation_bundle => $info) {
+        if (!in_array($relation_bundle, $relation_bundles)) {
           $relation_bundles[] = $relation_bundle;
         }
       }
@@ -174,20 +168,20 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
     $calc_fld_nms = $this->calculatedFieldHelper->getCalculatedFieldNames(NULL, NULL, TRUE);
     $properties = [];
 
-    foreach($relation_bundles as $relationship_node_type){
+    foreach ($relation_bundles as $relationship_node_type) {
       $definition = [
         'label' => $this->t('Related nodes of type @type', ['@type' => $relationship_node_type]),
         'description' => $this->t('All related @type nodes, with selectable fields.', ['@type' => $relationship_node_type]),
-        'type' => 'array', 
+        'type' => 'array',
         'processor_id' => $this->getPluginId(),
         'is_list' => TRUE,
         'definition_class_settings' => [
           'bundle' => $relationship_node_type,
         ],
       ];
-      
+
       $property = new RelationProcessorProperty(
-        $definition, 
+        $definition,
         $this->entityFieldManager,
         $this->loggerFactory->get('relationship_nodes_search'),
         $calc_fld_nms
@@ -197,7 +191,6 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
 
     return $properties;
   }
-
 
   /**
    * Cf Partially based on code of ReverseEntityReferences
@@ -230,42 +223,42 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
     $calc_fld_nms = NULL;
 
     foreach ($item->getFields() as $sapi_fld) {
-      $relation_nodetype_name = $sapi_fld->getPropertyPath();     
+      $relation_nodetype_name = $sapi_fld->getPropertyPath();
       if ($sapi_fld->getDatasourceId() != $item->getDatasourceId() || !str_starts_with($relation_nodetype_name, $prefix) || !isset($sapi_fld->getConfiguration()['nested_fields'])) {
         continue;
       }
 
       $child_fld_configs = $sapi_fld->getConfiguration()['nested_fields'];
       $relationship_node_type = substr($relation_nodetype_name, strlen($prefix));
-      
-      if(!is_array($child_fld_configs) || empty($child_fld_configs) || !isset($item_relation_info_list[$relationship_node_type])){
+
+      if (!is_array($child_fld_configs) || empty($child_fld_configs) || !isset($item_relation_info_list[$relationship_node_type])) {
         continue;
       }
 
       $relation_info = $item_relation_info_list[$relationship_node_type];
       $serialized = [];
 
-      foreach($relation_info['join_fields'] as $join_field){
-        if(!in_array($join_field, $this->fieldResolver->getRelatedEntityFields())){
+      foreach ($relation_info['join_fields'] as $join_field) {
+        if (!in_array($join_field, $this->fieldResolver->getRelatedEntityFields())) {
           $this->loggerFactory->get('relationship_nodes_search')->error(
             'Invalid join field name: @field',
             ['@field' => $join_field]
           );
           continue;
         }
-        
+
         $result = $node_storage->getQuery()
           ->accessCheck(FALSE)
           ->condition('type', $relationship_node_type)
           ->condition($join_field, $entity->id())
           ->execute();
-        
-        if(empty($result)){
+
+        if (empty($result)) {
           continue;
         }
 
         try {
-        $entities = $node_storage->loadMultiple($result);
+          $entities = $node_storage->loadMultiple($result);
         }
         catch (\Exception $e) {
           $this->loggerFactory->get('relationship_nodes_search')->error(
@@ -273,19 +266,19 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
             [
               '@nid' => $entity->id(),
               '@type' => $relationship_node_type,
-              '@message' => $e->getMessage()
+              '@message' => $e->getMessage(),
             ]
           );
           continue;
         }
-      
+
         if (empty($entities)) {
           $this->loggerFactory->get('relationship_nodes_search')->warning(
             'Query found @count relationship nodes but loadMultiple returned empty for node @nid (type: @type)',
             [
               '@count' => count($result),
               '@nid' => $entity->id(),
-              '@type' => $relationship_node_type
+              '@type' => $relationship_node_type,
             ]
           );
           continue;
@@ -294,7 +287,7 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
         $calc_fld_nms ??= $this->calculatedFieldHelper->getCalculatedFieldNames(NULL, NULL, TRUE);
         $this->preloadReferencedEntities($entities, $join_field);
 
-        foreach($entities as $relationship_entity){
+        foreach ($entities as $relationship_entity) {
           // The index is public: skip unpublished relations and relations
           // pointing to unpublished nodes.
           if (!$this->isRelationPublished($relationship_entity, $join_field, $item->getLanguage())) {
@@ -305,9 +298,10 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
             $relationship_entity = $relationship_entity->getTranslation($item->getLanguage());
           }
           $nested_values = [];
-          foreach ($child_fld_configs as $child_fld_nm => $child_fld_config){
-            if(in_array($child_fld_nm, $calc_fld_nms)){
-              continue; // calculated fields are processed below
+          foreach ($child_fld_configs as $child_fld_nm => $child_fld_config) {
+            if (in_array($child_fld_nm, $calc_fld_nms)) {
+              // Calculated fields are processed below.
+              continue;
             }
             try {
               $field_values = $relationship_entity->get($child_fld_nm)->getValue();
@@ -318,7 +312,7 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
                 [
                   '@field' => $child_fld_nm,
                   '@rel_nid' => $relationship_entity->id(),
-                  '@message' => $e->getMessage()
+                  '@message' => $e->getMessage(),
                 ]
               );
               $nested_values[$child_fld_nm] = NULL;
@@ -337,14 +331,14 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
             foreach ($field_values as $field_value) {
               $extracted = $this->extractSingleValue($field_value, $target_type);
               if ($extracted !== NULL) {
-                // Format volgens configured type
+                // Format volgens configured type.
                 $formatted = $this->mapSearchApiFieldTypeToElasticType($extracted, $child_fld_config['type']);
                 if ($formatted !== NULL) {
                   $values[] = $formatted;
                 }
               }
             }
-            
+
             $nested_values[$child_fld_nm] = count($values) === 1 ? reset($values) : $values;
           }
 
@@ -356,20 +350,19 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
               'Failed to fill calculated fields for relationship @rel_nid: @message',
               [
                 '@rel_nid' => $relationship_entity->id(),
-                '@message' => $e->getMessage()
+                '@message' => $e->getMessage(),
               ]
             );
           }
 
           $serialized[] = $nested_values;
-        }   
+        }
       }
       // Without relations the field stays empty: an empty nested object per
       // field bloats the index and would count as a relation without values.
       $sapi_fld->setValues($serialized);
-    }  
+    }
   }
-
 
   /**
    * Loads the related nodes and relation type terms of relations at once.
@@ -377,7 +370,7 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
    * They are loaded one by one later (publish check, calculated fields);
    * after this they come from the entity cache.
    *
-   * @param EntityInterface[] $relations
+   * @param \Drupal\Core\Entity\EntityInterface[] $relations
    *   The relation nodes.
    * @param string $join_field
    *   The join field that references the indexed entity.
@@ -402,14 +395,13 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
     }
   }
 
-
   /**
    * Checks that a relation and the node on its other side are published.
    *
    * Both are checked in the language of the indexed item, or in their
    * default language when they have no translation in that language.
    *
-   * @param EntityInterface $relationship_entity
+   * @param \Drupal\Core\Entity\EntityInterface $relationship_entity
    *   The relationship entity.
    * @param string $join_field
    *   The join field that references the indexed entity.
@@ -431,11 +423,10 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
     return $other_entity && $this->isPublishedInLanguage($other_entity, $langcode);
   }
 
-
   /**
    * Checks whether an entity is published in a language.
    *
-   * @param EntityInterface $entity
+   * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity.
    * @param string $langcode
    *   The language code.
@@ -450,29 +441,28 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
     return !$entity instanceof EntityPublishedInterface || $entity->isPublished();
   }
 
-
   /**
    * Fills calculated fields for a relationship.
    *
    * @param array $nested_values
    *   The nested values array (passed by reference).
-   * @param EntityInterface $entity
+   * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The target entity.
-   * @param EntityInterface $relationship_entity
+   * @param \Drupal\Core\Entity\EntityInterface $relationship_entity
    *   The relationship entity.
    * @param string $join_field
    *   The join field name.
    */
   protected function fillCalculatedFields(
-    array &$nested_values, 
-    EntityInterface $entity, 
-    EntityInterface $relationship_entity, 
+    array &$nested_values,
+    EntityInterface $entity,
+    EntityInterface $relationship_entity,
     string $join_field,
-    string $langcode
-  ): void { 
+    string $langcode,
+  ): void {
     $calc_fld_nms = $this->calculatedFieldHelper->getCalculatedFieldNames();
-    
-    $nested_values[$calc_fld_nms['this_entity']['id']] = isset($nested_values[$join_field]) ? $nested_values[$join_field] : '';
+
+    $nested_values[$calc_fld_nms['this_entity']['id']] = $nested_values[$join_field] ?? '';
     $nested_values[$calc_fld_nms['this_entity']['name']] = $entity->label();
 
     $node_storage = $this->entityTypeManager->getStorage('node');
@@ -485,7 +475,7 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
         ? $related_entity->getTranslation($langcode)->label()
         : $related_entity->label();
       $nested_values[$calc_fld_nms['related_entity']['name']] = $related_label;
-      $nested_values[$calc_fld_nms['related_entity']['id']] = isset($nested_values[$other_field]) ? $nested_values[$other_field] : '';
+      $nested_values[$calc_fld_nms['related_entity']['id']] = $nested_values[$other_field] ?? '';
     }
 
     $relation_field = $this->fieldResolver->getRelationTypeField();
@@ -495,7 +485,8 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
 
       if ($join_field === $this->fieldResolver->getRelatedEntityFields(2) && !empty($relation_parsed['id'])) {
         $nested_values[$calc_fld_nms['relation_type']['name']] = $this->mirrorProvider->getMirrorLabelFromId($relation_parsed['id'], $langcode);
-      } else {
+      }
+      else {
         $term_storage = $this->entityTypeManager->getStorage('taxonomy_term');
         $relation_term = !empty($relation_parsed['id']) ? $term_storage->load($relation_parsed['id']) : NULL;
         if (!empty($relation_term)) {
@@ -508,14 +499,13 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
     }
   }
 
-
   /**
    * Extracts a single value from a field value array.
    *
    * Handles different field value structures:
    * - Entity references: returns 'entity_type/id' format
    * - Simple values: returns the 'value' key
-   * - Arrays: returns first element
+   * - Arrays: returns first element.
    *
    * @param mixed $value
    *   The field value to extract from.
@@ -527,26 +517,26 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
    */
   protected function extractSingleValue(mixed $value, ?string $target_type = NULL): mixed {
     if (empty($value)) {
-        return NULL;
+      return NULL;
     }
 
     if (isset($value['target_id'])) {
-        if(empty($target_type)){
-            return $value['target_id'];
-        }
-        return $target_type . '/' . $value['target_id'];   
+      if (empty($target_type)) {
+        return $value['target_id'];
+      }
+      return $target_type . '/' . $value['target_id'];
     }
-    
+
     if (isset($value['value'])) {
-        return $value['value'];
+      return $value['value'];
     }
-    
+
     if (is_array($value)) {
-        return reset($value) ?: NULL;
+      return reset($value) ?: NULL;
     }
-    
+
     return $value;
-  }  
+  }
 
   /**
    * Formats a value according to its Search API data type.
@@ -575,18 +565,21 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
         return (bool) $value;
 
       case 'date':
-        // Convert to ISO 8601 string instead of timestamp
+        // Convert to ISO 8601 string instead of timestamp.
         if (is_numeric($value)) {
-          // Unix timestamp → ISO string
-          return date('c', (int) $value);  // '2025-12-26T00:00:00+00:00'
+          // Unix timestamp → ISO string.
+          // '2025-12-26T00:00:00+00:00'.
+          return date('c', (int) $value);
         }
-        // Already a date string
+        // Already a date string.
         $timestamp = strtotime($value);
         return $timestamp !== FALSE ? date('c', $timestamp) : NULL;
+
       case 'string':
       case 'text':
       default:
         return (string) $value;
     }
   }
+
 }

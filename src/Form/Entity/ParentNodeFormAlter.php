@@ -3,8 +3,6 @@
 namespace Drupal\relationship_nodes\Form\Entity;
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\relationship_nodes\Form\Entity\RelationFormHelper;
-use Drupal\relationship_nodes\Form\Entity\RelationEntityFormHandler;
 use Drupal\relationship_nodes\Form\Widget\WidgetSubmitHandler;
 
 /**
@@ -14,17 +12,15 @@ class ParentNodeFormAlter {
 
   protected RelationFormHelper $formHelper;
 
-
   /**
    * Constructs a ParentNodeFormAlter object.
    *
-   * @param RelationFormHelper $formHelper
+   * @param \Drupal\relationship_nodes\Form\Entity\RelationFormHelper $formHelper
    *   The form helper.
    */
   public function __construct(RelationFormHelper $formHelper) {
-    $this->formHelper = $formHelper;  
+    $this->formHelper = $formHelper;
   }
-
 
   /**
    * Alters target node forms to add relationship nodes handling.
@@ -37,16 +33,16 @@ class ParentNodeFormAlter {
    *
    * @param array $form
    *   The form array (passed by reference).
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    * @param string $form_id
    *   The form ID.
    */
-  public function alterForm(array &$form, FormStateInterface $form_state, $form_id) {  
+  public function alterForm(array &$form, FormStateInterface $form_state, $form_id) {
     if (!$this->formHelper->isParentFormWithRelationSubforms($form_state)) {
       return;
     }
-    
+
     // Save the relations after the parent node, on the buttons that save it
     // (the same buttons IEF attaches its submit processing to).
     $save_relations = [RelationEntityFormHandler::class, 'saveDeferredRelations'];

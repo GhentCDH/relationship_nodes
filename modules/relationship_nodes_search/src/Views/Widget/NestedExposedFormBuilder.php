@@ -4,12 +4,9 @@ namespace Drupal\relationship_nodes_search\Views\Widget;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\search_api\Entity\Index;
-use Drupal\search_api\Plugin\views\query\SearchApiQuery;
 use Drupal\relationship_nodes_search\QueryHelper\FilterOperatorHelper;
 use Drupal\relationship_nodes\RelationField\CalculatedFieldHelper;
-use Drupal\relationship_nodes_search\Views\Widget\NestedFilterDropdownOptionsProvider;
 use Drupal\relationship_nodes_search\FieldHelper\NestedIndexFieldHelper;
-
 
 /**
  * Service for building exposed filter form widgets.
@@ -23,7 +20,6 @@ class NestedExposedFormBuilder {
   protected NestedFilterDropdownOptionsProvider $dropdownProvider;
   protected NestedIndexFieldHelper $nestedFieldHelper;
 
-  
   /**
    * Constructs a NestedExposedFormBuilder object.
    */
@@ -39,7 +35,6 @@ class NestedExposedFormBuilder {
     $this->nestedFieldHelper = $nestedFieldHelper;
   }
 
-
   /**
    * Build exposed field widget structure.
    */
@@ -51,7 +46,7 @@ class NestedExposedFormBuilder {
     array $child_fld_settings,
     array $child_fld_values = [],
     bool $expose_operators = FALSE,
-    $view_query = NULL
+    $view_query = NULL,
   ): void {
     if (empty($child_fld_settings)) {
       return;
@@ -72,7 +67,8 @@ class NestedExposedFormBuilder {
           $view_query
         );
         $child_fld_config['options'] = $options;
-      } elseif (($child_fld_config['widget'] ?? 'textfield') === 'select_range') {
+      }
+      elseif (($child_fld_config['widget'] ?? 'textfield') === 'select_range') {
         $child_fld_config['options'] = $this->buildIntRangeOptions($child_fld_config['int_range'] ?? []);
       }
       $this->buildChildFieldElement(
@@ -86,7 +82,6 @@ class NestedExposedFormBuilder {
     }
   }
 
-
   /**
    * Get enabled fields from configuration.
    *
@@ -97,11 +92,10 @@ class NestedExposedFormBuilder {
    *   Enabled fields only.
    */
   public function getEnabledFields(array $child_fld_settings): array {
-    return array_filter($child_fld_settings, function($config) {
+    return array_filter($child_fld_settings, function ($config) {
       return !empty($config['enabled']);
     });
   }
-
 
   /**
    * Get enabled fields sorted by weight.
@@ -115,13 +109,12 @@ class NestedExposedFormBuilder {
   public function getEnabledAndSortedFields(array $child_fld_settings): array {
     $enabled = $this->getEnabledFields($child_fld_settings);
 
-    uasort($enabled, function($a, $b) {
+    uasort($enabled, function ($a, $b) {
       return ($a['weight'] ?? 0) <=> ($b['weight'] ?? 0);
     });
 
     return $enabled;
   }
-
 
   /**
    * Build a single child field form element.
@@ -145,7 +138,7 @@ class NestedExposedFormBuilder {
     string $child_fld_nm,
     array $field_config,
     ?array $field_value = NULL,
-    bool $expose_operators = FALSE
+    bool $expose_operators = FALSE,
   ): void {
     $widget_type = $field_config['widget'] ?? 'textfield';
     $label = $field_config['label'] ?? $this->calculatedFieldHelper->formatCalculatedFieldLabel($child_fld_nm);
@@ -154,13 +147,13 @@ class NestedExposedFormBuilder {
     $expose_field_operator = !empty($field_config['expose_field_operator']);
 
     $child_fld_container = [
-    '#type' => 'container',
-    '#attributes' => ['class' => ['relationship-filter-field-wrapper']],
+      '#type' => 'container',
+      '#attributes' => ['class' => ['relationship-filter-field-wrapper']],
     ];
     $this->setFormNestedValue($form, $path, $child_fld_container);
 
     if ($expose_operators && $expose_field_operator) {
-    $this->addOperatorWidget($form, $path, $field_config, $field_value);
+      $this->addOperatorWidget($form, $path, $field_config, $field_value);
     }
 
     switch ($widget_type) {
@@ -168,13 +161,13 @@ class NestedExposedFormBuilder {
       case 'select_range':
         $this->addSelectWidget($form, $path, $field_config, $label, $required, $field_value);
         break;
+
       case 'textfield':
       default:
         $this->addTextfieldWidget($form, $path, $label, $required, $placeholder, $field_value);
         break;
     }
   }
-
 
   /**
    * Add operator selector widget.
@@ -205,7 +198,6 @@ class NestedExposedFormBuilder {
     $this->setFormNestedValue($form, $path, $operator);
   }
 
-
   /**
    * Add dropdown select widget.
    *
@@ -230,7 +222,7 @@ class NestedExposedFormBuilder {
     array $field_config,
     string $label,
     bool $required,
-    ?array $field_value = NULL
+    ?array $field_value = NULL,
   ): void {
     $options = $field_config['options'] ?? [];
 
@@ -245,8 +237,6 @@ class NestedExposedFormBuilder {
     ];
     $this->setFormNestedValue($form, $path, $value);
   }
-  
-
 
   /**
    * Add textfield widget.
@@ -272,7 +262,7 @@ class NestedExposedFormBuilder {
     string $label,
     bool $required,
     string $placeholder,
-    ?array $field_value = NULL
+    ?array $field_value = NULL,
   ): void {
     $path[] = 'value';
     $value = [
@@ -285,35 +275,33 @@ class NestedExposedFormBuilder {
     $this->setFormNestedValue($form, $path, $value);
   }
 
-
   /* // ENTITY AUTOCOMPLETE NOT YET IMPLEMENTED (CF CONFIG HELPER)
   protected function addEntityAutocompleteWidget(array &$form, array $path, string $child_fld_nm, string $label, bool $required, string $placeholder, ?array $field_value = NULL): void {
-    $target_type =  // implement childfieldentrefhelper getnestedfieldtargettype;
-    $default_entity = $this->getDefaultEntityValue($child_fld_nm, $target_type, $field_value);
-    $path[] = 'value';
-    $value = [
-      '#type' => 'entity_autocomplete',
-      '#title' => $label,
-      '#target_type' => $target_type,
-      '#default_value' => $default_entity,
-      '#required' => $required,
-      '#placeholder' => $placeholder,
-    ];
-    $this->setFormNestedValue($form, $path, $value);
+  $target_type =  // implement childfieldentrefhelper getnestedfieldtargettype;
+  $default_entity = $this->getDefaultEntityValue($child_fld_nm, $target_type, $field_value);
+  $path[] = 'value';
+  $value = [
+  '#type' => 'entity_autocomplete',
+  '#title' => $label,
+  '#target_type' => $target_type,
+  '#default_value' => $default_entity,
+  '#required' => $required,
+  '#placeholder' => $placeholder,
+  ];
+  $this->setFormNestedValue($form, $path, $value);
   }
 
-  protected function getDefaultEntityValue(string $child_fld_nm, string $target_type, ?array $field_value = NULL) {   
-    if (empty($field_value) || !is_numeric($field_value)) {
-      return NULL;
-    }
+  protected function getDefaultEntityValue(string $child_fld_nm, string $target_type, ?array $field_value = NULL) {
+  if (empty($field_value) || !is_numeric($field_value)) {
+  return NULL;
+  }
 
-    try {
-      return $this->entityTypeManager->getStorage($target_type)->load($field_value);
-    } catch (\Exception $e) {
-      return NULL;
-    }
+  try {
+  return $this->entityTypeManager->getStorage($target_type)->load($field_value);
+  } catch (\Exception $e) {
+  return NULL;
+  }
   }*/
-
 
   /**
    * Set a nested value in form array.
@@ -331,29 +319,32 @@ class NestedExposedFormBuilder {
   protected function setFormNestedValue(array &$form, array $path, $value): void {
     $ref = &$form;
     $path_count = count($path);
-    
+
     foreach ($path as $i => $key) {
       $is_last = ($i === $path_count - 1);
-      
+
       if ($is_last) {
         if (!isset($ref[$key])) {
           $ref[$key] = $value;
-        } elseif (is_array($ref[$key]) && is_array($value)) {
+        }
+        elseif (is_array($ref[$key]) && is_array($value)) {
           $ref[$key] = array_merge($ref[$key], $value);
-        } else {
+        }
+        else {
           $ref[$key] = $value;
         }
-      } else {
+      }
+      else {
         if (!isset($ref[$key])) {
           $ref[$key] = [];
-        } elseif (!is_array($ref[$key])) {
+        }
+        elseif (!is_array($ref[$key])) {
           $ref[$key] = [];
         }
         $ref = &$ref[$key];
       }
     }
   }
-  
 
   /**
    * Builds From/To range pair widgets into the exposed form.
@@ -368,10 +359,10 @@ class NestedExposedFormBuilder {
    *   Current submitted/default values.
    */
   public function buildRangePairWidget(array &$form, array $path, array $pair_config, array $pair_values = []): void {
-    $widget     = $pair_config['widget']     ?? 'textfield';
-    $title      = $pair_config['label']      ?? $this->t('Date range');
+    $widget     = $pair_config['widget'] ?? 'textfield';
+    $title      = $pair_config['label'] ?? $this->t('Date range');
     $from_label = $pair_config['from_label'] ?? $this->t('From');
-    $to_label   = $pair_config['to_label']   ?? $this->t('To');
+    $to_label   = $pair_config['to_label'] ?? $this->t('To');
 
     if ($widget === 'select_range') {
       $options = $this->buildIntRangeOptions($pair_config['int_range'] ?? []);
@@ -409,7 +400,9 @@ class NestedExposedFormBuilder {
     }
   }
 
-
+  /**
+   *
+   */
   protected function buildIntRangeOptions(array $int_range): array {
     $min = ($int_range['use_current_year_min'] ?? FALSE)
       ? (int) date('Y')

@@ -28,7 +28,6 @@ class MirrorLabelFormatter extends EntityReferenceLabelFormatter implements Cont
   protected MirrorProvider $mirrorProvider;
   protected LanguageManagerInterface $languageManager;
 
-
   /**
    * Constructs a MirrorLabelFormatter object.
    */
@@ -41,13 +40,12 @@ class MirrorLabelFormatter extends EntityReferenceLabelFormatter implements Cont
     $view_mode,
     array $third_party_settings,
     MirrorProvider $mirror_provider,
-    LanguageManagerInterface $language_manager
+    LanguageManagerInterface $language_manager,
   ) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $label, $view_mode, $third_party_settings);
     $this->mirrorProvider = $mirror_provider;
     $this->languageManager = $language_manager;
   }
-
 
   /**
    * {@inheritdoc}
@@ -56,7 +54,7 @@ class MirrorLabelFormatter extends EntityReferenceLabelFormatter implements Cont
     ContainerInterface $container,
     array $configuration,
     $plugin_id,
-    $plugin_definition
+    $plugin_definition,
   ) {
     return new static(
       $plugin_id,
@@ -70,7 +68,6 @@ class MirrorLabelFormatter extends EntityReferenceLabelFormatter implements Cont
       $container->get('language_manager')
     );
   }
-
 
   /**
    * {@inheritdoc}

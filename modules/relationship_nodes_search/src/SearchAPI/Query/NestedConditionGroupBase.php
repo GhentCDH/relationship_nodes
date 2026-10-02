@@ -6,7 +6,6 @@ use Drupal\search_api\Entity\Index;
 use Drupal\search_api\Query\ConditionGroup;
 use Drupal\relationship_nodes_search\QueryHelper\NestedQueryStructureBuilder;
 
-
 /**
  * Base class for nested field condition groups.
  *
@@ -20,29 +19,36 @@ abstract class NestedConditionGroupBase extends ConditionGroup {
   protected ?Index $index = NULL;
   protected ?NestedQueryStructureBuilder $queryBuilder = NULL;
 
-
+  /**
+   *
+   */
   public function setParentFieldName(string $parentFieldName): static {
     $this->parentFieldName = $parentFieldName;
     return $this;
   }
 
-
+  /**
+   *
+   */
   public function getParentFieldName(): ?string {
     return $this->parentFieldName;
   }
 
-
+  /**
+   *
+   */
   public function setIndex(Index $index): static {
     $this->index = $index;
     return $this;
   }
 
-
+  /**
+   *
+   */
   public function setQueryBuilder(NestedQueryStructureBuilder $queryBuilder): static {
     $this->queryBuilder = $queryBuilder;
     return $this;
   }
-
 
   /**
    * Adds a child field condition, resolving the full Elasticsearch field path.
@@ -71,7 +77,6 @@ abstract class NestedConditionGroupBase extends ConditionGroup {
     return $this;
   }
 
-
   /**
    * Creates and adds a sub-condition group inside this condition group.
    *
@@ -87,9 +92,10 @@ abstract class NestedConditionGroupBase extends ConditionGroup {
   public function addChildConditionGroup(string $conjunction): NestedChildFieldConditionGroup {
     $sub = new NestedChildFieldConditionGroup($conjunction);
     $sub->setParentFieldName($this->parentFieldName)
-        ->setIndex($this->index)
-        ->setQueryBuilder($this->queryBuilder);
+      ->setIndex($this->index)
+      ->setQueryBuilder($this->queryBuilder);
     $this->conditions[] = $sub;
     return $sub;
   }
+
 }

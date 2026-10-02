@@ -15,10 +15,10 @@ class RelationFormHelper {
   /**
    * Gets the parent form node entity.
    *
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    *
-   * @return Node|null
+   * @return \Drupal\node\Entity\Node|null
    *   The parent node or NULL.
    */
   public function getParentFormNode(FormStateInterface $form_state): ?Node {
@@ -26,22 +26,21 @@ class RelationFormHelper {
     // so check for an entity form instead of the class.
     $form_object = $form_state->getFormObject();
     if (!$form_object instanceof EntityFormInterface) {
-      return null;
+      return NULL;
     }
 
     $build_info = $form_state->getBuildInfo();
     if (!isset($build_info['base_form_id']) || $build_info['base_form_id'] != 'node_form') {
-      return null;
+      return NULL;
     }
 
     $form_entity = $form_object->getEntity();
     if (!$form_entity instanceof Node) {
-      return null;
+      return NULL;
     }
 
     return $form_entity;
   }
-
 
   /**
    * Gets relation extended widget fields mapping.
@@ -50,7 +49,7 @@ class RelationFormHelper {
    * Detection is based on the 'relation_extended_widget' flag stored in the
    * widget state by RelationIefWidget::extractFormValues().
    *
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    *
    * @return array
@@ -72,7 +71,6 @@ class RelationFormHelper {
     return $result;
   }
 
-
   /**
    * Finds the IEF state key for a given field name.
    *
@@ -81,7 +79,7 @@ class RelationFormHelper {
    *
    * @param string $field_name
    *   The field name to look up.
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    *
    * @return string|null
@@ -100,14 +98,13 @@ class RelationFormHelper {
       }
     }
 
-    return null;
+    return NULL;
   }
-
 
   /**
    * Checks if form is a parent form with IEF subforms.
    *
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    *
    * @return bool
@@ -118,11 +115,10 @@ class RelationFormHelper {
       && !empty($form_state->get('inline_entity_form'));
   }
 
-
   /**
    * Checks if form is a parent form with relation subforms.
    *
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    *
    * @return bool
@@ -132,7 +128,6 @@ class RelationFormHelper {
     return !empty($this->getParentFormNode($form_state))
       && !empty($this->getRelationExtendedWidgetFields($form_state));
   }
-
 
   /**
    * Returns the field name for a relation extended IEF widget state.
@@ -148,11 +143,10 @@ class RelationFormHelper {
    */
   protected function getIefRelationWidgetFieldName(array $widget_state): ?string {
     if (empty($widget_state['relation_extended_widget'])) {
-      return null;
+      return NULL;
     }
     return $this->getIefWidgetInstanceFieldName($widget_state);
   }
-
 
   /**
    * Gets the field name from the IEF widget state's field instance.
@@ -164,9 +158,10 @@ class RelationFormHelper {
    *   The field name, or NULL if the instance is not a FieldDefinitionInterface.
    */
   protected function getIefWidgetInstanceFieldName(array $widget_state): ?string {
-    if (!(($widget_state['instance'] ?? null) instanceof FieldDefinitionInterface)) {
-      return null;
+    if (!(($widget_state['instance'] ?? NULL) instanceof FieldDefinitionInterface)) {
+      return NULL;
     }
     return $widget_state['instance']->getName();
   }
+
 }

@@ -6,7 +6,6 @@ use Drupal\field_ui\FieldConfigListBuilder;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Config\Entity\ConfigEntityListBuilder;
 
-
 /**
  * List builder for field configurations that keeps locked relation fields visible.
  *
@@ -24,4 +23,5 @@ class LockedFieldListBuilder extends FieldConfigListBuilder {
     $field_config_helper->overrideOperationsEdit($row, $field_config, $original_operations);
     return $row;
   }
+
 }

@@ -37,29 +37,28 @@ class NestedFilterDropdownOptionsProvider {
   protected NestedFacetResultParser $facetResultParser;
   protected MirrorProvider $mirrorProvider;
 
-
   /**
    * Constructs a NestedFilterDropdownOptionsProvider object.
    *
-   * @param EntityTypeManagerInterface $entityTypeManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager service.
-   * @param CacheBackendInterface $cache
+   * @param \Drupal\Core\Cache\CacheBackendInterface $cache
    *   The cache backend service.
-   * @param LoggerChannelFactoryInterface $loggerFactory
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
    *   The logger factory service.
-   * @param AccountProxyInterface $currentUser
+   * @param \Drupal\Core\Session\AccountProxyInterface $currentUser
    *   The current user service.
-   * @param LanguageManagerInterface $languageManager
+   * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
    *   The language manager service.
-   * @param NestedIndexFieldHelper $nestedFieldHelper
+   * @param \Drupal\relationship_nodes_search\FieldHelper\NestedIndexFieldHelper $nestedFieldHelper
    *   The nested field helper service.
-   * @param CalculatedFieldHelper $calculatedFieldHelper
+   * @param \Drupal\relationship_nodes\RelationField\CalculatedFieldHelper $calculatedFieldHelper
    *   The calculated field helper service.
-   * @param NestedFieldResultViewsParser $resultParser
+   * @param \Drupal\relationship_nodes_search\Views\Parser\NestedFieldResultViewsParser $resultParser
    *   The child field entity reference helper service.
-   * @param NestedFacetResultParser $facetResultParser
+   * @param \Drupal\relationship_nodes_search\QueryHelper\NestedFacetResultParser $facetResultParser
    *   The facet result parser service.
-   * @param MirrorProvider $mirrorProvider
+   * @param \Drupal\relationship_nodes\RelationData\TermHelper\MirrorProvider $mirrorProvider
    *   The mirror provider service.
    */
   public function __construct(
@@ -72,7 +71,7 @@ class NestedFilterDropdownOptionsProvider {
     CalculatedFieldHelper $calculatedFieldHelper,
     NestedFieldResultViewsParser $resultParser,
     NestedFacetResultParser $facetResultParser,
-    MirrorProvider $mirrorProvider
+    MirrorProvider $mirrorProvider,
   ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->cache = $cache;
@@ -86,7 +85,6 @@ class NestedFilterDropdownOptionsProvider {
     $this->mirrorProvider = $mirrorProvider;
   }
 
-
   /**
    * Get dropdown options for a field.
    *
@@ -94,7 +92,7 @@ class NestedFilterDropdownOptionsProvider {
    * Results are cached per user and language to ensure proper access
    * control and multilingual support.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The search index.
    * @param string $sapi_fld_nm
    *   Parent field name (e.g., 'relationship_info__parent').
@@ -117,7 +115,7 @@ class NestedFilterDropdownOptionsProvider {
         'relationship_filter_options:' . $sapi_fld_nm,
       ];
 
-      //$this->cache->set($cache_key, $options, Cache::PERMANENT, $cache_tags);
+      // $this->cache->set($cache_key, $options, Cache::PERMANENT, $cache_tags);
       return $options;
     }
     catch (\Exception $e) {
@@ -128,7 +126,6 @@ class NestedFilterDropdownOptionsProvider {
       return [];
     }
   }
-
 
   /**
    * Fetch options from search index using facets.
@@ -167,7 +164,7 @@ class NestedFilterDropdownOptionsProvider {
 
       $query->addCondition('search_api_language', $this->languageManager->getCurrentLanguage()->getId());
 
-      // Configureer voor facets
+      // Configureer voor facets.
       $query->range(0, 0);
       $query->setOption('search_api_facets', [
         $field_id => [
@@ -179,7 +176,7 @@ class NestedFilterDropdownOptionsProvider {
         ],
       ]);
 
-      // Execute de facet query
+      // Execute de facet query.
       $results = $query->execute();
       $facet_values = $this->facetResultParser->extractTrimmedFacetValues($results, $field_id);
 
@@ -187,7 +184,7 @@ class NestedFilterDropdownOptionsProvider {
         return [];
       }
 
-      // Convert to form options
+      // Convert to form options.
       return $this->convertToFormOptions($facet_values, $index, $sapi_fld_nm, $child_fld_nm, $display_mode);
     }
     catch (\Exception $e) {
@@ -199,13 +196,12 @@ class NestedFilterDropdownOptionsProvider {
     }
   }
 
-
   /**
    * Convert facet values to form options.
    *
    * @param array $facet_values
    *   Raw facet values (e.g., ['node/123', 'node/456']).
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The search index.
    * @param string $sapi_fld_nm
    *   Parent field name.
@@ -240,7 +236,6 @@ class NestedFilterDropdownOptionsProvider {
     // Load entities and build options.
     return $this->buildEntityOptions($facet_values, $target_type, $display_mode);
   }
-
 
   /**
    * Build form options by loading entities with access control.
@@ -339,13 +334,12 @@ class NestedFilterDropdownOptionsProvider {
     }
   }
 
-
   /**
    * Generate cache key for dropdown options.
    *
    * Includes language to ensure translated labels are cached separately.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The search index.
    * @param string $sapi_fld_nm
    *   Parent field name.
@@ -373,11 +367,10 @@ class NestedFilterDropdownOptionsProvider {
     return implode(':', $parts);
   }
 
-
   /**
    * Get dropdown options with view context for filtering.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The search index.
    * @param string $sapi_fld_nm
    *   Parent field name.
@@ -385,7 +378,7 @@ class NestedFilterDropdownOptionsProvider {
    *   Child field name.
    * @param string $display_mode
    *   Display mode: 'raw' or 'label'.
-   * @param SearchApiQuery|null $view_query
+   * @param \Drupal\search_api\Plugin\views\query\SearchApiQuery|null $view_query
    *   The view query to extract non-exposed filters from.
    *
    * @return array
@@ -396,7 +389,7 @@ class NestedFilterDropdownOptionsProvider {
     string $sapi_fld_nm,
     string $child_fld_nm,
     string $display_mode = 'raw',
-    ?SearchApiQuery $view_query = NULL
+    ?SearchApiQuery $view_query = NULL,
   ): array {
     try {
       // Create fresh query.
@@ -477,14 +470,13 @@ class NestedFilterDropdownOptionsProvider {
     }
   }
 
-
   /**
    * Returns the conditions of a condition group as plain arrays.
    *
    * Used for the cache key: condition groups can hold objects (such as the
    * index) that should not be serialized.
    *
-   * @param ConditionGroupInterface $group
+   * @param \Drupal\search_api\Query\ConditionGroupInterface $group
    *   The condition group.
    *
    * @return array
@@ -501,13 +493,12 @@ class NestedFilterDropdownOptionsProvider {
     return [$group->getConjunction(), $group->getTags(), $parent, $conditions];
   }
 
-
   /**
    * Recursively copy non-exposed conditions from source to target group.
    *
-   * @param ConditionGroupInterface $source
+   * @param \Drupal\search_api\Query\ConditionGroupInterface $source
    *   Source condition group.
-   * @param ConditionGroupInterface $target
+   * @param \Drupal\search_api\Query\ConditionGroupInterface $target
    *   Target condition group.
    * @param array $non_exposed_fields
    *   Array of field names that belong to non-exposed filters.
@@ -550,7 +541,6 @@ class NestedFilterDropdownOptionsProvider {
     }
   }
 
-  
   /**
    * Resolves a single raw filter value to a translated entity label.
    *

@@ -4,11 +4,8 @@ namespace Drupal\relationship_nodes_search\SearchAPI\Query;
 
 use Drupal\elasticsearch_connector\SearchAPI\Query\FilterBuilder;
 use Drupal\search_api\Query\ConditionGroupInterface;
-use Drupal\relationship_nodes_search\SearchAPI\Query\NestedChildFieldConditionGroup;
-use Drupal\relationship_nodes_search\SearchAPI\Query\NestedConditionGroupBase;
 use Psr\Log\LoggerInterface;
 use Drupal\relationship_nodes_search\QueryHelper\NestedQueryStructureBuilder;
-
 
 /**
  * Extended filter builder with nested field support.
@@ -21,25 +18,24 @@ use Drupal\relationship_nodes_search\QueryHelper\NestedQueryStructureBuilder;
  * condition groups are handled by the parent FilterBuilder.
  */
 class NestedFilterBuilder extends FilterBuilder {
-   
+
   protected NestedQueryStructureBuilder $queryBuilder;
 
   /**
    * Constructs a NestedFilterBuilder object.
    *
-   * @param LoggerInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   The logger service.
-   * @param NestedQueryStructureBuilder $queryBuilder
+   * @param \Drupal\relationship_nodes_search\QueryHelper\NestedQueryStructureBuilder $queryBuilder
    *   The query structure builder service.
    */
   public function __construct(
     LoggerInterface $logger,
-    NestedQueryStructureBuilder $queryBuilder
+    NestedQueryStructureBuilder $queryBuilder,
   ) {
     parent::__construct($logger);
     $this->queryBuilder = $queryBuilder;
   }
-
 
   /**
    * {@inheritdoc}
@@ -51,14 +47,13 @@ class NestedFilterBuilder extends FilterBuilder {
     return $this->buildNestedFieldConditionFilters($condition_group, $index_fields, $querySettings);
   }
 
-
   /**
    * Recursively builds the subfilter array for a nested condition group.
    *
    * Handles NestedChildFieldConditionGroup at any depth by recursing into
    * sub-groups, and NestedChildFieldCondition as leaf nodes.
    *
-   * @param NestedConditionGroupBase $group
+   * @param \Drupal\relationship_nodes_search\SearchAPI\Query\NestedConditionGroupBase $group
    *   The condition group to process.
    * @param array $index_fields
    *   The index fields configuration.
@@ -82,18 +77,17 @@ class NestedFilterBuilder extends FilterBuilder {
     return $subfilters;
   }
 
-
   /**
    * Builds an Elasticsearch nested query from a NestedParentFieldConditionGroup.
    */
   protected function buildNestedFieldConditionFilters(NestedParentFieldConditionGroup $condition_group, array $index_fields, array $querySettings = []): array {
     $parent = $condition_group->getParentFieldName();
-    
+
     // The parent's buildFilters() reads all three keys of a nested result.
     $result = ['filters' => [], 'post_filters' => [], 'facets_post_filters' => []];
 
     if (empty($parent)) {
-       $this->logger->warning('NestedParentFieldConditionGroup without parent field name');
+      $this->logger->warning('NestedParentFieldConditionGroup without parent field name');
       return $result;
     }
 
@@ -121,7 +115,6 @@ class NestedFilterBuilder extends FilterBuilder {
     $result['filters'] = $this->queryBuilder->buildNestedFilter($parent, $combined_subfilters);
     return $result;
   }
-
 
   /**
    * Returns the positive counterpart of a negative condition.

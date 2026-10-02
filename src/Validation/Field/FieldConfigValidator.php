@@ -53,6 +53,9 @@ final class FieldConfigValidator {
       ]);
   }
 
+  /**
+   *
+   */
   private function validateTargetBundles(): ValidationResult {
     if (empty($this->targetBundles) || count($this->targetBundles) === 1) {
       return ValidationResult::valid();
@@ -60,21 +63,30 @@ final class FieldConfigValidator {
     return ValidationResult::fromErrorCode('multiple_target_bundles');
   }
 
+  /**
+   *
+   */
   private function validateFieldRequired(): ValidationResult {
     return $this->required
       ? ValidationResult::fromErrorCode('field_cannot_be_required')
       : ValidationResult::valid();
   }
 
+  /**
+   *
+   */
   private function validateFieldType(array $required): ValidationResult {
     return $this->fieldType === $required['type']
       ? ValidationResult::valid()
       : ValidationResult::fromErrorCode('invalid_field_type');
   }
 
+  /**
+   *
+   */
   private function validateSelfReferencingMirrorField(): ValidationResult {
     $mirrorField = $this->fieldResolver->getMirrorFields('entity_reference');
-    
+
     if ($this->fieldName !== $mirrorField) {
       return ValidationResult::valid();
     }
@@ -86,6 +98,9 @@ final class FieldConfigValidator {
     return ValidationResult::fromErrorCode('mirror_field_bundle_mismatch');
   }
 
+  /**
+   *
+   */
   private function validateRelationVocabTarget(): ValidationResult {
     if ($this->fieldName !== $this->fieldResolver->getRelationTypeField()) {
       return ValidationResult::valid();
@@ -104,15 +119,19 @@ final class FieldConfigValidator {
     return ValidationResult::valid();
   }
 
+  /**
+   *
+   */
   private function isValidRelationVocab(string $vocabName): bool {
-    // Runtime check
+    // Runtime check.
     if (empty($this->storage)) {
       $bundleInfo = $this->settingsManager->getBundleInfo($vocabName, 'taxonomy_term');
       return $bundleInfo && $bundleInfo->isRelation();
     }
 
-    // Config import check
+    // Config import check.
     $configData = $this->storage->read('taxonomy.vocabulary.' . $vocabName);
     return !empty($configData) && $this->settingsManager->isCimRelationEntity($configData);
   }
+
 }

@@ -5,10 +5,8 @@ namespace Drupal\relationship_nodes\Form\Admin;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\node\Entity\NodeType;
-use Drupal\relationship_nodes\Form\Admin\BundleFormHandler;
 use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
 use Drupal\relationship_nodes\Validation\ValidationService;
-
 
 /**
  * Form alter service for node type forms.
@@ -23,34 +21,32 @@ class NodeTypeFormAlter {
   protected ValidationService $validationService;
   protected BundleSettingsManager $settingsManager;
 
-
   /**
    * Constructs a NodeTypeFormAlter object.
    *
-   * @param BundleFormHandler $formHandler
+   * @param \Drupal\relationship_nodes\Form\Admin\BundleFormHandler $formHandler
    *   The form handler.
-   * @param ValidationService $validationService
+   * @param \Drupal\relationship_nodes\Validation\ValidationService $validationService
    *   The validation service.
-   * @param BundleSettingsManager $settingsManager
+   * @param \Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager $settingsManager
    *   The settings manager.
    */
   public function __construct(
     BundleFormHandler $formHandler,
     ValidationService $validationService,
-    BundleSettingsManager $settingsManager
+    BundleSettingsManager $settingsManager,
   ) {
     $this->formHandler = $formHandler;
     $this->validationService = $validationService;
     $this->settingsManager = $settingsManager;
   }
 
-
   /**
    * Alters node type forms to add relationship nodes settings.
    *
    * @param array $form
    *   The form array (passed by reference).
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    * @param string $form_id
    *   The form ID.
@@ -112,7 +108,6 @@ class NodeTypeFormAlter {
     $form['actions']['submit']['#submit'][] = [$this->formHandler, 'handleSubmission'];
   }
 
-
   /**
    * Entity builder: copies relationship_nodes form values onto the entity.
    *
@@ -136,4 +131,5 @@ class NodeTypeFormAlter {
       }
     }
   }
+
 }

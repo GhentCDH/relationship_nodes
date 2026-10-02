@@ -18,9 +18,9 @@ class RelationshipNodesTwigExtension extends AbstractExtension {
   /**
    * Constructs a RelationshipNodesTwigExtension object.
    *
-   * @param RelationshipTwigFormatter $formatter
+   * @param \Drupal\relationship_nodes\Display\RelationshipTwigFormatter $formatter
    *   The formatter service that resolves and formats relationship data.
-   * @param RendererInterface $renderer
+   * @param \Drupal\Core\Render\RendererInterface $renderer
    *   The Drupal renderer, used to bubble cache metadata from render arrays.
    */
   public function __construct(RelationshipTwigFormatter $formatter, RendererInterface $renderer) {
@@ -43,7 +43,7 @@ class RelationshipNodesTwigExtension extends AbstractExtension {
    * @param string $operation
    *   The operation to perform:
    *   - 'relation_fields_list': Get all relation field names
-   *   - 'formatted_relations': Get formatted relationship data
+   *   - 'formatted_relations': Get formatted relationship data.
    * @param mixed ...$args
    *   Additional arguments for the operation.
    *
@@ -64,7 +64,7 @@ class RelationshipNodesTwigExtension extends AbstractExtension {
     }
 
     return $result;
-}
+  }
 
   /**
    * {@inheritdoc}
@@ -72,4 +72,5 @@ class RelationshipNodesTwigExtension extends AbstractExtension {
   public function getName(): string {
     return 'relationship_nodes.twig_extension';
   }
+
 }

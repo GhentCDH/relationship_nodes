@@ -16,7 +16,7 @@ use Psr\Log\LoggerInterface;
  * Provides property definitions for relationship node fields and manages
  * calculated fields for Search API indexing.
  */
-class RelationProcessorProperty extends ProcessorProperty implements ComplexDataDefinitionInterface{
+class RelationProcessorProperty extends ProcessorProperty implements ComplexDataDefinitionInterface {
 
   protected ?array $propertyDefinitions = NULL;
   protected ?array $drupalFieldInfo = NULL;
@@ -24,31 +24,29 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
   protected LoggerInterface $logger;
   protected ?array $calculatedFieldNames = NULL;
 
-
   /**
    * Constructs a RelationProcessorProperty object.
    *
    * @param array $definition
    *   The property definition.
-   * @param EntityFieldManagerInterface $entityFieldManager
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entityFieldManager
    *   The entity field manager.
-   * @param LoggerInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   The logger service.
    * @param array|null $calculatedFieldNames
    *   Optional array of calculated field names.
    */
   public function __construct(
-    array $definition, 
+    array $definition,
     EntityFieldManagerInterface $entityFieldManager,
     LoggerInterface $logger,
-    ?array $calculatedFieldNames = NULL
+    ?array $calculatedFieldNames = NULL,
   ) {
     parent::__construct($definition);
     $this->entityFieldManager = $entityFieldManager;
     $this->logger = $logger;
     $this->calculatedFieldNames = $calculatedFieldNames;
   }
-
 
   /**
    * {@inheritdoc}
@@ -97,18 +95,17 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
         'machine_name' => $field_name,
         'type' => $drupal_type,
       ];
-      
+
       if ($drupal_type === 'entity_reference') {
         $settings = $field_definition->getSettings();
         $target_type = $settings['target_type'] ?? 'node';
-        $this->drupalFieldInfo[$field_name]['target_type'] = $target_type;  
+        $this->drupalFieldInfo[$field_name]['target_type'] = $target_type;
       }
     }
     $this->addCalculatedFieldDefinitions();
 
     return $this->propertyDefinitions;
   }
-
 
   /**
    * {@inheritdoc}
@@ -118,7 +115,6 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
     return $definitions[$name] ?? NULL;
   }
 
-
   /**
    * {@inheritdoc}
    */
@@ -126,14 +122,12 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
     return NULL;
   }
 
-
   /**
    * {@inheritdoc}
    */
   public function getProcessorId(): ?string {
     return $this->definition['processor_id'] ?? NULL;
   }
-
 
   /**
    * Gets the bundle from the definition.
@@ -145,14 +139,12 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
     return $this->definition['definition_class_settings']['bundle'] ?? NULL;
   }
 
-
   /**
    * {@inheritdoc}
    */
   public function getDataType(): string {
     return 'string';
   }
-
 
   /**
    * {@inheritdoc}
@@ -165,7 +157,6 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
     return is_string($label) ? $label : '';
   }
 
-
   /**
    * {@inheritdoc}
    */
@@ -176,7 +167,6 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
     }
     return is_string($description) ? $description : '';
   }
-
 
   /**
    * Gets Drupal field information for a specific field.
@@ -192,10 +182,9 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
     if ($this->drupalFieldInfo === NULL) {
       $this->getPropertyDefinitions();
     }
-    
+
     return $this->drupalFieldInfo[$field_name] ?? NULL;
   }
-
 
   /**
    * Checks if a Drupal field is an entity reference.
@@ -207,10 +196,9 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
    *   TRUE if the field is an entity reference, FALSE otherwise.
    */
   public function drupalFieldIsReference(string $field_name): bool {
-      $field_info = $this->getDrupalFieldInfo($field_name);
-      return isset($field_info['type']) && $field_info['type'] === 'entity_reference';
+    $field_info = $this->getDrupalFieldInfo($field_name);
+    return isset($field_info['type']) && $field_info['type'] === 'entity_reference';
   }
-
 
   /**
    * Gets the target entity type for an entity reference field.
@@ -223,12 +211,11 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
    */
   public function getDrupalFieldTargetType(string $field_name): ?string {
     if (!$this->drupalFieldIsReference($field_name)) {
-        return NULL;
-    }  
-    $field_info = $this->getDrupalFieldInfo($field_name);  
+      return NULL;
+    }
+    $field_info = $this->getDrupalFieldInfo($field_name);
     return $field_info['target_type'] ?? NULL;
-  } 
-
+  }
 
   /**
    * Builds nested fields configuration for selected fields.
@@ -257,7 +244,7 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
       if (!isset($definitions[$field_name])) {
         continue;
       }
-      
+
       $definition = $definitions[$field_name];
       $config[$field_name] = [
         'type' => $definition->getDataType(),
@@ -272,7 +259,6 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
     return $config;
   }
 
-
   /**
    * Adds calculated field definitions to property definitions.
    *
@@ -285,7 +271,7 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
       return;
     }
 
-    foreach ($this->calculatedFieldNames as $field_name) {  
+    foreach ($this->calculatedFieldNames as $field_name) {
       if (isset($this->propertyDefinitions[$field_name])) {
         continue;
       }
@@ -298,7 +284,6 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
       $this->propertyDefinitions[$field_name] = $property;
     }
   }
-
 
   /**
    * Maps Drupal field type to Search API type.
@@ -331,10 +316,9 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
       'list_integer' => 'integer',
       'list_float' => 'decimal',
     ];
-    
+
     return $type_map[$drupal_type] ?? 'string';
   }
-
 
   /**
    * Converts a value to string safely.

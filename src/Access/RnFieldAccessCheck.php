@@ -11,7 +11,6 @@ use Drupal\field\FieldConfigInterface;
 use Drupal\relationship_nodes\RelationField\FieldNameResolver;
 use Drupal\relationship_nodes\RelationField\RelationshipFieldManager;
 
-
 /**
  * Access check for the Relationship Nodes field edit and delete routes.
  *
@@ -33,13 +32,12 @@ class RnFieldAccessCheck implements AccessInterface {
   protected FieldNameResolver $fieldResolver;
   protected RelationshipFieldManager $relationFieldManager;
 
-
   /**
    * Constructs a RnFieldAccessCheck object.
    *
-   * @param FieldNameResolver $fieldResolver
+   * @param \Drupal\relationship_nodes\RelationField\FieldNameResolver $fieldResolver
    *   The field name resolver.
-   * @param RelationshipFieldManager $relationFieldManager
+   * @param \Drupal\relationship_nodes\RelationField\RelationshipFieldManager $relationFieldManager
    *   The relationship field manager.
    */
   public function __construct(FieldNameResolver $fieldResolver, RelationshipFieldManager $relationFieldManager) {
@@ -47,16 +45,15 @@ class RnFieldAccessCheck implements AccessInterface {
     $this->relationFieldManager = $relationFieldManager;
   }
 
-
   /**
    * Checks access to an RN field route.
    *
-   * @param RouteMatchInterface $route_match
+   * @param \Drupal\Core\Routing\RouteMatchInterface $route_match
    *   The route match.
-   * @param AccountInterface $account
+   * @param \Drupal\Core\Session\AccountInterface $account
    *   The current user.
    *
-   * @return AccessResultInterface
+   * @return \Drupal\Core\Access\AccessResultInterface
    *   The access result.
    */
   public function access(RouteMatchInterface $route_match, AccountInterface $account): AccessResultInterface {

@@ -13,13 +13,12 @@ use Drupal\relationship_nodes\RelationField\CalculatedFieldHelper;
 use Drupal\relationship_nodes_search\Views\Config\NestedFieldViewsFieldConfigurator;
 use Drupal\views\Attribute\ViewsField;
 
-
 /**
  * Views field plugin for displaying nested relationship data.
  */
 #[ViewsField('search_api_relationship_field')]
 class RelationshipField extends SearchApiStandard implements ContainerFactoryPluginInterface {
-    
+
   protected NestedFieldViewsFieldConfigurator $fieldConfigurator;
   protected NestedFieldResultViewsParser $resultParser;
   protected CalculatedFieldHelper $calculatedFieldHelper;
@@ -28,17 +27,17 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
    * Constructs a RelationshipField object.
    *
    * @param array $configuration
-   *    The plugin configuration.
+   *   The plugin configuration.
    * @param string $plugin_id
-   *    The plugin ID.
+   *   The plugin ID.
    * @param mixed $plugin_definition
-   *    The plugin definition.
-   * @param NestedFieldViewsFieldConfigurator $fieldConfigurator
-   *    The field configurator service.
-   * @param NestedFieldResultViewsParser $resultParser
-   *    The child reference helper service.
-   * @param CalculatedFieldHelper $calculatedFieldHelper
-   *    The calculated field helper service.
+   *   The plugin definition.
+   * @param \Drupal\relationship_nodes_search\Views\Config\NestedFieldViewsFieldConfigurator $fieldConfigurator
+   *   The field configurator service.
+   * @param \Drupal\relationship_nodes_search\Views\Parser\NestedFieldResultViewsParser $resultParser
+   *   The child reference helper service.
+   * @param \Drupal\relationship_nodes\RelationField\CalculatedFieldHelper $calculatedFieldHelper
+   *   The calculated field helper service.
    */
   public function __construct(
     array $configuration,
@@ -46,14 +45,13 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
     mixed $plugin_definition,
     NestedFieldViewsFieldConfigurator $fieldConfigurator,
     NestedFieldResultViewsParser $resultParser,
-    CalculatedFieldHelper $calculatedFieldHelper
+    CalculatedFieldHelper $calculatedFieldHelper,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->fieldConfigurator = $fieldConfigurator;
     $this->resultParser = $resultParser;
     $this->calculatedFieldHelper = $calculatedFieldHelper;
   }
-  
 
   /**
    * {@inheritdoc}
@@ -69,25 +67,23 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
     );
   }
 
-
   /**
    * {@inheritdoc}
    */
   public function defineOptions() {
     $options = parent::defineOptions();
-    foreach($this->getDefaultRelationFieldOptions() as $option => $default){
+    foreach ($this->getDefaultRelationFieldOptions() as $option => $default) {
       $options[$option] = ['default' => $default];
     }
     return $options;
   }
 
-
   /**
    * {@inheritdoc}
    */
-  public function buildOptionsForm(&$form, FormStateInterface $form_state) { 
+  public function buildOptionsForm(&$form, FormStateInterface $form_state) {
     parent::buildOptionsForm($form, $form_state);
-    
+
     $config = $this->fieldConfigurator->validateAndPreparePluginForm(
       $this->getIndex(),
       $this->definition,
@@ -107,8 +103,6 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
     );
   }
 
-
-
   /**
    * {@inheritdoc}
    */
@@ -119,34 +113,32 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
       $this->getDefaultRelationFieldOptions(),
       $this->options
     );
-  }  
-
+  }
 
   /**
    * {@inheritdoc}
    */
   public function getValue(ResultRow $values, $field = NULL) {
     $index = $this->getIndex();
-    $sapi_fld_nm = $this->fieldConfigurator->getPluginParentFieldName($this->definition);      
+    $sapi_fld_nm = $this->fieldConfigurator->getPluginParentFieldName($this->definition);
     if (!$index instanceof Index || empty($sapi_fld_nm)) {
       return parent::getValue($values, $field);
     }
 
     $values_arr = get_object_vars($values);
-    if(empty($values_arr) || !is_array($values_arr)){
+    if (empty($values_arr) || !is_array($values_arr)) {
       return parent::getValue($values, $field);
     }
 
-    if(empty($values_arr[$sapi_fld_nm])){
+    if (empty($values_arr[$sapi_fld_nm])) {
       return parent::getValue($values, $field);
     }
     $value = $values_arr[$sapi_fld_nm];
-    if(!is_array($value)){
+    if (!is_array($value)) {
       return parent::getValue($values, $field);
     }
     return $value;
   }
-
 
   /**
    * {@inheritdoc}
@@ -159,7 +151,7 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
 
     $template_data = $this->prepareTemplateData($nested_data);
     $theme_hook = str_replace('-', '_', $this->options['template']);
-    
+
     return [
       '#theme' => $theme_hook,
       '#items' => $template_data['items'],
@@ -177,14 +169,12 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
     ];
   }
 
-
   /**
    * {@inheritdoc}
    */
   public function clickSortable() {
     return FALSE;
   }
-
 
   /**
    * {@inheritdoc}
@@ -193,7 +183,6 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
     return [];
   }
 
-
   /**
    * {@inheritdoc}
    */
@@ -201,14 +190,12 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
     return $this->render($values);
   }
 
-
   /**
    * {@inheritdoc}
    */
   public function render_item($count, $item) {
     return '';
   }
-
 
   /**
    * Prepares data to be sent to the twig template.
@@ -226,7 +213,7 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
   protected function prepareTemplateData(array $nested_data): array {
     $index = $this->getIndex();
     $sapi_fld_nm = $this->fieldConfigurator->getPluginParentFieldName($this->definition);
-    
+
     if (!$index instanceof Index || empty($sapi_fld_nm)) {
       return $this->getEmptyTemplateData();
     }
@@ -236,7 +223,7 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
     $relationships = $this->sortRelationships($relationships);
     $grouped = $this->groupRelationships($relationships);
     $child_field_metadata = $this->buildFieldsMetadata($field_settings);
-    
+
     return [
       'items' => $relationships,
       'groups' => $grouped,
@@ -244,7 +231,6 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
       'fields' => $child_field_metadata,
     ];
   }
-
 
   /**
    * Builds relationships array from nested data.
@@ -256,7 +242,7 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
    *   The raw nested relationship data from the index.
    * @param array $field_settings
    *   Field configuration from the Views field settings.
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $sapi_fld_nm
    *   The Search API field name for the relationship.
@@ -269,17 +255,17 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
       return [];
     }
 
-    // Step 1: Batch load all needed entities via helper service
+    // Step 1: Batch load all needed entities via helper service.
     $preloaded_entities = $this->resultParser->batchLoadFromIndexedData(
-      $nested_data, 
-      $field_settings, 
-      $index, 
+      $nested_data,
+      $field_settings,
+      $index,
       $sapi_fld_nm
     );
-    
-    // Step 2: Build relationships using cached entities
+
+    // Step 2: Build relationships using cached entities.
     $relationships = [];
-    
+
     foreach ($nested_data as $item) {
       $item_with_values = [];
       foreach ($field_settings as $child_fld_nm => $settings) {
@@ -287,26 +273,25 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
           continue;
         }
 
-        // Use helper's cache-aware processing
+        // Use helper's cache-aware processing.
         $field_value = $this->resultParser->processFieldValuesWithCache(
-          $item[$child_fld_nm], 
-          $settings, 
+          $item[$child_fld_nm],
+          $settings,
           $preloaded_entities
         );
-        
+
         if ($field_value !== NULL) {
           $item_with_values[$child_fld_nm] = $field_value;
         }
-      }       
+      }
 
       if (!empty($item_with_values)) {
         $relationships[] = $item_with_values;
       }
-    }   
+    }
 
     return $relationships;
   }
-
 
   /**
    * Sorts relationships based on configured sort field.
@@ -321,21 +306,20 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
     if (empty($this->options['sort_by_field']) || empty($relationships)) {
       return $relationships;
     }
-    
+
     $sort_fld_nm = $this->options['sort_by_field'];
-    usort($relationships, function($a, $b) use ($sort_fld_nm) {
+    usort($relationships, function ($a, $b) use ($sort_fld_nm) {
       if (!isset($a[$sort_fld_nm]) || !isset($b[$sort_fld_nm])) {
         return 0;
       }
-      
+
       $val_a = $a[$sort_fld_nm]['field_values'][0]['value'] ?? '';
       $val_b = $b[$sort_fld_nm]['field_values'][0]['value'] ?? '';
-      
+
       return strcasecmp($val_a, $val_b);
-    });  
+    });
     return $relationships;
   }
-
 
   /**
    * Groups relationships based on configured group field.
@@ -350,25 +334,24 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
     if (empty($this->options['group_by_field']) || empty($relationships)) {
       return [];
     }
-    
+
     $grouped = [];
-    $group_fld_nm  = $this->options['group_by_field'];
-    
+    $group_fld_nm = $this->options['group_by_field'];
+
     foreach ($relationships as $item) {
-      if (!isset($item[$group_fld_nm ])) {
+      if (!isset($item[$group_fld_nm])) {
         continue;
       }
-      
-      $group_key = $item[$group_fld_nm ]['field_values'][0]['value'] ?? 'ungrouped';
-      
+
+      $group_key = $item[$group_fld_nm]['field_values'][0]['value'] ?? 'ungrouped';
+
       if (!isset($grouped[$group_key])) {
         $grouped[$group_key] = [];
       }
       $grouped[$group_key][] = $item;
-    }  
+    }
     return $grouped;
   }
-
 
   /**
    * Builds fields metadata for the template.
@@ -381,26 +364,25 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
    */
   protected function buildFieldsMetadata(array $field_settings): array {
     $fields = [];
-    
+
     foreach ($field_settings as $child_fld_nm => $settings) {
       if (empty($settings['enabled'])) {
         continue;
       }
-      
+
       $fields[$child_fld_nm] = [
         'name' => $child_fld_nm,
-        'label' => !empty($settings['label']) 
-          ? $settings['label'] 
-          :  $this->calculatedFieldHelper->formatCalculatedFieldLabel($child_fld_nm),
+        'label' => !empty($settings['label'])
+          ? $settings['label']
+          : $this->calculatedFieldHelper->formatCalculatedFieldLabel($child_fld_nm),
         'weight' => $settings['weight'] ?? 0,
         'hide_label' => !empty($settings['hide_label']),
         'display_mode' => $settings['display_mode'] ?? 'id',
-        'multiple_separator' => $settings['multiple_separator'] ?? ', '
+        'multiple_separator' => $settings['multiple_separator'] ?? ', ',
       ];
     }
     return $this->fieldConfigurator->sortFieldsByWeight($fields);
   }
-
 
   /**
    * Builds summary data for the template.
@@ -424,7 +406,6 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
     ];
   }
 
-
   /**
    * Gets empty template data structure.
    *
@@ -439,12 +420,11 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
         'total' => 0,
         'fields' => [],
         'has_groups' => FALSE,
-        'group_count' => 0
+        'group_count' => 0,
       ],
       'fields' => [],
     ];
   }
-
 
   /**
    * Gets default options for the field configuration form in Views.
@@ -452,7 +432,7 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
    * @return array
    *   Array of default option values.
    */
-  protected function getDefaultRelationFieldOptions(): array{
+  protected function getDefaultRelationFieldOptions(): array {
     return [
       'field_settings' => [],
       'sort_by_field' => '',
@@ -460,4 +440,5 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
       'template' => 'relationship-field',
     ];
   }
+
 }

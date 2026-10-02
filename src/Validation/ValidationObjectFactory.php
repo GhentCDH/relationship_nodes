@@ -47,9 +47,9 @@ final class ValidationObjectFactory {
    */
   public function fromFormState(FormStateInterface $formState): ?BundleValidator {
     $entity = $formState->getFormObject()->getEntity();
-    
+
     if (!$entity instanceof ConfigEntityBundleBase) {
-      return null;
+      return NULL;
     }
 
     return new BundleValidator(
@@ -67,9 +67,9 @@ final class ValidationObjectFactory {
   public function fromBundleConfigFile(string $configName, StorageInterface $storage): ?BundleValidator {
     $configData = $storage->read($configName);
     $entityClasses = $this->settingsManager->getConfigFileEntityClasses($configName);
-    
+
     if (empty($entityClasses)) {
-      return null;
+      return NULL;
     }
 
     $rnSettings = $configData['third_party_settings']['relationship_nodes'] ?? [];
@@ -79,7 +79,7 @@ final class ValidationObjectFactory {
       $rnSettings,
       $this->bundleInfoService->getCimNodeTypesLinkedToVocab($configName, $storage),
       $this->fieldResolver,
-      $entityClasses['bundle'] ?? null
+      $entityClasses['bundle'] ?? NULL
     );
   }
 
@@ -94,8 +94,8 @@ final class ValidationObjectFactory {
       $fieldConfig->getTargetBundle(),
       $fieldConfig->isRequired(),
       $fieldConfig->getType(),
-      $fieldConfig->getSetting('handler_settings')['target_bundles'] ?? null,
-      null,
+      $fieldConfig->getSetting('handler_settings')['target_bundles'] ?? NULL,
+      NULL,
       $this->fieldResolver,
       $this->fieldManager,
       $this->settingsManager
@@ -111,7 +111,7 @@ final class ValidationObjectFactory {
       $configData['bundle'],
       $configData['required'],
       $configData['field_type'],
-      $configData['settings']['handler_settings']['target_bundles'] ?? null,
+      $configData['settings']['handler_settings']['target_bundles'] ?? NULL,
       $storage,
       $this->fieldResolver,
       $this->fieldManager,
@@ -129,7 +129,7 @@ final class ValidationObjectFactory {
       $storage->getName(),
       $storage->getType(),
       $storage->getCardinality(),
-      $storage->getSetting('target_type') ?? null,
+      $storage->getSetting('target_type') ?? NULL,
       $this->fieldManager
     );
   }
@@ -142,8 +142,9 @@ final class ValidationObjectFactory {
       $configData['field_name'],
       $configData['type'],
       $configData['cardinality'],
-      $configData['settings']['target_type'] ?? null,
+      $configData['settings']['target_type'] ?? NULL,
       $this->fieldManager
     );
   }
+
 }

@@ -10,7 +10,6 @@ use Drupal\node\NodeInterface;
 use Drupal\relationship_nodes\Plugin\Field\FieldType\ReferencingRelationshipItemList;
 use Drupal\relationship_nodes\RelationBundle\BundleInfoService;
 
-
 /**
  * Service for adding virtual relationship fields to entity bundles.
  *
@@ -23,20 +22,19 @@ class VirtualFieldManager {
   /**
    * Constructs a VirtualFieldManager object.
    *
-   * @param BundleInfoService $bundleInfoService
+   * @param \Drupal\relationship_nodes\RelationBundle\BundleInfoService $bundleInfoService
    *   The bundle info service.
    */
   public function __construct(BundleInfoService $bundleInfoService) {
     $this->bundleInfoService = $bundleInfoService;
   }
 
-
   /**
    * Adds virtual relationship fields to a bundle.
    *
    * @param array $fields
    *   The fields array (passed by reference).
-   * @param EntityTypeInterface $entity_type
+   * @param \Drupal\Core\Entity\EntityTypeInterface $entity_type
    *   The entity type.
    * @param string $bundle
    *   The bundle name.
@@ -106,14 +104,10 @@ class VirtualFieldManager {
     }
   }
 
-
-
-
-
   /**
    * Get all ReferencingRelationshipItemList fields from a node.
    *
-   * @param NodeInterface $node
+   * @param \Drupal\node\NodeInterface $node
    *   The node.
    *
    * @return array
@@ -121,7 +115,7 @@ class VirtualFieldManager {
    */
   public function getReferencingRelationshipFields(NodeInterface $node): array {
     $relationship_fields = [];
-    
+
     foreach ($node->getFieldDefinitions() as $field_name => $definition) {
       if ($definition->getClass() === ReferencingRelationshipItemList::class) {
         $relationship_fields[] = $field_name;
@@ -129,4 +123,5 @@ class VirtualFieldManager {
     }
     return $relationship_fields;
   }
+
 }

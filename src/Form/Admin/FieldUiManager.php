@@ -13,7 +13,6 @@ use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
 use Drupal\relationship_nodes\RelationField\RelationshipFieldManager;
 use Drupal\relationship_nodes\RelationField\FieldNameResolver;
 
-
 /**
  * Service for updating field configuration UI elements.
  *
@@ -28,28 +27,27 @@ class FieldUiManager {
   protected FieldNameResolver $fieldResolver;
   protected BundleSettingsManager $settingsManager;
   protected RelationshipFieldManager $relationFieldManager;
-  
 
   /**
    * Constructs a FieldUiManager object.
    *
-   * @param EntityTypeManagerInterface $entityTypeManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
-   * @param RouteMatchInterface $routeMatch
+   * @param \Drupal\Core\Routing\RouteMatchInterface $routeMatch
    *   The current route match.
-   * @param FieldNameResolver $fieldResolver
+   * @param \Drupal\relationship_nodes\RelationField\FieldNameResolver $fieldResolver
    *   The field name resolver.
-   * @param BundleSettingsManager $settingsManager
+   * @param \Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager $settingsManager
    *   The settings manager.
-   * @param RelationshipFieldManager $relationFieldManager
+   * @param \Drupal\relationship_nodes\RelationField\RelationshipFieldManager $relationFieldManager
    *   The field configurator.
    */
   public function __construct(
-    EntityTypeManagerInterface $entityTypeManager, 
-    RouteMatchInterface $routeMatch, 
+    EntityTypeManagerInterface $entityTypeManager,
+    RouteMatchInterface $routeMatch,
     FieldNameResolver $fieldResolver,
-    BundleSettingsManager $settingsManager, 
-    RelationshipFieldManager $relationFieldManager
+    BundleSettingsManager $settingsManager,
+    RelationshipFieldManager $relationFieldManager,
   ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->routeMatch = $routeMatch;
@@ -57,82 +55,78 @@ class FieldUiManager {
     $this->settingsManager = $settingsManager;
     $this->relationFieldManager = $relationFieldManager;
   }
-  
 
   /**
    * Gets the relation field configuration URL.
    *
-   * @param FieldConfig $field_config
+   * @param \Drupal\field\Entity\FieldConfig $field_config
    *   The field configuration.
    *
-   * @return Url|null
+   * @return \Drupal\Core\Url|null
    *   The URL or NULL.
    */
-  public function getRelationFieldConfigUrl(FieldConfig $field_config): ?Url {    
+  public function getRelationFieldConfigUrl(FieldConfig $field_config): ?Url {
     $url_info = $this->getDefaultRoutingInfo($field_config->getTargetEntityTypeId());
 
     if (empty($url_info)) {
-      return null;
+      return NULL;
     }
 
-    return Url::fromRoute($url_info['rn_field_edit_route'],[
-      $url_info['bundle_param_key'] => $field_config->getTargetBundle(), 
+    return Url::fromRoute($url_info['rn_field_edit_route'], [
+      $url_info['bundle_param_key'] => $field_config->getTargetBundle(),
       'field_config' => $field_config->id(),
     ]);
   }
 
-
   /**
    * Gets the relation field delete URL.
    *
-   * @param FieldConfig $field_config
+   * @param \Drupal\field\Entity\FieldConfig $field_config
    *   The field configuration.
    *
-   * @return Url|null
+   * @return \Drupal\Core\Url|null
    *   The URL or NULL.
    */
   public function getRelationFieldDeleteUrl(FieldConfig $field_config): ?url {
-    $url = Url::fromRoute('relationship_nodes.rn_field_delete',['field_config' => $field_config->id(),]);
-    return $url ?? null;
+    $url = Url::fromRoute('relationship_nodes.rn_field_delete', ['field_config' => $field_config->id()]);
+    return $url ?? NULL;
   }
-
 
   /**
    * Overrides edit operations for relation fields.
    *
    * @param array $row
    *   The table row (passed by reference).
-   * @param FieldConfig $field_config
+   * @param \Drupal\field\Entity\FieldConfig $field_config
    *   The field configuration.
    * @param array $original_operations
    *   The original operations array.
    */
-  public function overrideOperationsEdit(array &$row, FieldConfig $field_config, array $original_operations): void {   
+  public function overrideOperationsEdit(array &$row, FieldConfig $field_config, array $original_operations): void {
     if (!$this->relationFieldManager->isRnCreatedField($field_config)) {
       return;
     }
-    
+
     if (!in_array($row['data']['field_name'], $this->fieldResolver->getAllRelationFieldNames())) {
       return;
     }
 
     unset($row['data']['operations']);
-    unset($row['class']['menu-disabled']); 
-    
-    $row['data'] = $row['data'] + $original_operations; 
+    unset($row['class']['menu-disabled']);
+
+    $row['data'] = $row['data'] + $original_operations;
     $url = $this->getRelationFieldConfigUrl($field_config);
     $row['data']['operations']['data']['#links']['edit']['url'] = $url;
 
     if (!$this->currentRouteIsRelationEntity()) {
       $delete_url = $this->getRelationFieldDeleteUrl($field_config);
       $row['data']['operations']['data']['#links']['delete'] = [
-        'title'=> t('Delete'),
-        'weight' => 999, 
+        'title' => t('Delete'),
+        'weight' => 999,
         'url' => $delete_url,
       ];
-    }  
+    }
   }
-
 
   /**
    * Overrides local tasks edit for relation fields.
@@ -165,11 +159,10 @@ class FieldUiManager {
     $local_tasks[$routing_info['field_edit_local_task']]['route_name'] = $routing_info['rn_field_edit_route'];
   }
 
-  
   /**
    * Gets the bundle from the current route.
    *
-   * @return NodeType|Vocabulary|null
+   * @return \Drupal\node\Entity\NodeType|Vocabulary|null
    *   The bundle entity or NULL.
    */
   public function getBundleFromCurrentRoute(): NodeType|Vocabulary|null {
@@ -178,11 +171,13 @@ class FieldUiManager {
       case 'node':
         $bundle = $this->routeMatch->getParameter('node_type');
         break;
+
       case 'taxonomy_term':
         $bundle = $this->routeMatch->getParameter('taxonomy_vocabulary');
         break;
+
       default:
-        $bundle = null;
+        $bundle = NULL;
         break;
     }
     if (is_string($bundle)) {
@@ -191,19 +186,18 @@ class FieldUiManager {
     }
 
     if (!($bundle instanceof NodeType || $bundle instanceof Vocabulary)) {
-      return null;
+      return NULL;
     }
     return $bundle;
   }
 
-
   /**
    * Gets the redirect URL for a field configuration.
    *
-   * @param FieldConfig $field_config
+   * @param \Drupal\field\Entity\FieldConfig $field_config
    *   The field configuration.
    *
-   * @return Url
+   * @return \Drupal\Core\Url
    *   The redirect URL.
    */
   public function getRedirectUrl(FieldConfig $field_config): Url {
@@ -214,16 +208,17 @@ class FieldUiManager {
       case 'node':
         $url = Url::fromRoute('entity.node.field_ui_fields', ['node_type' => $bundle]);
         break;
+
       case 'taxonomy_term':
         $url = Url::fromRoute('entity.taxonomy_term.field_ui_fields', ['taxonomy_vocabulary' => $bundle]);
         break;
+
       default:
         $url = Url::fromRoute('<front>');
         break;
     }
     return $url;
   }
-
 
   /**
    * Checks if the current route is for a relation entity.
@@ -234,12 +229,11 @@ class FieldUiManager {
   public function currentRouteIsRelationEntity(): bool {
     $bundle_entity = $this->getBundleFromCurrentRoute();
     if (!$bundle_entity) {
-      return false;
+      return FALSE;
     }
-    $bundle_info = $this->settingsManager->getBundleInfo($bundle_entity);  
+    $bundle_info = $this->settingsManager->getBundleInfo($bundle_entity);
     return $bundle_info && $bundle_info->isRelation();
   }
-
 
   /**
    * Gets default routing information for an entity type.
@@ -257,7 +251,7 @@ class FieldUiManager {
       ],
       'taxonomy_term' => [
         'bundle_param_key' => 'taxonomy_vocabulary',
-      ]
+      ],
     ];
 
     if (!isset($mapping[$entity_type_id])) {
@@ -268,7 +262,8 @@ class FieldUiManager {
       'rn_field_edit_route' => 'relationship_nodes.relation_' . $entity_type_id . '_field_form',
       'field_edit_form_route' => 'entity.field_config.' . $entity_type_id . '_field_edit_form',
       'field_ui_fields_route' => 'entity.' . $entity_type_id . '.field_ui_fields',
-      'field_edit_local_task' => 'field_ui.fields:field_edit_'. $entity_type_id,
+      'field_edit_local_task' => 'field_ui.fields:field_edit_' . $entity_type_id,
     ];
   }
+
 }

@@ -24,7 +24,7 @@ class FieldConfiguratorBase {
   /**
    * Constructs a FieldConfiguratorBase object.
    *
-   * @param FieldNameResolver $fieldNameResolver
+   * @param \Drupal\relationship_nodes\RelationField\FieldNameResolver $fieldNameResolver
    *   The field name resolver service.
    */
   public function __construct(FieldNameResolver $fieldNameResolver) {
@@ -42,7 +42,7 @@ class FieldConfiguratorBase {
    * @param array $saved_settings
    *   Current field settings from saved configuration.
    * @param array $context
-   *   Extension point for context-specific capabilities. Base class passes 
+   *   Extension point for context-specific capabilities. Base class passes
    *   this through unchanged - subclasses use it to determine field capabilities.
    *   Common keys:
    *   - 'linkable_fields': Fields supporting entity reference display modes
@@ -66,7 +66,7 @@ class FieldConfiguratorBase {
   public function prepareFieldConfigurations(
     array $field_names,
     array $saved_settings,
-    array $context = []
+    array $context = [],
   ): array {
     $configurations = [];
     $field_settings = $saved_settings['field_settings'] ?? [];
@@ -79,9 +79,9 @@ class FieldConfiguratorBase {
       $is_linkable = in_array($field_name, $linkable_fields);
       $supports_range = in_array($field_name, $support_range);
       $configurations[$field_name] = [
-        // Identity
+        // Identity.
         'field_name' => $field_name,
-        
+
         // Capabilities (determined at prepare time)
         'linkable' => $is_linkable,
         'is_calculated' => in_array($field_name, $calculated_fields),
@@ -126,9 +126,9 @@ class FieldConfiguratorBase {
     array &$form,
     array $field_configurations,
     array $global_settings = [],
-    array $options = []
+    array $options = [],
   ): void {
-    // Merge with defaults
+    // Merge with defaults.
     $options += [
       'context_prefix' => NULL,
       'show_template' => FALSE,
@@ -137,26 +137,27 @@ class FieldConfiguratorBase {
       'field_callback' => NULL,
     ];
 
-    // Field configuration container
+    // Field configuration container.
     $form['field_settings'] = [
       '#type' => 'details',
       '#title' => $this->t('Available fields'),
       '#description' => $this->t('Select and configure fields.'),
-      '#open' => TRUE
+      '#open' => TRUE,
     ];
 
-    // Build individual field forms from configurations
+    // Build individual field forms from configurations.
     foreach ($field_configurations as $config) {
       if ($options['field_callback'] && is_callable($options['field_callback'])) {
-        // Use call_user_func_array to support reference parameters
+        // Use call_user_func_array to support reference parameters.
         call_user_func_array($options['field_callback'], [&$form, $config, $options]);
-      } else {
-        // Use default display field rendering
+      }
+      else {
+        // Use default display field rendering.
         $this->buildFieldFormFromConfig(
           $form,
           $config,
           $options['context_prefix']
-        );
+              );
       }
     }
     // Global options (sorting, grouping, template)
@@ -184,25 +185,25 @@ class FieldConfiguratorBase {
   protected function buildFieldFormFromConfig(
     array &$form,
     array $config,
-    ?string $context_prefix
+    ?string $context_prefix,
   ): void {
     $field_name = $config['field_name'];
     $is_enabled = $config['enabled'];
-    
-    // Build disabled state
+
+    // Build disabled state.
     $disabled_state = $this->buildFieldDisabledState(
       $field_name,
       $context_prefix
     );
 
-    // Field container
+    // Field container.
     $form['field_settings'][$field_name] = [
       '#type' => 'details',
       '#title' => $config['label'],
       '#open' => $is_enabled,
     ];
 
-    // Enable checkbox
+    // Enable checkbox.
     $form['field_settings'][$field_name]['enabled'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Display this field'),
@@ -225,7 +226,7 @@ class FieldConfiguratorBase {
       ];
     }
 
-    // Label
+    // Label.
     $form['field_settings'][$field_name]['label'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Custom label'),
@@ -235,7 +236,7 @@ class FieldConfiguratorBase {
       '#states' => $disabled_state,
     ];
 
-    // Weight
+    // Weight.
     $form['field_settings'][$field_name]['weight'] = [
       '#type' => 'number',
       '#title' => $this->t('Weight'),
@@ -245,7 +246,7 @@ class FieldConfiguratorBase {
       '#states' => $disabled_state,
     ];
 
-    // Hide label
+    // Hide label.
     $form['field_settings'][$field_name]['hide_label'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Hide label in output'),
@@ -282,9 +283,9 @@ class FieldConfiguratorBase {
     array &$form,
     array $field_names,
     array $settings,
-    array $options
+    array $options,
   ): void {
-    // Sorting
+    // Sorting.
     if ($options['show_sorting']) {
       $form['sort_by_field'] = [
         '#type' => 'select',
@@ -295,7 +296,7 @@ class FieldConfiguratorBase {
       ];
     }
 
-    // Grouping
+    // Grouping.
     if ($options['show_grouping']) {
       $form['group_by_field'] = [
         '#type' => 'select',
@@ -330,13 +331,14 @@ class FieldConfiguratorBase {
    */
   public function buildFieldDisabledState(
     string $field_name,
-    ?string $context_prefix
+    ?string $context_prefix,
   ): array {
     $field_parts = ['field_settings', $field_name, 'enabled'];
-  
+
     if ($context_prefix) {
       $input_name = $context_prefix . '[' . implode('][', $field_parts) . ']';
-    } else {
+    }
+    else {
       $input_name = implode('][', $field_parts) . ']';
     }
 
@@ -347,42 +349,42 @@ class FieldConfiguratorBase {
     ];
   }
 
+  /**
+   * Extracts settings from form state.
+   *
+   * Generic helper for extracting configuration values from form state.
+   * Reads values directly from form state path without wrapper prefix.
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   * @param array $default_settings
+   *   Default settings structure.
+   * @param string|null $prefix
+   *   Optional path prefix (e.g., 'settings' for formatters, 'options' for Views).
+   *
+   * @return array
+   *   Extracted settings.
+   */
+  public function extractSettingsFromFormState(
+    FormStateInterface $form_state,
+    array $default_settings,
+    ?string $prefix = NULL,
+  ): array {
+    $settings = [];
 
-/**
- * Extracts settings from form state.
- *
- * Generic helper for extracting configuration values from form state.
- * Reads values directly from form state path without wrapper prefix.
- *
- * @param FormStateInterface $form_state
- *   The form state.
- * @param array $default_settings
- *   Default settings structure.
- * @param string|null $prefix
- *   Optional path prefix (e.g., 'settings' for formatters, 'options' for Views).
- *
- * @return array
- *   Extracted settings.
- */
-public function extractSettingsFromFormState(
-  FormStateInterface $form_state,
-  array $default_settings,
-  ?string $prefix = NULL
-): array {
-  $settings = [];
+    foreach ($default_settings as $key => $default_value) {
+      if ($prefix) {
+        $value = $form_state->getValue([$prefix, $key]);
+      }
+      else {
+        $value = $form_state->getValue($key);
+      }
 
-  foreach ($default_settings as $key => $default_value) {
-    if ($prefix) {
-      $value = $form_state->getValue([$prefix, $key]);
-    } else {
-      $value = $form_state->getValue($key);
+      $settings[$key] = $value ?? $default_value;
     }
 
-    $settings[$key] = $value ?? $default_value;
+    return $settings;
   }
-
-  return $settings;
-}
 
   /**
    * Gets default display settings structure.
@@ -436,8 +438,8 @@ public function extractSettingsFromFormState(
       ];
     }
 
-    // Sort by weight
-    uasort($metadata, function($a, $b) {
+    // Sort by weight.
+    uasort($metadata, function ($a, $b) {
       return $a['weight'] <=> $b['weight'];
     });
 
@@ -458,22 +460,22 @@ public function extractSettingsFromFormState(
   public function buildSettingsSummary(array $field_configurations, array $global_settings = []): array {
     $summary = [];
 
-    // Count enabled fields
+    // Count enabled fields.
     $enabled_count = count(array_filter($field_configurations, fn($c) => $c['enabled']));
-    
+
     if ($enabled_count > 0) {
       $summary[] = $this->t('Displaying @count field(s)', ['@count' => $enabled_count]);
     }
 
     if (!empty($global_settings['sort_by_field'])) {
       $summary[] = $this->t('Sorted by: @field', [
-        '@field' => $this->formatFieldLabel($global_settings['sort_by_field'])
+        '@field' => $this->formatFieldLabel($global_settings['sort_by_field']),
       ]);
     }
 
     if (!empty($global_settings['group_by_field'])) {
       $summary[] = $this->t('Grouped by: @field', [
-        '@field' => $this->formatFieldLabel($global_settings['group_by_field'])
+        '@field' => $this->formatFieldLabel($global_settings['group_by_field']),
       ]);
     }
 
@@ -490,13 +492,13 @@ public function extractSettingsFromFormState(
    *   Formatted label.
    */
   public function formatFieldLabel(string $field_name): string {
-    // Remove common prefixes
+    // Remove common prefixes.
     $label = preg_replace('/^(rn_|field_)/', '', $field_name);
-    
-    // Replace underscores with spaces
+
+    // Replace underscores with spaces.
     $label = str_replace('_', ' ', $label);
-    
-    // Capitalize words
+
+    // Capitalize words.
     return ucwords($label);
   }
 
@@ -519,10 +521,11 @@ public function extractSettingsFromFormState(
   /**
    * Gets the field name resolver service.
    *
-   * @return FieldNameResolver
+   * @return \Drupal\relationship_nodes\RelationField\FieldNameResolver
    *   The field name resolver.
    */
   protected function getFieldNameResolver(): FieldNameResolver {
     return $this->fieldNameResolver;
   }
+
 }

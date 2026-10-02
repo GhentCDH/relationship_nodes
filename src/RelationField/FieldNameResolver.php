@@ -2,7 +2,6 @@
 
 namespace Drupal\relationship_nodes\RelationField;
 
-
 /**
  * Service for resolving relationship node field names.
  *
@@ -13,7 +12,7 @@ class FieldNameResolver {
   private const FIELD_NAMES = [
     'related_entity_fields' => [
       'related_entity_1' => 'rn_related_entity_1',
-      'related_entity_2'=> 'rn_related_entity_2',
+      'related_entity_2' => 'rn_related_entity_2',
     ],
     'relation_type' => 'rn_relation_type',
     'mirror_fields' => [
@@ -21,7 +20,6 @@ class FieldNameResolver {
       'mirror_string' => 'rn_mirror_string',
     ],
   ];
-
 
   /**
    * Gets the relation type field name.
@@ -33,7 +31,6 @@ class FieldNameResolver {
     return $this->getConfig('relation_type');
   }
 
-
   /**
    * Gets related entity field names.
    *
@@ -43,14 +40,13 @@ class FieldNameResolver {
    * @return array|string
    *   Array of field names or single field name.
    */
-  public function getRelatedEntityFields(?int $no = null): array|string {
+  public function getRelatedEntityFields(?int $no = NULL): array|string {
     $fields = $this->getConfig('related_entity_fields') ?? [];
     if ($no === 1 || $no === 2) {
       return array_values($fields)[$no - 1] ?? '';
-    }    
+    }
     return $fields;
   }
-
 
   /**
    * Gets mirror field names.
@@ -63,13 +59,12 @@ class FieldNameResolver {
    */
   public function getMirrorFields(?string $type = NULL): array|string {
     $options = ['string' => 'mirror_string', 'entity_reference' => 'mirror_entity_reference'];
-    $fields  = $this->getConfig('mirror_fields')?? [];
+    $fields  = $this->getConfig('mirror_fields') ?? [];
     if ($type !== NULL && isset($options[$type])) {
       return $fields[$options[$type]] ?? '';
     }
     return $fields;
   }
-
 
   /**
    * Gets the opposite related entity field name.
@@ -88,7 +83,6 @@ class FieldNameResolver {
     };
   }
 
-
   /**
    * Gets the opposite mirror field name.
    *
@@ -106,8 +100,7 @@ class FieldNameResolver {
     };
   }
 
-
-    /**
+  /**
    * Gets all relationship node field names.
    *
    * @return array
@@ -130,7 +123,6 @@ class FieldNameResolver {
     return $fields;
   }
 
-
   /**
    * Gets configuration value by key.
    *
@@ -150,5 +142,5 @@ class FieldNameResolver {
     }
     return $config[$key];
   }
-  
+
 }

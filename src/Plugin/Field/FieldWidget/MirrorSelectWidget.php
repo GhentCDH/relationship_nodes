@@ -12,7 +12,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Field\Attribute\FieldWidget;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 
-
 /**
  * Plugin implementation of the 'mirror_select_widget' widget.
  *
@@ -25,9 +24,8 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
   multiple_values: TRUE,
 )]
 class MirrorSelectWidget extends OptionsSelectWidget {
-  
-  protected MirrorProvider $mirrorProvider;
 
+  protected MirrorProvider $mirrorProvider;
 
   /**
    * Constructs a MirrorSelectWidget object.
@@ -36,37 +34,36 @@ class MirrorSelectWidget extends OptionsSelectWidget {
    *   The plugin ID.
    * @param mixed $plugin_definition
    *   The plugin definition.
-   * @param FieldDefinitionInterface $field_definition
+   * @param \Drupal\Core\Field\FieldDefinitionInterface $field_definition
    *   The field definition.
    * @param array $settings
    *   The widget settings.
    * @param array $third_party_settings
    *   Third party settings.
-   * @param MirrorProvider $mirrorProvider
+   * @param \Drupal\relationship_nodes\RelationData\TermHelper\MirrorProvider $mirrorProvider
    *   The mirror term provider.
-   * @param ElementInfoManagerInterface|null $elementInfoManager
+   * @param \Drupal\Core\Render\ElementInfoManagerInterface|null $elementInfoManager
    *   The element info manager.
    */
   public function __construct(
     $plugin_id,
-    $plugin_definition, 
-    FieldDefinitionInterface $field_definition, 
-    array $settings, 
+    $plugin_definition,
+    FieldDefinitionInterface $field_definition,
+    array $settings,
     array $third_party_settings,
     MirrorProvider $mirrorProvider,
-    ?ElementInfoManagerInterface $elementInfoManager = NULL
+    ?ElementInfoManagerInterface $elementInfoManager = NULL,
   ) {
     parent::__construct(
-      $plugin_id, 
-      $plugin_definition, 
-      $field_definition, 
-      $settings, 
-      $third_party_settings, 
+      $plugin_id,
+      $plugin_definition,
+      $field_definition,
+      $settings,
+      $third_party_settings,
       $elementInfoManager
     );
     $this->mirrorProvider = $mirrorProvider;
   }
-
 
   /**
    * {@inheritdoc}
@@ -82,8 +79,7 @@ class MirrorSelectWidget extends OptionsSelectWidget {
       $container->get('plugin.manager.element_info')
     );
   }
-    
-  
+
   /**
    * {@inheritdoc}
    */
@@ -94,7 +90,8 @@ class MirrorSelectWidget extends OptionsSelectWidget {
     }
 
     $element['#options'] = $this->mirrorProvider->getMirrorOptions($element['#options']);
-     
+
     return $element;
-  }  
+  }
+
 }

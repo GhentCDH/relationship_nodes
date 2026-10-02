@@ -4,7 +4,6 @@ namespace Drupal\relationship_nodes\Validation;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 
-
 /**
  * Service for formatting validation error messages.
  *
@@ -32,9 +31,8 @@ class ValidationResultFormatter {
     'disabled_with_dependencies' => 'The vocabulary "@bundle" is used as a relation type in a relationship node. Remove this dependency before disabling Relationship Nodes.',
     'orphaned_rn_field_settings' => 'The field "@field" has relation settings, but is not defined in the module configuration.',
     'invalid_relation_vocabulary' => 'The field "@field" in bundle "@bundle" targets an invalid relation vocabulary.',
-    'mirror_field_bundle_mismatch' => 'The mirror field "@field" in bundle "@bundle" must reference the same vocabulary as the original.'
+    'mirror_field_bundle_mismatch' => 'The mirror field "@field" in bundle "@bundle" must reference the same vocabulary as the original.',
   ];
-
 
   /**
    * Formats validation errors into a readable message.
@@ -52,18 +50,17 @@ class ValidationResultFormatter {
     $error_strings = [];
     foreach ($errors as $error) {
       if (isset($error['error_code']) && isset($error['context'])) {
-        $error_string = "- " . $this->errorCodeToMessage($error['error_code'], $error['context']) . "\n";   
+        $error_string = "- " . $this->errorCodeToMessage($error['error_code'], $error['context']) . "\n";
         if (in_array($error_string, $error_strings)) {
           continue;
         }
         $error_strings[] = $error_string;
         $message .= $error_string;
-      }   
-    }  
+      }
+    }
     return rtrim($message, "\n");
   }
-  
-  
+
   /**
    * Converts error code to translated message.
    *
@@ -78,5 +75,6 @@ class ValidationResultFormatter {
   protected function errorCodeToMessage(string $error_code, array $context): string {
     $error_message = self::ERROR_MESSAGES[$error_code] ?? $error_code;
     return $this->t($error_message, $context);
-  }  
+  }
+
 }

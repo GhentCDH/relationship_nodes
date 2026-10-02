@@ -2,10 +2,6 @@
 
 namespace Drupal\relationship_nodes_search\SearchAPI\Query;
 
-use Drupal\search_api\Entity\Index;
-use Drupal\relationship_nodes_search\QueryHelper\NestedQueryStructureBuilder;
-
-
 /**
  * A sub-group of child field conditions within a nested parent field query.
  *
@@ -56,4 +52,5 @@ class NestedChildFieldConditionGroup extends NestedConditionGroupBase {
     $this->conditions[] = $condition;
     return $this;
   }
+
 }

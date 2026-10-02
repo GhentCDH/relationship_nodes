@@ -47,7 +47,7 @@ final class ValidationService {
    */
   private function validateFormStateBundle(FormStateInterface $formState): ValidationResult {
     $validator = $this->validationFactory->fromFormState($formState);
-    
+
     if (!$validator) {
       return ValidationResult::valid();
     }
@@ -96,7 +96,7 @@ final class ValidationService {
    */
   private function validateEntityFields(
     ConfigEntityBundleBase $entity,
-    ?array $rnSettings = null
+    ?array $rnSettings = NULL,
   ): ValidationResult {
     $fieldsStatus = $this->fieldManager->getBundleFieldsStatus($entity, $rnSettings);
     $existingFields = $fieldsStatus['existing'] ?? [];
@@ -132,14 +132,14 @@ final class ValidationService {
    */
   public function validateFieldConfig(
     FieldConfig $fieldConfig,
-    bool $includeStorage = true
+    bool $includeStorage = TRUE,
   ): ValidationResult {
     $results = [];
 
-    // Validate storage if requested
+    // Validate storage if requested.
     if ($includeStorage) {
       $storage = $fieldConfig->getFieldStorageDefinition();
-      
+
       if (!$storage instanceof FieldStorageConfig) {
         return ValidationResult::fromErrorCode('no_field_storage', [
           '@field' => $fieldConfig->getName(),
@@ -150,7 +150,7 @@ final class ValidationService {
       $results[] = $this->validateFieldStorage($storage);
     }
 
-    // Validate field config
+    // Validate field config.
     $validator = $this->validationFactory->fromFieldConfig($fieldConfig);
     $results[] = $validator->validate();
 
@@ -174,7 +174,7 @@ final class ValidationService {
    */
   private function validateAllBundles(): ValidationResult {
     $results = [];
-    
+
     foreach ($this->bundleInfoService->getAllRelationBundles() as $bundleName => $entity) {
       $results[] = $this->validateBundleEntity($entity);
     }
@@ -192,18 +192,19 @@ final class ValidationService {
 
     foreach ($rnFields as $fieldId => $field) {
       $fieldName = $field->getName();
-      
-      // Validate the field itself
+
+      // Validate the field itself.
       if ($field instanceof FieldStorageConfig) {
         $results[] = $this->validateFieldStorage($field);
-      } elseif ($field instanceof FieldConfig) {
+      }
+      elseif ($field instanceof FieldConfig) {
         $results[] = $this->validateFieldConfig($field);
       }
 
-      // Check for orphaned fields
-      if (!in_array($fieldName, $validFieldNames, true)) {
+      // Check for orphaned fields.
+      if (!in_array($fieldName, $validFieldNames, TRUE)) {
         $context = ['@field' => $fieldName];
-        
+
         if ($field instanceof FieldConfig) {
           $context['@bundle'] = $field->getTargetBundle();
         }
@@ -214,4 +215,5 @@ final class ValidationService {
 
     return ValidationResult::mergeAll($results);
   }
+
 }

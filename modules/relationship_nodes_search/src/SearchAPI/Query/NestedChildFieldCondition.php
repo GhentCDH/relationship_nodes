@@ -4,7 +4,6 @@ namespace Drupal\relationship_nodes_search\SearchAPI\Query;
 
 use Drupal\search_api\Query\Condition;
 
-
 /**
  * Condition for nested child field queries.
  *
@@ -15,7 +14,6 @@ class NestedChildFieldCondition extends Condition {
 
   protected ?string $parentFieldName = NULL;
   protected ?string $childFieldName = NULL;
-  
 
   /**
    * Gets the parent field name.
@@ -26,7 +24,6 @@ class NestedChildFieldCondition extends Condition {
   public function getParentFieldName(): ?string {
     return $this->parentFieldName;
   }
-
 
   /**
    * Sets the parent field name.
@@ -41,7 +38,6 @@ class NestedChildFieldCondition extends Condition {
     return $this;
   }
 
-  
   /**
    * Gets the child field name.
    *
@@ -51,7 +47,6 @@ class NestedChildFieldCondition extends Condition {
   public function getChildFieldName(): ?string {
     return $this->childFieldName;
   }
-
 
   /**
    * Sets the child field name.
@@ -66,7 +61,6 @@ class NestedChildFieldCondition extends Condition {
     return $this;
   }
 
-
   /**
    * Checks if this is a nested child field condition.
    *
@@ -76,4 +70,5 @@ class NestedChildFieldCondition extends Condition {
   public function isNestedChildField(): bool {
     return !empty($this->parentFieldName) && !empty($this->childFieldName);
   }
+
 }

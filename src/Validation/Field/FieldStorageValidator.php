@@ -35,18 +35,27 @@ final class FieldStorageValidator {
     ])->withContext(['@field' => $this->fieldName]);
   }
 
+  /**
+   *
+   */
   private function validateFieldType(array $required): ValidationResult {
     return $this->fieldType === $required['type']
       ? ValidationResult::valid()
       : ValidationResult::fromErrorCode('invalid_field_type');
   }
 
+  /**
+   *
+   */
   private function validateCardinality(array $required): ValidationResult {
     return $this->cardinality == $required['cardinality']
       ? ValidationResult::valid()
       : ValidationResult::fromErrorCode('invalid_cardinality');
   }
 
+  /**
+   *
+   */
   private function validateTargetType(array $required): ValidationResult {
     if (!isset($required['target_type'])) {
       return ValidationResult::valid();
@@ -56,4 +65,5 @@ final class FieldStorageValidator {
       ? ValidationResult::valid()
       : ValidationResult::fromErrorCode('invalid_target_type');
   }
+
 }

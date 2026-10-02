@@ -9,7 +9,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 
-
 /**
  * Validates the AvailableMirrorTermConstraint constraint.
  */
@@ -34,7 +33,7 @@ class AvailableMirrorTermConstraintValidator extends ConstraintValidator impleme
    * {@inheritdoc}
    */
   public function validate($value, Constraint $constraint): void {
-    if ($value->target_id != null) {
+    if ($value->target_id != NULL) {
       $updated_term_id = $value->getParent()->getEntity()->id();
       $updated_term_mirror_id = $value->target_id;
       if ($updated_term_id == $updated_term_mirror_id) {
@@ -54,4 +53,5 @@ class AvailableMirrorTermConstraintValidator extends ConstraintValidator impleme
       }
     }
   }
+
 }

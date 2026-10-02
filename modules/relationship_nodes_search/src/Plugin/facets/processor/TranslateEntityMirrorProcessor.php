@@ -38,7 +38,6 @@ class TranslateEntityMirrorProcessor extends ProcessorPluginBase implements Buil
   protected FieldNameResolver $fieldNameResolver;
   protected BundleSettingsManager $bundleSettingsManager;
 
-
   /**
    * Constructs a TranslateEntityMirrorProcessor object.
    */
@@ -58,11 +57,10 @@ class TranslateEntityMirrorProcessor extends ProcessorPluginBase implements Buil
     $this->bundleSettingsManager = $bundle_settings_manager;
   }
 
-
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id,$plugin_definition): static {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): static {
     return new static(
       $configuration,
       $plugin_id,
@@ -73,7 +71,6 @@ class TranslateEntityMirrorProcessor extends ProcessorPluginBase implements Buil
       $container->get('relationship_nodes.bundle_settings_manager'),
     );
   }
-
 
   /**
    * {@inheritdoc}
@@ -101,14 +98,13 @@ class TranslateEntityMirrorProcessor extends ProcessorPluginBase implements Buil
     return $results;
   }
 
-
   /**
    * Checks if the facet is based on a typed relation type field.
    *
    * Verifies via the Search API index field's property path and the bundle's
    * typed relation configuration — without relying on hardcoded field names.
    *
-   * @param FacetInterface $facet
+   * @param \Drupal\facets\FacetInterface $facet
    *   The facet to check.
    *
    * @return bool
@@ -144,4 +140,5 @@ class TranslateEntityMirrorProcessor extends ProcessorPluginBase implements Buil
     $bundle_info = $this->bundleSettingsManager->getBundleInfo($bundle, 'node');
     return $bundle_info !== NULL && $bundle_info->isTypedRelation();
   }
+
 }

@@ -6,7 +6,7 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Service for filter operator definitions and validation.
- * 
+ *
  * Provides operator options for Search API query conditions
  * and validates operator values.
  */
@@ -30,7 +30,6 @@ class FilterOperatorHelper {
     'NOT BETWEEN' => '<>',
   ];
 
-
   /**
    * Get all available operator options.
    *
@@ -40,7 +39,6 @@ class FilterOperatorHelper {
   public function getOperatorOptions(): array {
     return $this->getRangeOperatorOptions();
   }
-
 
   /**
    * Get operator options for text/string fields.
@@ -54,7 +52,6 @@ class FilterOperatorHelper {
       '<>' => $this->t('Is not equal to'),
     ];
   }
-
 
   /**
    * Get operator options for range-capable fields (numeric, date).
@@ -71,7 +68,6 @@ class FilterOperatorHelper {
     ];
   }
 
-
   /**
    * Get operator options based on field capabilities.
    *
@@ -82,11 +78,10 @@ class FilterOperatorHelper {
    *   Appropriate operator options for the field.
    */
   public function getOperatorOptionsForField(bool $supports_range): array {
-    return $supports_range 
-      ? $this->getRangeOperatorOptions() 
+    return $supports_range
+      ? $this->getRangeOperatorOptions()
       : $this->getTextOperatorOptions();
   }
-
 
   /**
    * Check if an operator is valid.
@@ -101,7 +96,6 @@ class FilterOperatorHelper {
     return array_key_exists($operator, $this->getOperatorOptions());
   }
 
-
   /**
    * Get the default operator.
    *
@@ -111,7 +105,6 @@ class FilterOperatorHelper {
   public function getDefaultOperator(): string {
     return '=';
   }
-
 
   /**
    * Determines the operator for a field condition from config and form values.
@@ -130,24 +123,23 @@ class FilterOperatorHelper {
    *   The sanitized operator.
    */
   public function determineFieldOperator(array $field_config, string $child_filter_id, array $form_values): string {
-    // First check exposed form value
+    // First check exposed form value.
     if (!empty($field_config['expose_field_operator']) && isset($form_values[$child_filter_id]['operator'])) {
       return $this->sanitizeOperator($form_values[$child_filter_id]['operator']);
     }
-    
-    // Fall back to configured operator
+
+    // Fall back to configured operator.
     if (!empty($field_config['field_operator'])) {
       return $this->sanitizeOperator($field_config['field_operator']);
     }
-    
-    // Return default if no operator configured
+
+    // Return default if no operator configured.
     return $this->getDefaultOperator();
   }
 
-
   /**
    * Validate and sanitize an operator value.
-   * 
+   *
    * Returns the operator if valid, otherwise returns the default operator.
    *
    * @param string|null $operator
@@ -164,4 +156,5 @@ class FilterOperatorHelper {
 
     return $this->isValidOperator($operator) ? $operator : $this->getDefaultOperator();
   }
+
 }

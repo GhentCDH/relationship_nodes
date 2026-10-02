@@ -8,7 +8,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 
-
 /**
  * Validates the ValidRelationReferenceConstraint constraint.
  */
@@ -36,4 +35,5 @@ class ValidRelationReferenceConstraintValidator extends ConstraintValidator impl
       $this->context->addViolation($constraint->$error_type);
     }
   }
+
 }

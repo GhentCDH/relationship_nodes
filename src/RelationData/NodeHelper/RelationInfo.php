@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Drupal\relationship_nodes\RelationData\NodeHelper;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -10,7 +9,6 @@ use Drupal\node\Entity\Node;
 use Drupal\relationship_nodes\RelationBundle\BundleInfoService;
 use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
 use Drupal\relationship_nodes\RelationField\FieldNameResolver;
-
 
 /**
  * Service for fetching information about relation nodes.
@@ -26,19 +24,18 @@ class RelationInfo {
   protected BundleInfoService $bundleInfoService;
   protected BundleSettingsManager $settingsManager;
 
-
   /**
    * Constructs a RelationInfo object.
    *
-   * @param EntityTypeManagerInterface $entityTypeManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
-   * @param ParentNodeContext $parentNodeContext
+   * @param \Drupal\relationship_nodes\Form\Entity\ParentNodeContext $parentNodeContext
    *   The parent node context.
-   * @param FieldNameResolver $fieldNameResolver
+   * @param \Drupal\relationship_nodes\RelationField\FieldNameResolver $fieldNameResolver
    *   The field name resolver.
-   * @param BundleInfoService $bundleInfoService
+   * @param \Drupal\relationship_nodes\RelationBundle\BundleInfoService $bundleInfoService
    *   The bundle info service.
-   * @param BundleSettingsManager $settingsManager
+   * @param \Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager $settingsManager
    *   The settings manager.
    */
   public function __construct(
@@ -46,7 +43,7 @@ class RelationInfo {
     ParentNodeContext $parentNodeContext,
     FieldNameResolver $fieldNameResolver,
     BundleInfoService $bundleInfoService,
-    BundleSettingsManager $settingsManager
+    BundleSettingsManager $settingsManager,
   ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->parentNodeContext = $parentNodeContext;
@@ -55,15 +52,14 @@ class RelationInfo {
     $this->settingsManager = $settingsManager;
   }
 
-
   /**
    * Returns the 'related entity' fields in the relation node that reference a given target node.
    *
-   * @param Node $relation_node
+   * @param \Drupal\node\Entity\Node $relation_node
    *   The relation node to inspect.
    * @param array $field_names
    *   List of field names to check for references.
-   * @param Node|null $target_node
+   * @param \Drupal\node\Entity\Node|null $target_node
    *   The target node to check connections against; defaults to the node
    *   whose relations are being edited.
    *
@@ -77,11 +73,11 @@ class RelationInfo {
       return $result;
     }
     $bundle_connections = $this->bundleInfoService->getBundleConnectionInfo($relation_node->getType(), $target_node->getType());
-    
-    if( empty($bundle_connections['join_fields'])) {
+
+    if (empty($bundle_connections['join_fields'])) {
       return $result;
     }
-    
+
     $target_id = $target_node->id();
 
     foreach ($field_names as $field) {
@@ -98,16 +94,15 @@ class RelationInfo {
     return $result;
   }
 
-
   /**
    * Gets the connection info between a relation node and a target node.
-   * 
+   *
    * Returns information about how a specific relation node connects to a target node,
    * including which fields create the connection and whether it's valid.
-   * 
-   * @param Node $relation_node
+   *
+   * @param \Drupal\node\Entity\Node $relation_node
    *   The relation node to inspect (e.g., "Partnership between X and Y").
-   * @param Node|null $target_node
+   * @param \Drupal\node\Entity\Node|null $target_node
    *   The target node to check connections against (e.g., node "X").
    *   If NULL, uses the current route parameter.
    *
@@ -122,9 +117,9 @@ class RelationInfo {
    *   - 'relation_info': array (optional) with relation bundle metadata
    *     * 'has_relationtype': bool
    *     * 'vocabulary': string (vocab machine name if typed relation)
-   *   
+   *
    *   Returns empty array if target node is invalid.
-   *   
+   *
    * @example
    *   // For a "Partnership" relation between Company A (nid:1) and Company B (nid:2)
    *   // When checking from Company A's perspective:
@@ -157,6 +152,7 @@ class RelationInfo {
     switch (count($connections)) {
       case 0:
         break;
+
       case 1:
         $result = [
           'relation_state' => 'related',
@@ -164,7 +160,8 @@ class RelationInfo {
           'relation_info' => $bundle_connections['relation_info'] ?? [],
         ];
         break;
-      default: 
+
+      default:
         $result = [
           'relation_state' => 'Error: duplicate relations',
           'join_fields' => $connections,
@@ -174,11 +171,10 @@ class RelationInfo {
     return $result;
   }
 
-
   /**
    * Returns all relation nodes that reference a given target node through a specific relation bundle.
    *
-   * @param Node $target_node
+   * @param \Drupal\node\Entity\Node $target_node
    * @param string $relation_bundle
    * @param array $join_fields
    *   Optional: list of 'related entity' fields through which the target node is referenced (in the relation bundle).
@@ -188,7 +184,7 @@ class RelationInfo {
    * @return array
    *   Array of referencing relation node objects, keyed by their ID.
    */
-  public function getReferencingRelations(Node $target_node, string $relation_bundle, array $join_fields = [], bool $group_by_field = false): array {
+  public function getReferencingRelations(Node $target_node, string $relation_bundle, array $join_fields = [], bool $group_by_field = FALSE): array {
     $target_bundle = $target_node->getType();
     if (empty($join_fields)) {
       $connection_info = $this->bundleInfoService->getBundleConnectionInfo($relation_bundle, $target_bundle) ?? [];
@@ -209,36 +205,35 @@ class RelationInfo {
         $result[$join_field] = $relations;
       }
     }
-    if($group_by_field){
+    if ($group_by_field) {
       return $result;
     }
     $flattened = [];
-    foreach($result as $field_result){
+    foreach ($result as $field_result) {
       $flattened = $flattened + $field_result;
     }
     return $flattened;
   }
 
-
   /**
    * Get a list of all nodes that are related to a given target node (grouped by the relation bundle that connects them).
    *
-   * @param Node $target_node
+   * @param \Drupal\node\Entity\Node $target_node
    *
    * @return array
-   *  Associative array of associative arrays.
-   *  The outer array is keyed by the relation bundle names and has arrays of related nodes as value [node_id => Node,...].
+   *   Associative array of associative arrays.
+   *   The outer array is keyed by the relation bundle names and has arrays of related nodes as value [node_id => Node,...].
    */
   public function getAllReferencingRelations(Node $target_node): array {
     $result = [];
-    $target_bundle_info = $this->bundleInfoService->getRelationInfoForTargetBundle($target_node->getType());    
-    
+    $target_bundle_info = $this->bundleInfoService->getRelationInfoForTargetBundle($target_node->getType());
+
     if (empty($target_bundle_info)) {
       return $result;
     }
 
     foreach ($target_bundle_info as $relation_bundle => $relation_info) {
-      $join_fields = isset($relation_info['join_fields']) ? $relation_info['join_fields'] : [];
+      $join_fields = $relation_info['join_fields'] ?? [];
       $bundle_result = $this->getReferencingRelations($target_node, $relation_bundle, $join_fields);
       if (!empty($bundle_result)) {
         $result[$relation_bundle] = $bundle_result;
@@ -248,27 +243,26 @@ class RelationInfo {
     return $result;
   }
 
-
   /**
    * Returns the target entity IDs for all related entity fields in a relation node.
    *
-   * @param Node $relation_node
+   * @param \Drupal\node\Entity\Node $relation_node
    *
    * @return array|null
-   *  Associative array of related enity field names => array of target IDs, or NULL if not a relation node type.
-   *  E.g. ['related_entity_field_1' => 101, 'related_entity_field_2' => 202]
+   *   Associative array of related enity field names => array of target IDs, or NULL if not a relation node type.
+   *   E.g. ['related_entity_field_1' => 101, 'related_entity_field_2' => 202]
    */
-  public function getRelatedEntityValues(Node $relation_node): ?array {   
-    $bundle_info = $this->settingsManager->getBundleInfo($relation_node->getType(), 'node');    
+  public function getRelatedEntityValues(Node $relation_node): ?array {
+    $bundle_info = $this->settingsManager->getBundleInfo($relation_node->getType(), 'node');
     if (!$bundle_info || !$bundle_info->isRelation()) {
-      return null;
+      return NULL;
     }
 
     $result = [];
     foreach ($this->fieldNameResolver->getRelatedEntityFields() as $related_entity_field) {
       $related_field = $relation_node->get($related_entity_field);
       if (!$related_field instanceof EntityReferenceFieldItemList) {
-        return null;    
+        return NULL;
       }
       $relation_references = $this->getFieldListTargetIds($related_field);
       if (empty($relation_references)) {
@@ -276,25 +270,25 @@ class RelationInfo {
       }
       $result[$related_entity_field] = $relation_references;
     }
-    return $result;   
+    return $result;
   }
 
-  
   /**
- * Extracts target IDs from an entity reference field list.
+   * Extracts target IDs from an entity reference field list.
    *
-   * @param EntityReferenceFieldItemList $list
+   * @param \Drupal\Core\Field\EntityReferenceFieldItemList $list
    *
    * @return array
    *   Array of target entity IDs.
    */
   public function getFieldListTargetIds(EntityReferenceFieldItemList $list): array {
-    $result = []; 
+    $result = [];
     foreach ($list->getValue() as $item) {
       if (is_array($item) && isset($item['target_id'])) {
-          $result[] = (int) $item['target_id'];
+        $result[] = (int) $item['target_id'];
       }
     }
     return $result;
   }
+
 }

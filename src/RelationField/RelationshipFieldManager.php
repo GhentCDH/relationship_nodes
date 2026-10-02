@@ -11,8 +11,6 @@ use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\field\FieldConfigStorage;
 use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
-use Drupal\relationship_nodes\RelationField\FieldNameResolver;
-
 
 /**
  * Service for configuring relationship node fields.
@@ -25,27 +23,25 @@ class RelationshipFieldManager {
   protected FieldNameResolver $fieldNameResolver;
   protected BundleSettingsManager $settingsManager;
 
-  
   /**
    * Constructs a FieldConfigurator object.
    *
-   * @param EntityTypeManagerInterface $entityTypeManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
-   * @param FieldNameResolver $fieldNameResolver
+   * @param \Drupal\relationship_nodes\RelationField\FieldNameResolver $fieldNameResolver
    *   The field name resolver.
-   * @param BundleSettingsManager $settingsManager
+   * @param \Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager $settingsManager
    *   The settings manager.
    */
   public function __construct(
     EntityTypeManagerInterface $entityTypeManager,
-    FieldNameResolver $fieldNameResolver, 
+    FieldNameResolver $fieldNameResolver,
     BundleSettingsManager $settingsManager,
   ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->fieldNameResolver = $fieldNameResolver;
     $this->settingsManager = $settingsManager;
   }
-
 
   /**
    * Gets required field configuration for a field name.
@@ -63,32 +59,34 @@ class RelationshipFieldManager {
         'target_type' => 'node',
         'cardinality' => 1,
       ];
-    } elseif ($field_name === $this->fieldNameResolver->getRelationTypeField()) {
-      return [
-        'type' => 'entity_reference',
-        'target_type' => 'taxonomy_term',
-        'cardinality' => 1,
-      ];
-    } elseif ($field_name === $this->fieldNameResolver->getMirrorFields('string')) {
-      return [
-        'type' => 'string',
-        'cardinality' => 1,
-      ];
-    } elseif ($field_name === $this->fieldNameResolver->getMirrorFields('entity_reference')) {
+    }
+    elseif ($field_name === $this->fieldNameResolver->getRelationTypeField()) {
       return [
         'type' => 'entity_reference',
         'target_type' => 'taxonomy_term',
         'cardinality' => 1,
       ];
     }
-    return null;
+    elseif ($field_name === $this->fieldNameResolver->getMirrorFields('string')) {
+      return [
+        'type' => 'string',
+        'cardinality' => 1,
+      ];
+    }
+    elseif ($field_name === $this->fieldNameResolver->getMirrorFields('entity_reference')) {
+      return [
+        'type' => 'entity_reference',
+        'target_type' => 'taxonomy_term',
+        'cardinality' => 1,
+      ];
+    }
+    return NULL;
   }
-
 
   /**
    * Implements field updates for a bundle entity.
    *
-   * @param ConfigEntityBundleBase $entity
+   * @param \Drupal\Core\Config\Entity\ConfigEntityBundleBase $entity
    *   The bundle entity.
    *
    * @return array
@@ -96,8 +94,8 @@ class RelationshipFieldManager {
    */
   public function implementFieldUpdates(ConfigEntityBundleBase $entity): array {
     $result = [];
-    $fields_status = $this->getBundleFieldsStatus($entity); 
-    $existing = $fields_status['existing'];      
+    $fields_status = $this->getBundleFieldsStatus($entity);
+    $existing = $fields_status['existing'];
     $missing = $fields_status['missing'];
     $remove = $fields_status['remove'];
     if (!empty($existing)) {
@@ -108,7 +106,7 @@ class RelationshipFieldManager {
     if (!empty($missing)) {
       $this->createFields($entity, $missing);
       $result['created'] = $missing;
-    } 
+    }
 
     if (!empty($remove)) {
       $this->removeFields($entity, $remove);
@@ -118,11 +116,10 @@ class RelationshipFieldManager {
     return $result;
   }
 
-
   /**
    * Gets bundle field status.
    *
-   * @param ConfigEntityBundleBase $entity
+   * @param \Drupal\Core\Config\Entity\ConfigEntityBundleBase $entity
    *   The bundle entity.
    * @param array|null $rn_settings
    *   Optional relationship nodes settings.
@@ -130,23 +127,22 @@ class RelationshipFieldManager {
    * @return array|null
    *   Array with keys 'existing', 'missing', 'remove', or NULL.
    */
-  public function getBundleFieldsStatus(ConfigEntityBundleBase $entity, ?array $rn_settings = null): ?array {
+  public function getBundleFieldsStatus(ConfigEntityBundleBase $entity, ?array $rn_settings = NULL): ?array {
     $rn_settings = !empty($rn_settings) ? $rn_settings : $this->settingsManager->getProperties($entity);
     return $this->getFieldsStatus(
-      $entity->getEntityTypeId(), 
-      $entity->id(), 
-      $rn_settings, 
+      $entity->getEntityTypeId(),
+      $entity->id(),
+      $rn_settings,
       $this->entityTypeManager->getStorage('field_config')
     );
   }
-
 
   /**
    * Gets field status from configuration import.
    *
    * @param string $config_name
    *   The configuration name.
-   * @param StorageInterface $storage
+   * @param \Drupal\Core\Config\StorageInterface $storage
    *   The configuration storage.
    *
    * @return array|null
@@ -157,13 +153,12 @@ class RelationshipFieldManager {
     $entity_classes = $this->settingsManager->getConfigFileEntityClasses($config_name);
 
     if (empty($config_data['third_party_settings']['relationship_nodes'])) {
-      return null;
-    } 
+      return NULL;
+    }
     $rn_settings = $config_data['third_party_settings']['relationship_nodes'];
     if (empty($rn_settings['enabled'])) {
-      return null;
+      return NULL;
     }
-
 
     return $this->getFieldsStatus(
       $entity_classes['entity_type_id'],
@@ -172,7 +167,6 @@ class RelationshipFieldManager {
       $storage
     );
   }
-
 
   /**
    * Gets field status for an entity type and bundle.
@@ -183,7 +177,7 @@ class RelationshipFieldManager {
    *   The bundle name.
    * @param array $rn_settings
    *   Relationship nodes settings.
-   * @param FieldConfigStorage|StorageInterface $storage
+   * @param \Drupal\field\Entity\FieldConfigStorage|StorageInterface $storage
    *   The field storage.
    *
    * @return array|null
@@ -193,9 +187,9 @@ class RelationshipFieldManager {
     $config_import = !($storage instanceof FieldConfigStorage);
     $config_prefix = $this->getFieldConfigNamePrefix($entity_type_id, $bundle_name, $config_import);
     if (empty($config_prefix)) {
-      return null;
+      return NULL;
     }
-    
+
     $existing = $missing = $remove = [];
     $required_fields = $this->getRequiredFields($entity_type_id, $rn_settings);
 
@@ -205,26 +199,28 @@ class RelationshipFieldManager {
         : $storage->load($config_prefix . $field_name);
       if (!$config) {
         $missing[$field_name] = ['settings' => $settings];
-      } else {
+      }
+      else {
         $key = $config_import
           ? 'config_file_data'
           : 'field_config';
         $existing[$field_name] = [
           'settings' => $settings,
-          $key => $config
+          $key => $config,
         ];
       }
 
       if ($incompatible = $this->fieldNameResolver->getOppositeMirrorField($field_name)) {
-          $field_to_remove = $config_import
+        $field_to_remove = $config_import
               ? $storage->read($config_prefix . $incompatible)
               : $storage->load($config_prefix . $incompatible);
-          if ($field_to_remove) $remove[] = $incompatible;
+        if ($field_to_remove) {
+          $remove[] = $incompatible;
+        }
       }
     }
     return ['existing' => $existing, 'missing' => $missing, 'remove' => $remove];
   }
-
 
   /**
    * Gets required fields for an entity type.
@@ -240,7 +236,7 @@ class RelationshipFieldManager {
   public function getRequiredFields(string $entity_type_id, array $rn_settings): array {
     $fields = [];
 
-    if(empty($rn_settings) || empty($rn_settings['enabled'])){
+    if (empty($rn_settings) || empty($rn_settings['enabled'])) {
       return [];
     }
 
@@ -258,8 +254,9 @@ class RelationshipFieldManager {
           $fields[$field_name] = $config;
         }
       }
-  } elseif ($entity_type_id === 'taxonomy_vocabulary') {
-    if (!empty($rn_settings['referencing_type'])) {
+    }
+    elseif ($entity_type_id === 'taxonomy_vocabulary') {
+      if (!empty($rn_settings['referencing_type'])) {
         $type = $rn_settings['referencing_type'];
         if ($type !== 'none') {
           $field_name = $this->fieldNameResolver->getMirrorFields($type);
@@ -268,18 +265,17 @@ class RelationshipFieldManager {
             if ($config) {
               $fields[$field_name] = $config;
             }
-          }  
-        }          
+          }
+        }
       }
     }
     return $fields;
   }
 
-
   /**
    * Checks if a field was created by relationship nodes module.
    *
-   * @param FieldConfig|FieldStorageConfig $field
+   * @param \Drupal\field\Entity\FieldConfig|FieldStorageConfig $field
    *   The field entity.
    *
    * @return bool
@@ -288,7 +284,6 @@ class RelationshipFieldManager {
   public function isRnCreatedField(FieldConfig|FieldStorageConfig $field): bool {
     return (bool) $field->getThirdPartySetting('relationship_nodes', 'rn_created', FALSE);
   }
-
 
   /**
    * Checks if configuration data represents a module-created field.
@@ -304,7 +299,6 @@ class RelationshipFieldManager {
     return !empty($rn_created);
   }
 
-
   /**
    * Gets all fields created by relationship nodes module.
    *
@@ -314,17 +308,17 @@ class RelationshipFieldManager {
    * @return array
    *   Array of field entities keyed by field ID.
    */
-  public function getAllRnCreatedFields(?string $entity_type_id = null): array {
+  public function getAllRnCreatedFields(?string $entity_type_id = NULL): array {
     $entity_types = ['storage' => 'field_storage_config', 'field' => 'field_config'];
-    if ($entity_type_id !== null && !in_array($entity_type_id, array_keys($entity_types))) {
+    if ($entity_type_id !== NULL && !in_array($entity_type_id, array_keys($entity_types))) {
       return [];
     }
 
-    $input = $entity_type_id !== null 
-      ? [$entity_type_id => $entity_types[$entity_type_id]] 
+    $input = $entity_type_id !== NULL
+      ? [$entity_type_id => $entity_types[$entity_type_id]]
       : $entity_types;
 
-    $result = []; 
+    $result = [];
     foreach ($input as $entity_type) {
       $storage = $this->entityTypeManager->getStorage($entity_type);
       if (!$storage instanceof EntityStorageInterface) {
@@ -334,17 +328,16 @@ class RelationshipFieldManager {
       foreach ($all as $type) {
         if ($type instanceof ConfigEntityBase && $this->isRnCreatedField($type)) {
           $result[$type->id()] = $type;
-        } 
-      }    
+        }
+      }
     }
     return $result;
   }
 
-
   /**
    * Gets all module-created fields from configuration import.
    *
-   * @param StorageInterface $storage
+   * @param \Drupal\Core\Config\StorageInterface $storage
    *   The configuration storage.
    * @param string|null $entity_type_id
    *   Optional entity type ID to filter by.
@@ -352,15 +345,15 @@ class RelationshipFieldManager {
    * @return array
    *   Array of configuration data keyed by config name.
    */
-  public function getAllCimRnCreatedFields(StorageInterface $storage, ?string $entity_type_id = null): array {
+  public function getAllCimRnCreatedFields(StorageInterface $storage, ?string $entity_type_id = NULL): array {
     $entity_types = ['storage', 'field'];
-    if ($entity_type_id !== null && !in_array($entity_type_id, $entity_types)) {
+    if ($entity_type_id !== NULL && !in_array($entity_type_id, $entity_types)) {
       return [];
     }
 
-    $input = $entity_type_id !== null ? [$entity_type_id] : $entity_types;
+    $input = $entity_type_id !== NULL ? [$entity_type_id] : $entity_types;
 
-    $result = []; 
+    $result = [];
     foreach ($input as $entity_type) {
       $all_fields = $storage->listAll('field.' . $entity_type . '.');
       foreach ($all_fields as $field_name) {
@@ -373,11 +366,10 @@ class RelationshipFieldManager {
     return $result;
   }
 
-
   /**
    * Creates fields for a bundle entity.
    *
-   * @param ConfigEntityBundleBase $entity
+   * @param \Drupal\Core\Config\Entity\ConfigEntityBundleBase $entity
    *   The bundle entity.
    * @param array $missing_fields
    *   Array of missing field configurations.
@@ -398,15 +390,15 @@ class RelationshipFieldManager {
           'type' => $settings['type'],
           'cardinality' => $settings['cardinality'],
           'settings' => isset($settings['target_type']) ? ['target_type' => $settings['target_type']] : [],
-          'third_party_settings' => ['relationship_nodes' => ['rn_created'=> true]],
+          'third_party_settings' => ['relationship_nodes' => ['rn_created' => TRUE]],
         ]);
-        $field_storage->setLocked(true);
+        $field_storage->setLocked(TRUE);
         $field_storage->save();
       }
 
       $field_config = $field_config_storage->load("$entity_type_id.{$entity->id()}.$field_name");
       if (!$field_config) {
-          
+
         $self_target_settings = [];
         if ($field_name == $this->fieldNameResolver->getMirrorFields('entity_reference')) {
           $self_target_settings = [
@@ -422,20 +414,19 @@ class RelationshipFieldManager {
           'bundle' => $entity->id(),
           'entity_type' => $entity_type_id,
           'label' => ucfirst(str_replace('_', ' ', $field_name)),
-          'required' => false,
-          'settings' =>  $self_target_settings,
-          'third_party_settings' => ['relationship_nodes' => ['rn_created'=> true]],
+          'required' => FALSE,
+          'settings' => $self_target_settings,
+          'third_party_settings' => ['relationship_nodes' => ['rn_created' => TRUE]],
         ]);
         $field_config->save();
       }
     }
   }
 
-
   /**
    * Removes fields from a bundle entity.
    *
-   * @param ConfigEntityBundleBase $entity
+   * @param \Drupal\Core\Config\Entity\ConfigEntityBundleBase $entity
    *   The bundle entity.
    * @param array $fields_to_remove
    *   Array of field names to remove.
@@ -446,15 +437,16 @@ class RelationshipFieldManager {
 
     foreach ($fields_to_remove as $field_name) {
       $field_config = $storage->load("$entity_type_id.{$entity->id()}.$field_name");
-      if ($field_config) $field_config->delete();
+      if ($field_config) {
+        $field_config->delete();
+      }
     }
   }
-
 
   /**
    * Ensures field configuration is properly set.
    *
-   * @param ConfigEntityBundleBase $entity
+   * @param \Drupal\Core\Config\Entity\ConfigEntityBundleBase $entity
    *   The bundle entity.
    * @param array $existing_fields
    *   Array of existing field data.
@@ -464,17 +456,16 @@ class RelationshipFieldManager {
       $field_config = $field_arr['field_config'];
       $field_storage = $field_config->getFieldStorageDefinition();
       if (!$field_storage->isLocked()) {
-        $field_storage->setLocked(true)->save();
+        $field_storage->setLocked(TRUE)->save();
       }
-      if (!$field_storage->getThirdPartySetting('relationship_nodes', 'rn_created', false)) {
-        $field_storage->setThirdPartySetting('relationship_nodes', 'rn_created', true)->save();
+      if (!$field_storage->getThirdPartySetting('relationship_nodes', 'rn_created', FALSE)) {
+        $field_storage->setThirdPartySetting('relationship_nodes', 'rn_created', TRUE)->save();
       }
-      if (!$field_config->getThirdPartySetting('relationship_nodes', 'rn_created', false)) {
-        $field_config->setThirdPartySetting('relationship_nodes', 'rn_created', true)->save();
+      if (!$field_config->getThirdPartySetting('relationship_nodes', 'rn_created', FALSE)) {
+        $field_config->setThirdPartySetting('relationship_nodes', 'rn_created', TRUE)->save();
       }
     }
   }
-
 
   /**
    * Gets the field configuration name prefix.
@@ -489,19 +480,19 @@ class RelationshipFieldManager {
    * @return string|null
    *   The prefix string or NULL.
    */
-  public function getFieldConfigNamePrefix(string $entity_type_id, string $bundle_name, bool $config_import=false): ?string {
+  public function getFieldConfigNamePrefix(string $entity_type_id, string $bundle_name, bool $config_import = FALSE): ?string {
     $object_type = $this->settingsManager->getEntityTypeObjectClass($entity_type_id);
     if (!$object_type) {
-      return null;
+      return NULL;
     }
-    if ($config_import) {         
+    if ($config_import) {
       return 'field.field.' . $object_type . '.' . $bundle_name . '.';
-    } else {
+    }
+    else {
       return $object_type . '.' . $bundle_name . '.';
     }
   }
 
-  
   /**
    * Gets entity classes from a field configuration name.
    *
@@ -514,7 +505,7 @@ class RelationshipFieldManager {
   public function getConfigFileFieldClasses(string $config_name): ?array {
     $parts = explode('.', $config_name);
     if ($parts[0] !== 'field' || !in_array($parts[1], ['field', 'storage']) || !in_array($parts[2], ['node', 'taxonomy_term'])) {
-      return null;
+      return NULL;
     }
     if ($parts[1] === 'field') {
       return [
@@ -523,15 +514,18 @@ class RelationshipFieldManager {
         'bundle' => $parts[3],
         'field_name' => $parts[4],
       ];
-    } elseif ($parts[1] === 'storage') {
+    }
+    elseif ($parts[1] === 'storage') {
       return [
         'field_entity_class' => 'storage',
         'entity_type_id' => $this->settingsManager->getEntityTypeClass($parts[2]),
-        'bundle' => null,
+        'bundle' => NULL,
         'field_name' => $parts[3],
       ];
-    } else {
-      return null;
+    }
+    else {
+      return NULL;
     }
   }
+
 }

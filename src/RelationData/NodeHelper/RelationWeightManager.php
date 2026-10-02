@@ -20,10 +20,9 @@ class RelationWeightManager {
     $this->fieldNameResolver = $field_name_resolver;
   }
 
-
   /**
    * Gets the Key-Value store for a specific reference field.
-   * 
+   *
    * Store structure: relation_weights.{relation_nid}.{reference_field_name}
    */
   protected function getStore(): KeyValueStoreInterface {
@@ -32,7 +31,6 @@ class RelationWeightManager {
     }
     return $this->store;
   }
-  
 
   /**
    * Generates a storage key.
@@ -40,7 +38,6 @@ class RelationWeightManager {
   protected function getKey(int $relation_nid, string $reference_field_name): string {
     return "{$relation_nid}.{$reference_field_name}";
   }
-
 
   /**
    * Gets the weight for a relation via a specific reference field.
@@ -59,7 +56,6 @@ class RelationWeightManager {
     return $weight;
   }
 
-
   /**
    * Sets the weight for a relation via a specific reference field.
    *
@@ -75,7 +71,6 @@ class RelationWeightManager {
     $this->getStore()->set($key, $weight);
   }
 
-
   /**
    * Deletes weight for a relation via a specific reference field.
    *
@@ -88,7 +83,6 @@ class RelationWeightManager {
     $key = $this->getKey($relation_nid, $reference_field_name);
     $this->getStore()->delete($key);
   }
-
 
   /**
    * Deletes all weights for a relation node (all reference contexts).
@@ -112,8 +106,6 @@ class RelationWeightManager {
       }
     }
   }
-
-
 
   /**
    * Gets multiple weights for different relations via the same reference field.
@@ -139,8 +131,6 @@ class RelationWeightManager {
     return $weights;
   }
 
-
-  
   /**
    * Returns all stored weights across all relations and reference fields.
    *
@@ -155,7 +145,7 @@ class RelationWeightManager {
    * Sorts node IDs by their weights for a specific reference field.
    *
    * @param array $relations_by_field
-   *   Array of relation node IDs : ['field_1' => [rel_id_A => rel_ent_A, rel_id_B => rel_ent_B], 'field_2' => [rel_id_C => rel_ent_C]]
+   *   Array of relation node IDs : ['field_1' => [rel_id_A => rel_ent_A, rel_id_B => rel_ent_B], 'field_2' => [rel_id_C => rel_ent_C]].
    *
    * @return array
    *   Sorted array of node IDs.
@@ -164,10 +154,10 @@ class RelationWeightManager {
     if (empty($relations_by_field)) {
       return [];
     }
-    
-    // Flatten met weight info
+
+    // Flatten met weight info.
     $all_relations = [];
-    
+
     // Read all weights in one query.
     $keys = [];
     foreach ($relations_by_field as $field => $relations) {
@@ -177,21 +167,22 @@ class RelationWeightManager {
     }
     $stored = $keys ? $this->getStore()->getMultiple($keys) : [];
 
-    foreach($relations_by_field as $field => $relations){
-      foreach($relations as $rel_id => $rel_ent){
+    foreach ($relations_by_field as $field => $relations) {
+      foreach ($relations as $rel_id => $rel_ent) {
         $all_relations[$rel_id] = [
           'entity' => $rel_ent,
           'weight' => (int) ($stored[$this->getKey((int) $rel_id, $field)] ?? 9999),
         ];
       }
     }
-    
+
     // Sort by weight (0, 1, 2... dan 9999, 9999, 9999...)
-    uasort($all_relations, function($a, $b) {
+    uasort($all_relations, function ($a, $b) {
       return $a['weight'] <=> $b['weight'];
     });
-    
-    // Extract just the entities
+
+    // Extract just the entities.
     return array_map(fn($item) => $item['entity'], $all_relations);
   }
+
 }

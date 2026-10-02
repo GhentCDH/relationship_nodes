@@ -14,7 +14,7 @@ use Drupal\relationship_nodes\RelationField\CalculatedFieldHelper;
  * - Field structure operations (paths, configurations, instances)
  * - Field capability checking (entity references, linkability)
  * - Field metadata (target types, widget support)
- * 
+ *
  * "Nested" refers to Elasticsearch nested objects that contain relationship
  * data indexed as child documents within parent entities.
  */
@@ -25,13 +25,12 @@ class NestedIndexFieldHelper {
   /**
    * Constructs a NestedIndexFieldHelper object.
    *
-   * @param CalculatedFieldHelper $calculatedFieldHelper
+   * @param \Drupal\relationship_nodes\RelationField\CalculatedFieldHelper $calculatedFieldHelper
    *   The calculated field helper service.
    */
   public function __construct(CalculatedFieldHelper $calculatedFieldHelper) {
     $this->calculatedFieldHelper = $calculatedFieldHelper;
   }
-
 
   /**
    * Get comprehensive field capabilities and metadata.
@@ -45,12 +44,12 @@ class NestedIndexFieldHelper {
    *   - 'linkable': bool
    */
   public function getChildFieldCapabilities(
-    Index $index, 
-    string $parent_field, 
-    string $child_field
+    Index $index,
+    string $parent_field,
+    string $child_field,
   ): array {
     $type = $this->getChildFieldType($index, $parent_field, $child_field);
-    
+
     return [
       'search_api_type' => $type,
       'is_entity_reference' => $this->childFieldIsEntityReference($index, $parent_field, $child_field),
@@ -60,11 +59,10 @@ class NestedIndexFieldHelper {
     ];
   }
 
-
   /**
    * Validates and parses a nested field path.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $path
    *   The field path in "parent:child" format.
@@ -76,7 +74,7 @@ class NestedIndexFieldHelper {
     if (strpos($path, ':') === FALSE) {
       return NULL;
     }
-    
+
     [$parent_field, $child_field] = explode(':', $path, 2);
     $parent_field = trim($parent_field);
     $child_field = trim($child_field);
@@ -85,13 +83,13 @@ class NestedIndexFieldHelper {
       return NULL;
     }
 
-    // Validate child exists in parent
+    // Validate child exists in parent.
     $child_fields = $this->getAllNestedChildFieldNames($index, $parent_field);
     if (!in_array($child_field, $child_fields)) {
       return NULL;
     }
 
-    // Validate field structure
+    // Validate field structure.
     $field = $this->getIndexFieldInstance($index, $parent_field);
     if (!$field) {
       return NULL;
@@ -105,11 +103,10 @@ class NestedIndexFieldHelper {
     return ['parent' => $parent_field, 'child' => $child_field];
   }
 
-
   /**
    * Gets all nested child field names for a parent field.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $parent_field_name
    *   The parent field name.
@@ -123,15 +120,14 @@ class NestedIndexFieldHelper {
     if (!$field) {
       return [];
     }
-    
+
     return array_keys($this->getAllNestedChildFieldsConfig($field));
   }
-
 
   /**
    * Gets the Search API data type of a nested child field.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $parent_field
    *   The parent field name.
@@ -148,20 +144,19 @@ class NestedIndexFieldHelper {
       return NULL;
     }
     $nested_fields = $sapi_fld->getConfiguration()['nested_fields'];
-    if(empty($nested_fields[$child_field])) {
+    if (empty($nested_fields[$child_field])) {
       return NULL;
     }
 
     return $nested_fields[$child_field]['type'] ?? NULL;
   }
 
-
   /**
    * Determines if a nested child field supports range operators.
    *
    * Range operators (>, <, >=, <=) are supported for numeric and date fields.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $parent_field
    *   The parent field name.
@@ -173,18 +168,16 @@ class NestedIndexFieldHelper {
    */
   public function childFieldSupportsRangeOperators(Index $index, string $parent_field, string $child_field): bool {
     return in_array(
-      $this->getChildFieldType($index, $parent_field, $child_field), 
-      ['integer', 'decimal', 'date'], 
+      $this->getChildFieldType($index, $parent_field, $child_field),
+      ['integer', 'decimal', 'date'],
       TRUE
     );
   }
 
-
-
   /**
    * Gets the target entity type for a nested child entity reference field.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $sapi_fld_nm
    *   The parent field name.
@@ -196,24 +189,23 @@ class NestedIndexFieldHelper {
    */
   public function getChildFieldTargetType(Index $index, string $sapi_fld_nm, string $child_fld_nm): ?string {
     $sapi_fld = $this->getIndexFieldInstance($index, $sapi_fld_nm);
-    
+
     if (!$sapi_fld) {
       return NULL;
     }
-    
+
     $property = $this->getNestedFieldProperty($sapi_fld);
     return $property ? $property->getDrupalFieldTargetType($child_fld_nm) : NULL;
   }
-
 
   /**
    * Determines if a nested field can be displayed as a link.
    *
    * A field can be linked if it's either:
    * - A calculated ID field
-   * - An entity reference field
+   * - An entity reference field.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $sapi_fld_nm
    *   The parent field name.
@@ -224,12 +216,13 @@ class NestedIndexFieldHelper {
    *   TRUE if the field can be displayed as a link.
    */
   public function childFieldCanLink(Index $index, string $sapi_fld_nm, string $child_fld_nm): bool {
-    if ($this->calculatedFieldHelper->isCalculatedChildField($child_fld_nm)) { 
+    if ($this->calculatedFieldHelper->isCalculatedChildField($child_fld_nm)) {
       $calc_id_fields = $this->calculatedFieldHelper->getCalculatedFieldNames(NULL, 'id', TRUE);
       if (!in_array($child_fld_nm, $calc_id_fields)) {
         return FALSE;
       }
-    } else {
+    }
+    else {
       if (!$this->childFieldIsEntityReference($index, $sapi_fld_nm, $child_fld_nm)) {
         return FALSE;
       }
@@ -237,7 +230,6 @@ class NestedIndexFieldHelper {
 
     return TRUE;
   }
-
 
   /**
    * Converts a colon-separated path to dot-separated format.
@@ -255,37 +247,35 @@ class NestedIndexFieldHelper {
     return str_replace(':', '.', $str);
   }
 
-
   /**
    * Gets a field instance from an index.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $field_name
    *   The field name.
    *
-   * @return Field|null
+   * @return \Drupal\search_api\Item\Field|null
    *   The field instance, or NULL if not found.
    */
   protected function getIndexFieldInstance(Index $index, string $field_name): ?Field {
     $index_fields = $index->getFields();
-  
+
     if (!isset($index_fields[$field_name])) {
       return NULL;
     }
-    
+
     $field = $index_fields[$field_name];
     return $field instanceof Field ? $field : NULL;
   }
 
-
   /**
    * Gets the RelationProcessorProperty for a field.
    *
-   * @param Field $field
+   * @param \Drupal\search_api\Item\Field $field
    *   The Search API field.
    *
-   * @return RelationProcessorProperty|null
+   * @return \Drupal\relationship_nodes_search\SearchAPI\Processor\RelationProcessorProperty|null
    *   The property object, or NULL if not found.
    */
   protected function getNestedFieldProperty(Field $field): ?RelationProcessorProperty {
@@ -293,11 +283,10 @@ class NestedIndexFieldHelper {
     return $property instanceof RelationProcessorProperty ? $property : NULL;
   }
 
-
   /**
    * Gets all nested child field configuration.
    *
-   * @param Field $field
+   * @param \Drupal\search_api\Item\Field $field
    *   The Search API field.
    *
    * @return array
@@ -307,16 +296,15 @@ class NestedIndexFieldHelper {
     if (!$this->isNestedField($field)) {
       return [];
     }
-    
+
     $config = $field->getConfiguration();
     return is_array($config) && isset($config['nested_fields']) ? $config['nested_fields'] : [];
   }
 
-
   /**
    * Checks if a field is a nested parent field containing child fields.
    *
-   * @param Field $field
+   * @param \Drupal\search_api\Item\Field $field
    *   The Search API field.
    *
    * @return bool
@@ -327,11 +315,10 @@ class NestedIndexFieldHelper {
     return is_array($config) && !empty($config['nested_fields']);
   }
 
-
-    /**
+  /**
    * Checks if a nested field is an entity reference.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $sapi_fld_nm
    *   The parent field name.
@@ -347,8 +334,9 @@ class NestedIndexFieldHelper {
     if (!$sapi_fld) {
       return FALSE;
     }
-    
+
     $property = $this->getNestedFieldProperty($sapi_fld);
     return $property ? $property->drupalFieldIsReference($child_fld_nm) : FALSE;
   }
+
 }

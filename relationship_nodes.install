@@ -21,7 +21,6 @@ function relationship_nodes_requirements($phase) {
   return \Drupal::classResolver(RelationshipNodesHooks::class)->buildRequirements();
 }
 
-
 /**
  * Implements hook_uninstall().
  */

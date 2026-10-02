@@ -3,12 +3,10 @@
 namespace Drupal\relationship_nodes_search\QueryHelper;
 
 use Drupal\search_api\Entity\Index;
-use Drupal\relationship_nodes_search\QueryHelper\ElasticMappingInspector;
-
 
 /**
  * Service for building Elasticsearch nested aggregations.
- * 
+ *
  * Handles the complexity of creating aggregations for nested fields,
  * ensuring proper field paths and structure for Elasticsearch queries.
  */
@@ -19,13 +17,12 @@ class NestedQueryStructureBuilder {
   /**
    * Constructs a NestedQueryStructureBuilder object.
    *
-   * @param ElasticMappingInspector $mappingInspector
+   * @param \Drupal\relationship_nodes_search\QueryHelper\ElasticMappingInspector $mappingInspector
    *   The Elasticsearch mapping inspector service.
    */
   public function __construct(ElasticMappingInspector $mappingInspector) {
     $this->mappingInspector = $mappingInspector;
   }
-
 
   /**
    * Builds a terms aggregation on a field of nested relationship objects.
@@ -78,8 +75,6 @@ class NestedQueryStructureBuilder {
     ];
   }
 
-
-  
   /**
    * Builds a nested filter structure.
    *
@@ -88,7 +83,7 @@ class NestedQueryStructureBuilder {
    * @param array $subfilters
    *   Array of subfilters (must already be combined with bool/must/should).
    *
-   * @return array 
+   * @return array
    *   Elasticsearch nested filter structure.
    */
   public function buildNestedFilter(string $parent_path, array $subfilters): array {
@@ -99,7 +94,6 @@ class NestedQueryStructureBuilder {
       ],
     ];
   }
-
 
   /**
    * Combines multiple filters with boolean conjunction.
@@ -130,11 +124,10 @@ class NestedQueryStructureBuilder {
     ];
   }
 
-
   /**
    * Returns the correct field path to use in a query (with or without ".keyword").
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $sapi_fld_nm
    *   The parent field name.
@@ -151,12 +144,11 @@ class NestedQueryStructureBuilder {
     }
     return $path_base;
   }
-  
 
   /**
    * Check if a field needs the ".keyword" suffix for aggregations or filters.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $sapi_fld_nm
    *   The parent field name.
@@ -168,21 +160,22 @@ class NestedQueryStructureBuilder {
    */
   protected function needsKeywordSuffix(Index $index, string $sapi_fld_nm, string $child_fld_nm): bool {
     $mapping = $this->mappingInspector->getFieldMapping($index, $sapi_fld_nm, $child_fld_nm);
-    
+
     if (!$mapping) {
       return FALSE;
     }
 
-    // Already a keyword field - no suffix needed
+    // Already a keyword field - no suffix needed.
     if (isset($mapping['type']) && $mapping['type'] === 'keyword') {
       return FALSE;
     }
 
-    // Text field with keyword subfield - suffix needed
+    // Text field with keyword subfield - suffix needed.
     if (isset($mapping['type']) && $mapping['type'] === 'text') {
       return isset($mapping['fields']['keyword']);
     }
 
     return FALSE;
   }
+
 }

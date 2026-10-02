@@ -30,26 +30,25 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
   protected FilterOperatorHelper $operatorHelper;
   protected NestedIndexFieldHelper $nestedFieldHelper;
 
-
   /**
    * Constructs a RelationshipFilter object.
    *
    * @param array $configuration
-   *    The plugin configuration.
+   *   The plugin configuration.
    * @param string $plugin_id
-   *    The plugin ID.
+   *   The plugin ID.
    * @param mixed $plugin_definition
-   *    The plugin definition.
-   * @param NestedExposedFormBuilder $exposedFormBuilder
-   *    The exposed form builder service.
-   * @param NestedFieldViewsFilterConfigurator $filterConfigurator
-   *    The filter configurator service.
-   * @param NestedQueryStructureBuilder $queryBuilder
-   *    The query builder service.
-   * @param FilterOperatorHelper $operatorHelper
-   *    The operator helper service.
-   * @param NestedIndexFieldHelper $nestedFieldHelper
-   *    The nested index field helper service.
+   *   The plugin definition.
+   * @param \Drupal\relationship_nodes_search\Views\Widget\NestedExposedFormBuilder $exposedFormBuilder
+   *   The exposed form builder service.
+   * @param \Drupal\relationship_nodes_search\Views\Config\NestedFieldViewsFilterConfigurator $filterConfigurator
+   *   The filter configurator service.
+   * @param \Drupal\relationship_nodes_search\QueryHelper\NestedQueryStructureBuilder $queryBuilder
+   *   The query builder service.
+   * @param \Drupal\relationship_nodes_search\QueryHelper\FilterOperatorHelper $operatorHelper
+   *   The operator helper service.
+   * @param \Drupal\relationship_nodes_search\FieldHelper\NestedIndexFieldHelper $nestedFieldHelper
+   *   The nested index field helper service.
    */
   public function __construct(
     array $configuration,
@@ -59,7 +58,7 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
     NestedFieldViewsFilterConfigurator $filterConfigurator,
     NestedQueryStructureBuilder $queryBuilder,
     FilterOperatorHelper $operatorHelper,
-    NestedIndexFieldHelper $nestedFieldHelper
+    NestedIndexFieldHelper $nestedFieldHelper,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->exposedFormBuilder = $exposedFormBuilder;
@@ -68,7 +67,6 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
     $this->operatorHelper = $operatorHelper;
     $this->nestedFieldHelper = $nestedFieldHelper;
   }
-
 
   /**
    * {@inheritdoc}
@@ -86,30 +84,28 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
     );
   }
 
-
   /**
    * {@inheritdoc}
    */
   public function defineOptions() {
-    $options = parent::defineOptions();   
+    $options = parent::defineOptions();
     foreach ($this->getDefaultFilterOptions() as $option => $default) {
       $options[$option] = ['default' => $default];
-    } 
+    }
     return $options;
   }
-
 
   /**
    * {@inheritdoc}
    */
   public function buildOptionsForm(&$form, FormStateInterface $form_state) {
     parent::buildOptionsForm($form, $form_state);
-    
-    // Hide default form fields, we add custom ones in our subfield section
+
+    // Hide default form fields, we add custom ones in our subfield section.
     if (isset($form['value'])) {
       $form['value']['#access'] = FALSE;
     }
-    
+
     if (isset($form['expose']['multiple'])) {
       $form['expose']['multiple']['#access'] = FALSE;
     }
@@ -121,14 +117,14 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
     );
     if (!$config) {
       return;
-    } 
+    }
 
     $form['operator'] = [
       '#type' => 'radios',
       '#title' => $this->t('Operator'),
       '#options' => [
-          'and' => $this->t('AND - All conditions must match'),
-          'or' => $this->t('OR - Any condition can match'),
+        'and' => $this->t('AND - All conditions must match'),
+        'or' => $this->t('OR - Any condition can match'),
       ],
       '#default_value' => $this->options['operator'] ?? 'and',
       '#description' => $this->t('How to combine multiple filter fields.'),
@@ -142,15 +138,14 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
     ];
 
     $this->filterConfigurator->buildFilterConfigForm(
-      $form, 
-      $config['index'], 
-      $config['field_name'], 
-      $config['available_fields'], 
+      $form,
+      $config['index'],
+      $config['field_name'],
+      $config['available_fields'],
       $this->options
     );
   }
 
-  
   /**
    * {@inheritdoc}
    */
@@ -162,7 +157,6 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
       $this->options
     );
   }
-
 
   /**
    * {@inheritdoc}
@@ -223,8 +217,7 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
     }
   }
 
-
-    /**
+  /**
    * {@inheritdoc}
    */
   public function adminSummary() {
@@ -248,7 +241,6 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
       '@operator' => strtoupper($operator),
     ]);
   }
-
 
   /**
    * {@inheritdoc}
@@ -282,7 +274,6 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
     }
   }
 
-
   /**
    * {@inheritdoc}
    */
@@ -299,7 +290,6 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
     $this->buildRangePairConditions();
   }
 
-
   /**
    * Builds and applies range pair overlap conditions to the query.
    *
@@ -309,24 +299,36 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
    */
   protected function buildRangePairConditions(): void {
     $pair = $this->getRangePairConfig();
-    if (empty($pair['enabled']) || !$this->getQuery()) return;
+    if (empty($pair['enabled']) || !$this->getQuery()) {
+      return;
+    }
 
     $start_field = $pair['start_field'] ?? '';
     $end_field = $pair['end_field'] ?? '';
-    if (!$start_field || !$end_field) return;
+    if (!$start_field || !$end_field) {
+      return;
+    }
 
     $sapi_fld_nm = $this->filterConfigurator->getPluginParentFieldName($this->definition);
     $index = $this->getIndex();
-    if (!$sapi_fld_nm || !$index instanceof Index) return;
+    if (!$sapi_fld_nm || !$index instanceof Index) {
+      return;
+    }
 
     $values = is_array($this->value) ? $this->value : [];
     $from_val = $values['range_pair']['from']['value'] ?? $values['range_pair']['from'] ?? '';
     $to_val = $values['range_pair']['to']['value'] ?? $values['range_pair']['to'] ?? '';
 
-    if (is_string($from_val)) $from_val = $this->sanitizeFieldValue($from_val);
-    if (is_string($to_val)) $to_val = $this->sanitizeFieldValue($to_val);
+    if (is_string($from_val)) {
+      $from_val = $this->sanitizeFieldValue($from_val);
+    }
+    if (is_string($to_val)) {
+      $to_val = $this->sanitizeFieldValue($to_val);
+    }
 
-    if ($from_val === '' && $to_val === '') return;
+    if ($from_val === '' && $to_val === '') {
+      return;
+    }
 
     $field_type = $this->nestedFieldHelper->getChildFieldType($index, $sapi_fld_nm, $start_field);
     if ($field_type === 'date') {
@@ -340,8 +342,8 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
 
     $group = new NestedParentFieldConditionGroup('AND');
     $group->setParentFieldName($sapi_fld_nm)
-          ->setIndex($index)
-          ->setQueryBuilder($this->queryBuilder);
+      ->setIndex($index)
+      ->setQueryBuilder($this->queryBuilder);
 
     if ($from_val !== '') {
       // COALESCE(end, start) >= from:
@@ -349,8 +351,8 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
       $from_or = $group->addChildConditionGroup('OR');
       $from_or->addChildFieldCondition($end_field, $from_val, '>=');
       $from_or->addChildConditionGroup('AND')
-              ->addChildFieldCondition($end_field, NULL, '=')
-              ->addChildFieldCondition($start_field, $from_val, '>=');
+        ->addChildFieldCondition($end_field, NULL, '=')
+        ->addChildFieldCondition($start_field, $from_val, '>=');
     }
     if ($to_val !== '') {
       // COALESCE(start, end) <= to:
@@ -358,13 +360,12 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
       $to_or = $group->addChildConditionGroup('OR');
       $to_or->addChildFieldCondition($start_field, $to_val, '<=');
       $to_or->addChildConditionGroup('AND')
-            ->addChildFieldCondition($start_field, NULL, '=')
-            ->addChildFieldCondition($end_field, $to_val, '<=');
+        ->addChildFieldCondition($start_field, NULL, '=')
+        ->addChildFieldCondition($end_field, $to_val, '<=');
     }
 
     $this->query->addConditionGroup($group);
   }
-
 
   /**
    * Builds filter conditions from form values.
@@ -389,21 +390,22 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
         continue;
       }
 
-      // Get value
+      // Get value.
       $child_filter_id = $field_config['child_filter_id'] ?? $child_fld_nm;
 
       if ($this->options['exposed']) {
         $value = $this->value[$child_filter_id]['value']
          ?? $this->value[$child_filter_id]
          ?? '';
-      } else {
+      }
+      else {
         $value = $field_config['value'] ?? '';
       }
-      
+
       if (is_string($value)) {
         $value = $this->sanitizeFieldValue($value);
       }
-      
+
       if ($value === '' || $value === NULL) {
         continue;
       }
@@ -425,7 +427,6 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
     }
     return $conditions;
   }
-
 
   /**
    * Applies nested conditions to the search query.
@@ -450,7 +451,7 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
       ->setParentFieldName($sapi_fld_nm)
       ->setIndex($index)
       ->setQueryBuilder($this->queryBuilder);
-    
+
     foreach ($conditions as $condition) {
       $nested_fld_condition->addChildFieldCondition(
         $condition['child_field_name'],
@@ -461,11 +462,10 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
     $this->query->addConditionGroup($nested_fld_condition);
   }
 
-
   /**
    * Converts a year integer to an ISO 8601 date string for date field comparisons.
    *
-   * select_range widgets emit plain year integers (e.g. 1800). Date fields are
+   * Select_range widgets emit plain year integers (e.g. 1800). Date fields are
    * stored in Elasticsearch as ISO 8601 strings (date('c', $timestamp)). This
    * method produces a matching string so Elasticsearch can compare them correctly.
    *
@@ -487,7 +487,6 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
     return date('c', mktime(0, 0, 0, 1, 1, $year));
   }
 
-
   /**
    * Gets the field settings from options.
    *
@@ -500,7 +499,6 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
     return $settings;
   }
 
-
   /**
    * Gets the range pair configuration from options.
    *
@@ -510,7 +508,6 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
   protected function getRangePairConfig(): array {
     return $this->options['field_settings']['range_pair'] ?? [];
   }
-
 
   /**
    * Sanitizes a single field value.
@@ -524,20 +521,19 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
    *   The sanitized value.
    */
   protected function sanitizeFieldValue(string $value): string {
-    // Remove HTML tags
+    // Remove HTML tags.
     $value = strip_tags($value);
-    
-    // Trim whitespace
+
+    // Trim whitespace.
     $value = trim($value);
-    
-    // Limit length
+
+    // Limit length.
     if (mb_strlen($value) > 255) {
       $value = mb_substr($value, 0, 255);
     }
-    
+
     return $value;
   }
-
 
   /**
    * Gets default filter options.
@@ -553,7 +549,6 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
       'expose_operators' => FALSE,
     ];
   }
-
 
   /**
    * Check if any filter values are set.
@@ -572,12 +567,12 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
     }
 
     foreach ($field_settings as $field_name => $config) {
-      // Skip disabled fields
+      // Skip disabled fields.
       if (empty($config['enabled'])) {
         continue;
       }
 
-      // Check if field has a value
+      // Check if field has a value.
       $child_filter_id = $config['child_filter_id'] ?? $field_name;
       $value = $values[$child_filter_id]['value'] ?? $values[$child_filter_id] ?? NULL;
 
@@ -590,10 +585,13 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
     if (!empty($pair['enabled'])) {
       foreach (['from', 'to'] as $key) {
         $val = $values['range_pair'][$key]['value'] ?? $values['range_pair'][$key] ?? NULL;
-        if ($val !== NULL && $val !== '') return TRUE;
+        if ($val !== NULL && $val !== '') {
+          return TRUE;
+        }
       }
     }
 
     return FALSE;
   }
+
 }

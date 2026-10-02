@@ -9,7 +9,6 @@ use Drupal\relationship_nodes_search\QueryHelper\NestedQueryStructureBuilder;
 use Drupal\search_api\Entity\Index;
 use Drupal\relationship_nodes_search\FieldHelper\NestedIndexFieldHelper;
 
-
 /**
  * Extended facet builder with nested field support.
  *
@@ -25,35 +24,33 @@ class NestedFacetParamBuilder extends FacetParamBuilder {
   protected NestedQueryStructureBuilder $queryBuilder;
   protected NestedIndexFieldHelper $nestedFieldHelper;
 
-
   /**
    * Constructs a NestedFacetParamBuilder object.
    *
-   * @param LoggerInterface $logger
+   * @param \Psr\Log\LoggerInterface $logger
    *   The logger service.
-   * @param NestedQueryStructureBuilder $queryBuilder
+   * @param \Drupal\relationship_nodes_search\QueryHelper\NestedQueryStructureBuilder $queryBuilder
    *   The query structure builder service.
-   * @param NestedIndexFieldHelper $nestedFieldHelper
+   * @param \Drupal\relationship_nodes_search\FieldHelper\NestedIndexFieldHelper $nestedFieldHelper
    *   The nested field helper service.
    */
   public function __construct(
-    LoggerInterface $logger, 
+    LoggerInterface $logger,
     NestedQueryStructureBuilder $queryBuilder,
-    NestedIndexFieldHelper $nestedFieldHelper
+    NestedIndexFieldHelper $nestedFieldHelper,
   ) {
     parent::__construct($logger);
     $this->queryBuilder = $queryBuilder;
     $this->nestedFieldHelper = $nestedFieldHelper;
   }
 
-
   /**
    * {@inheritdoc}
    */
-  public function buildFacetParams(QueryInterface $query, array $indexFields, array $facetFilters = []) {    
+  public function buildFacetParams(QueryInterface $query, array $indexFields, array $facetFilters = []) {
     $aggs = [];
     $facets = $query->getOption('search_api_facets', []);
-    
+
     if (empty($facets)) {
       return $aggs;
     }
@@ -69,14 +66,14 @@ class NestedFacetParamBuilder extends FacetParamBuilder {
 
       if (empty($parsed_names['parent'])) {
         $aggs += $this->buildTermBucketAgg($query, $facet_id, $facet, $facetFilters, $indexFields[$facet['field']] ?? NULL);
-      } else {
+      }
+      else {
         $result = $this->buildNestedTermBucketAgg($index, $facet_id, $facet, $facetFilters);
         $aggs += $result;
       }
     }
     return $aggs;
   }
-
 
   /**
    * Checks if a field exists in the index.
@@ -97,13 +94,12 @@ class NestedFacetParamBuilder extends FacetParamBuilder {
     return TRUE;
   }
 
-
   /**
    * Builds a nested bucket aggregation.
    *
    * Creates an Elasticsearch nested aggregation for fields within nested objects.
    *
-   * @param Index $index
+   * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.
    * @param string $facet_id
    *   The facet identifier.
@@ -117,13 +113,12 @@ class NestedFacetParamBuilder extends FacetParamBuilder {
    */
   protected function buildNestedTermBucketAgg(Index $index, string $facet_id, array $facet, array $postFilters): array {
     return $this->queryBuilder->buildNestedAggregation(
-      $index, 
-      $facet_id, 
-      $this->getFacetSize($facet), 
+      $index,
+      $facet_id,
+      $this->getFacetSize($facet),
       $this->buildPostFilter($facet_id, $facet, $postFilters)
     );
   }
-
 
   /**
    * Builds post filter for nested aggregation.
@@ -160,7 +155,6 @@ class NestedFacetParamBuilder extends FacetParamBuilder {
     $conjunction = ($facet['operator'] ?? 'and') === 'or' ? 'OR' : 'AND';
     return $this->queryBuilder->combineFilters($filters, $conjunction);
   }
-
 
   /**
    * Gets the facet size from configuration.

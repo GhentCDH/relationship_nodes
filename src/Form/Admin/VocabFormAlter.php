@@ -7,10 +7,8 @@ use Drupal\Core\Ajax\InvokeCommand;
 use Drupal\Core\Ajax\OpenModalDialogCommand;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\relationship_nodes\Form\Admin\BundleFormHandler;
 use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
 use Drupal\taxonomy\Entity\Vocabulary;
-
 
 /**
  * Form alter service for vocabulary forms.
@@ -24,30 +22,28 @@ class VocabFormAlter {
   protected BundleFormHandler $formHandler;
   protected BundleSettingsManager $settingsManager;
 
-
   /**
    * Constructs a VocabFormAlter object.
    *
-   * @param BundleFormHandler $formHandler
+   * @param \Drupal\relationship_nodes\Form\Admin\BundleFormHandler $formHandler
    *   The form handler.
-   * @param BundleSettingsManager $settingsManager
+   * @param \Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager $settingsManager
    *   The settings manager.
    */
   public function __construct(
     BundleFormHandler $formHandler,
-    BundleSettingsManager $settingsManager
+    BundleSettingsManager $settingsManager,
   ) {
-      $this->formHandler = $formHandler;
-      $this->settingsManager = $settingsManager;
+    $this->formHandler = $formHandler;
+    $this->settingsManager = $settingsManager;
   }
-  
-  
+
   /**
    * Alters vocabulary forms to add relationship nodes settings.
    *
    * @param array $form
    *   The form array (passed by reference).
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    * @param string $form_id
    *   The form ID.
@@ -74,7 +70,7 @@ class VocabFormAlter {
       '#description' => $this->t('If this is checked, this vocabulary will be validated as a relationship types list. It gets a mirror field that can contain the reverse relation type of the term.'),
       '#id' => 'relationship-nodes-enabled',
     ];
-    $saved_referencing_type = $this->settingsManager->getProperty($vocab, 'referencing_type') ?? null;
+    $saved_referencing_type = $this->settingsManager->getProperty($vocab, 'referencing_type') ?? NULL;
     $form['relationship_nodes']['referencing_type'] = [
       '#type' => 'radios',
       '#title' => $this->t('Relation type'),
@@ -137,42 +133,39 @@ class VocabFormAlter {
     $form['#validate'][] = [static::class, 'validateConflicts'];
   }
 
-
   /**
    * Validates relationship configuration conflicts.
    *
    * @param array $form
    *   The form array (passed by reference).
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    */
   public static function validateConflicts(array &$form, FormStateInterface $form_state) {
     \Drupal::service('relationship_nodes.validation_service')->displayFormStateValidationErrors($form, $form_state);
   }
 
-
   /**
    * Handles form submission.
    *
    * @param array $form
    *   The form array (passed by reference).
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    */
- public static function handleSubmission(array &$form, FormStateInterface $form_state) {
+  public static function handleSubmission(array &$form, FormStateInterface $form_state) {
     \Drupal::service('relationship_nodes.bundle_form_handler')->handleSubmission($form, $form_state);
   }
-
 
   /**
    * Opens confirmation modal for mirror field changes.
    *
    * @param array $form
    *   The form array (passed by reference).
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    *
-   * @return AjaxResponse
+   * @return \Drupal\Core\Ajax\AjaxResponse
    *   The AJAX response.
    */
   public static function openConfirmationModal(array &$form, FormStateInterface $form_state) {
@@ -226,4 +219,5 @@ class VocabFormAlter {
 
     return $response;
   }
+
 }

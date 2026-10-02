@@ -5,7 +5,6 @@
  * Uninstall functions for relationship_nodes_search module.
  */
 
-
 /**
  * Implements hook_uninstall().
  *
@@ -15,47 +14,47 @@
  * During a config sync, the imported configuration already defines the views.
  */
 function relationship_nodes_search_uninstall($is_syncing = FALSE) {
-    if ($is_syncing) {
-        return;
-    }
-    $view_storage = \Drupal::entityTypeManager()->getStorage('view');
-    $views = $view_storage->loadMultiple();
-    
-    foreach ($views as $view) {
-        $changed = FALSE;
-        $displays = $view->get('display');
-        
-        foreach ($displays as $display_id => &$display) {
-            // Remove fields
-            if (!empty($display['display_options']['fields'])) {
-                foreach ($display['display_options']['fields'] as $field_id => $field) {
-                    if (($field['plugin_id'] ?? '') === 'search_api_relationship_field') {
-                        unset($display['display_options']['fields'][$field_id]);
-                        $changed = TRUE;
-                    }
-                }
-            }
+  if ($is_syncing) {
+    return;
+  }
+  $view_storage = \Drupal::entityTypeManager()->getStorage('view');
+  $views = $view_storage->loadMultiple();
 
-            // Remove filters
-            if (!empty($display['display_options']['filters'])) {
-                foreach ($display['display_options']['filters'] as $filter_id => $filter) {
-                    if (($filter['plugin_id'] ?? '') === 'search_api_relationship_filter') {
-                        unset($display['display_options']['filters'][$filter_id]);
-                        $changed = TRUE;
-                    }
-                }
-            }
-        }
-        unset($display);
+  foreach ($views as $view) {
+    $changed = FALSE;
+    $displays = $view->get('display');
 
-        if ($changed) {
-            $view->set('display', $displays);
-            try {
-                $view->save();
-            }
-            catch (\Exception $e) {
-                \Drupal::messenger()->addError(t('Failed to clean up view @view', ['@view' => $view->label()]));
-            }
+    foreach ($displays as $display_id => &$display) {
+      // Remove fields.
+      if (!empty($display['display_options']['fields'])) {
+        foreach ($display['display_options']['fields'] as $field_id => $field) {
+          if (($field['plugin_id'] ?? '') === 'search_api_relationship_field') {
+            unset($display['display_options']['fields'][$field_id]);
+            $changed = TRUE;
+          }
         }
+      }
+
+      // Remove filters.
+      if (!empty($display['display_options']['filters'])) {
+        foreach ($display['display_options']['filters'] as $filter_id => $filter) {
+          if (($filter['plugin_id'] ?? '') === 'search_api_relationship_filter') {
+            unset($display['display_options']['filters'][$filter_id]);
+            $changed = TRUE;
+          }
+        }
+      }
     }
+    unset($display);
+
+    if ($changed) {
+      $view->set('display', $displays);
+      try {
+        $view->save();
+      }
+      catch (\Exception $e) {
+        \Drupal::messenger()->addError(t('Failed to clean up view @view', ['@view' => $view->label()]));
+      }
+    }
+  }
 }

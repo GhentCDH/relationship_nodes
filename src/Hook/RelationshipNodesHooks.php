@@ -52,20 +52,24 @@ class RelationshipNodesHooks {
     $title = $this->t('Relationship Nodes Configuration');
     try {
       if (!\Drupal::hasService('relationship_nodes.validation_service')) {
-        return ['relationship_nodes_config' => [
-          'title' => $title,
-          'value' => $this->t('Validation service unavailable'),
-          'description' => $this->t('Configuration validation will be available once the module is fully loaded.'),
-          'severity' => $this->severity('info'),
-        ]];
+        return [
+          'relationship_nodes_config' => [
+            'title' => $title,
+            'value' => $this->t('Validation service unavailable'),
+            'description' => $this->t('Configuration validation will be available once the module is fully loaded.'),
+            'severity' => $this->severity('info'),
+          ],
+        ];
       }
       $validation_result = \Drupal::service('relationship_nodes.validation_service')->validateAllRelationConfig();
       if ($validation_result->isValid()) {
-        return ['relationship_nodes_config' => [
-          'title' => $title,
-          'value' => $this->t('Configuration validated successfully'),
-          'severity' => $this->severity('ok'),
-        ]];
+        return [
+          'relationship_nodes_config' => [
+            'title' => $title,
+            'value' => $this->t('Configuration validated successfully'),
+            'severity' => $this->severity('ok'),
+          ],
+        ];
       }
       $formatter = \Drupal::service('relationship_nodes.validation_result_formatter');
       $errors = $validation_result->getFormattedErrors($formatter, 'relationship_nodes');
@@ -76,24 +80,28 @@ class RelationshipNodesHooks {
           $items[] = substr($line, 2);
         }
       }
-      return ['relationship_nodes_config' => [
-        'title' => $title,
-        'value' => $this->t('Configuration validation failed'),
-        'description' => [
-          '#theme' => 'item_list',
-          '#title' => $this->t('The following configuration issues must be resolved:'),
-          '#items' => $items,
+      return [
+        'relationship_nodes_config' => [
+          'title' => $title,
+          'value' => $this->t('Configuration validation failed'),
+          'description' => [
+            '#theme' => 'item_list',
+            '#title' => $this->t('The following configuration issues must be resolved:'),
+            '#items' => $items,
+          ],
+          'severity' => $this->severity('warning'),
         ],
-        'severity' => $this->severity('warning'),
-      ]];
+      ];
     }
     catch (\Throwable $e) {
-      return ['relationship_nodes_config' => [
-        'title' => $title,
-        'value' => $this->t('Validation failed'),
-        'description' => $this->t('Error during validation: @error', ['@error' => $e->getMessage()]),
-        'severity' => $this->severity('error'),
-      ]];
+      return [
+        'relationship_nodes_config' => [
+          'title' => $title,
+          'value' => $this->t('Validation failed'),
+          'description' => $this->t('Error during validation: @error', ['@error' => $e->getMessage()]),
+          'severity' => $this->severity('error'),
+        ],
+      ];
     }
   }
 

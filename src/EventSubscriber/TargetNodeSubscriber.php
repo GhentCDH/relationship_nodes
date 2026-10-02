@@ -27,27 +27,25 @@ class TargetNodeSubscriber implements EventSubscriberInterface {
   protected RelationSync $syncService;
   protected RelationTitleGenerator $titleGenerator;
 
-
   /**
    * Constructs a TargetNodeSubscriber object.
    *
-   * @param RelationInfo $nodeInfoService
+   * @param \Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo $nodeInfoService
    *   The node info service.
-   * @param RelationSync $syncService
+   * @param \Drupal\relationship_nodes\RelationData\NodeHelper\RelationSync $syncService
    *   The sync service.
-   * @param RelationTitleGenerator $titleGenerator
+   * @param \Drupal\relationship_nodes\RelationData\NodeHelper\RelationTitleGenerator $titleGenerator
    *   The relation title generator.
    */
   public function __construct(
-    RelationInfo $nodeInfoService, 
+    RelationInfo $nodeInfoService,
     RelationSync $syncService,
-    RelationTitleGenerator $titleGenerator
+    RelationTitleGenerator $titleGenerator,
   ) {
     $this->nodeInfoService = $nodeInfoService;
     $this->syncService = $syncService;
     $this->titleGenerator = $titleGenerator;
   }
-
 
   /**
    * {@inheritdoc}
@@ -59,11 +57,10 @@ class TargetNodeSubscriber implements EventSubscriberInterface {
     ];
   }
 
-
   /**
    * Deletes orphaned relation nodes when target nodes are deleted.
    *
-   * @param EntityEvent $event
+   * @param \Drupal\entity_events\Event\EntityEvent $event
    *   The entity event.
    * @param string $event_name
    *   The event name.
@@ -84,11 +81,10 @@ class TargetNodeSubscriber implements EventSubscriberInterface {
     $this->syncService->deleteNodes($relation_ids);
   }
 
-
   /**
    * Updates the automatic titles of a node's relations after a rename.
    *
-   * @param EntityEvent $event
+   * @param \Drupal\entity_events\Event\EntityEvent $event
    *   The entity event.
    * @param string $event_name
    *   The event name.
@@ -111,13 +107,12 @@ class TargetNodeSubscriber implements EventSubscriberInterface {
     }
   }
 
-
   /**
    * Checks whether the title of a node changed in any translation.
    *
-   * @param Node $entity
+   * @param \Drupal\node\Entity\Node $entity
    *   The saved node.
-   * @param Node $original
+   * @param \Drupal\node\Entity\Node $original
    *   The node before the save.
    *
    * @return bool
@@ -136,4 +131,5 @@ class TargetNodeSubscriber implements EventSubscriberInterface {
     }
     return FALSE;
   }
+
 }

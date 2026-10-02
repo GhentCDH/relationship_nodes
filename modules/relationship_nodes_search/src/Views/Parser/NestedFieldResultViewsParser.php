@@ -9,10 +9,10 @@ use Drupal\relationship_nodes\Display\Parser\FieldResultParserBase;
 
 /**
  * Parser for Views/Search API context.
- * 
+ *
  * Processes entity reference values from indexed Search API data.
  * Works with "entity_type/id" string format from Elasticsearch.
- * 
+ *
  * Used by: RelationshipField Views plugin, Views filter widgets
  */
 class NestedFieldResultViewsParser extends FieldResultParserBase {
@@ -20,25 +20,24 @@ class NestedFieldResultViewsParser extends FieldResultParserBase {
   /**
    * Constructs a NestedFieldResultViewsParser object.
    *
-   * @param EntityTypeManagerInterface $entityTypeManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
-   * @param LanguageManagerInterface $languageManager
+   * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
    *   The language manager.
-   * @param LoggerChannelFactoryInterface $loggerFactory
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
    *   The logger factory.
    */
   public function __construct(
     EntityTypeManagerInterface $entityTypeManager,
     LanguageManagerInterface $languageManager,
-    LoggerChannelFactoryInterface $loggerFactory
+    LoggerChannelFactoryInterface $loggerFactory,
   ) {
     parent::__construct($entityTypeManager, $languageManager, $loggerFactory);
   }
 
-  
-   /**
+  /**
    * Batch loads entities from indexed data.
-   * 
+   *
    * Public wrapper that collects entity references from nested data,
    * groups them by type, and batch loads them.
    *
@@ -52,27 +51,28 @@ class NestedFieldResultViewsParser extends FieldResultParserBase {
    */
   public function batchLoadFromIndexedData(array $nested_data, array $field_settings): array {
     $entity_ids_by_type = [];
-    
-    // Collect all entity reference IDs that need loading
+
+    // Collect all entity reference IDs that need loading.
     foreach ($nested_data as $item) {
       foreach ($field_settings as $child_fld_nm => $settings) {
         if (empty($settings['enabled']) || !isset($item[$child_fld_nm])) {
           continue;
         }
-        
+
         $display_mode = $settings['display_mode'] ?? 'raw';
         if (!in_array($display_mode, ['label', 'link'])) {
-          continue; // No entity loading needed for raw mode
+          // No entity loading needed for raw mode.
+          continue;
         }
-        
-        // Collect entity IDs from field values
+
+        // Collect entity IDs from field values.
         $values = is_array($item[$child_fld_nm]) ? $item[$child_fld_nm] : [$item[$child_fld_nm]];
         foreach ($values as $value) {
           $parsed = $this->parseEntityReferenceString($value);
           if ($parsed) {
             $entity_type = $parsed['entity_type'];
             $entity_id = $parsed['id'];
-            
+
             if (!isset($entity_ids_by_type[$entity_type])) {
               $entity_ids_by_type[$entity_type] = [];
             }
@@ -81,8 +81,8 @@ class NestedFieldResultViewsParser extends FieldResultParserBase {
         }
       }
     }
-    
-    // Batch load entities using protected parent method
+
+    // Batch load entities using protected parent method.
     return $this->batchLoadEntities($entity_ids_by_type);
   }
 
@@ -100,22 +100,22 @@ class NestedFieldResultViewsParser extends FieldResultParserBase {
    *   Processed field data with 'field_values', 'separator', and 'is_multiple' keys.
    */
   public function processFieldValuesWithCache($raw_value, array $settings, array $preloaded_entities): ?array {
-    // Handle empty or NULL values
+    // Handle empty or NULL values.
     if ($raw_value === NULL || $raw_value === '' || (is_array($raw_value) && empty($raw_value))) {
       return NULL;
     }
-    
+
     $value_arr = is_array($raw_value) ? $raw_value : [$raw_value];
     $display_mode = $settings['display_mode'] ?? 'raw';
     $processed_values = [];
 
     foreach ($value_arr as $raw_val) {
-      // Skip empty values
+      // Skip empty values.
       if ($raw_val === NULL || $raw_val === '') {
         continue;
       }
-      
-      // Check if this value has a cached entity
+
+      // Check if this value has a cached entity.
       if (in_array($display_mode, ['label', 'link'], TRUE) && isset($preloaded_entities[$raw_val])) {
         try {
           $entity = $preloaded_entities[$raw_val];
@@ -124,27 +124,28 @@ class NestedFieldResultViewsParser extends FieldResultParserBase {
         catch (\Exception $e) {
           $this->loggerFactory->get('relationship_nodes')->error('Error processing cached entity @value: @message', [
             '@value' => $raw_val,
-            '@message' => $e->getMessage()
+            '@message' => $e->getMessage(),
           ]);
-          // Fall through to regular processing
+          // Fall through to regular processing.
           $fallback = $this->processSingleValue($raw_val, $display_mode);
           if ($fallback !== NULL) {
             $processed_values[] = $fallback;
           }
         }
-      } else {
-        // Raw mode or no cached entity
+      }
+      else {
+        // Raw mode or no cached entity.
         $fallback = $this->processSingleValue($raw_val, $display_mode);
         if ($fallback !== NULL) {
           $processed_values[] = $fallback;
         }
       }
     }
-    
+
     if (empty($processed_values)) {
       return NULL;
     }
-    
+
     return [
       'field_values' => $processed_values,
       'separator' => $settings['multiple_separator'] ?? ', ',
@@ -166,21 +167,23 @@ class NestedFieldResultViewsParser extends FieldResultParserBase {
   protected function processSingleValue($value, string $display_mode = 'raw'): ?array {
     $result = ['value' => (string) $value, 'link_url' => NULL];
 
-    // Raw mode - return as-is
+    // Raw mode - return as-is.
     if ($display_mode === 'raw') {
       return $result;
     }
 
-    // Parse entity reference
+    // Parse entity reference.
     $parsed = $this->parseEntityReferenceString($value);
     if (!$parsed) {
-      return $result; // Return raw value if parse fails
+      // Return raw value if parse fails.
+      return $result;
     }
 
-    // Load entity and resolve
+    // Load entity and resolve.
     $entity = $this->loadEntity($parsed['entity_type'], $parsed['id']);
     if (!$entity) {
-      return $result; // Return raw value if entity not found
+      // Return raw value if entity not found.
+      return $result;
     }
 
     return $this->resolveEntityValue($entity, $display_mode);
@@ -188,7 +191,7 @@ class NestedFieldResultViewsParser extends FieldResultParserBase {
 
   /**
    * Parses an entity reference string from indexed data.
-   * 
+   *
    * Converts "entity_type/id" format into component parts.
    * Examples: "node/123", "taxonomy_term/456"
    *
@@ -202,15 +205,15 @@ class NestedFieldResultViewsParser extends FieldResultParserBase {
     if (empty($value) || !is_string($value)) {
       return NULL;
     }
-    
-    // Split on first slash only to handle IDs that might contain slashes
+
+    // Split on first slash only to handle IDs that might contain slashes.
     $parts = explode('/', $value, 2);
-    
-    // Validate we have exactly 2 parts and both are non-empty
+
+    // Validate we have exactly 2 parts and both are non-empty.
     if (count($parts) !== 2 || trim($parts[0]) === '' || trim($parts[1]) === '') {
       return NULL;
     }
-    
+
     return [
       'entity_type' => trim($parts[0]),
       'id' => trim($parts[1]),
@@ -219,7 +222,7 @@ class NestedFieldResultViewsParser extends FieldResultParserBase {
 
   /**
    * Extracts integer IDs from entity reference string values.
-   * 
+   *
    * Converts ["node/123", "node/456"] to [123, 456].
    * Useful for filtering or grouping operations.
    *
@@ -234,18 +237,19 @@ class NestedFieldResultViewsParser extends FieldResultParserBase {
   public function extractIntIdsFromStrings(array $str_id_array, string $entity_type): array {
     $result = [];
     $prefix = $entity_type . '/';
-    
+
     foreach ($str_id_array as $string_id) {
       if (!is_string($string_id) || !str_starts_with($string_id, $prefix)) {
         continue;
       }
-      
+
       $cleaned = substr($string_id, strlen($prefix));
       if (is_numeric($cleaned)) {
         $result[] = (int) $cleaned;
       }
     }
-    
+
     return $result;
   }
+
 }

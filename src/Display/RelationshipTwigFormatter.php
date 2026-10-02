@@ -5,7 +5,6 @@ namespace Drupal\relationship_nodes\Display;
 use Drupal\node\NodeInterface;
 use Drupal\relationship_nodes\RelationField\VirtualFieldManager;
 use Drupal\relationship_nodes\Display\Configurator\FormatterConfigurator;
-use Drupal\relationship_nodes\Display\RelationshipDataBuilder;
 
 /**
  * Generic service for formatting relationships for Twig rendering.
@@ -27,13 +26,12 @@ class RelationshipTwigFormatter {
   public function __construct(
     VirtualFieldManager $virtualFieldManager,
     RelationshipDataBuilder $dataBuilder,
-    FormatterConfigurator $configurator
+    FormatterConfigurator $configurator,
   ) {
     $this->virtualFieldManager = $virtualFieldManager;
     $this->dataBuilder = $dataBuilder;
     $this->configurator = $configurator;
   }
-
 
   /**
    * Get all relation field names for a node.
@@ -42,7 +40,7 @@ class RelationshipTwigFormatter {
    *   The node.
    * @param array $bundle_order
    *   Optional custom bundle sort order. Empty array = alphabetical.
-   *   Example: ['story', 'person', 'institution']
+   *   Example: ['story', 'person', 'institution'].
    *
    * @return array|null
    *   Array of relation field names, or NULL if none.
@@ -65,15 +63,18 @@ class RelationshipTwigFormatter {
       usort($fields, function ($a, $b) use ($bundle_order) {
         $pos_a = array_search($this->extractRelatedBundle($a), $bundle_order);
         $pos_b = array_search($this->extractRelatedBundle($b), $bundle_order);
-        if ($pos_a === FALSE) $pos_a = 999;
-        if ($pos_b === FALSE) $pos_b = 999;
+        if ($pos_a === FALSE) {
+          $pos_a = 999;
+        }
+        if ($pos_b === FALSE) {
+          $pos_b = 999;
+        }
         return $pos_a <=> $pos_b;
       });
     }
 
     return $fields;
   }
-
 
   /**
    * Get formatted relationships ready for Twig rendering.
@@ -119,7 +120,7 @@ class RelationshipTwigFormatter {
     NodeInterface $node,
     string $relation_field_name,
     array $options = [],
-    array $field_settings = []
+    array $field_settings = [],
   ): ?array {
     $limit = isset($options['limit']) ? (int) $options['limit'] : NULL;
 
@@ -205,7 +206,6 @@ class RelationshipTwigFormatter {
     return $relation_nodes ?: NULL;
   }
 
-
   /**
    * Returns the relation bundle machine name from a field definition.
    *
@@ -222,7 +222,6 @@ class RelationshipTwigFormatter {
     $target_bundles = $field_def->getSetting('handler_settings')['target_bundles'] ?? [];
     return reset($target_bundles) ?: NULL;
   }
-
 
   /**
    * Builds field configurations for the relationship data builder.
@@ -243,7 +242,7 @@ class RelationshipTwigFormatter {
     string $relation_bundle,
     string $relation_field_name,
     array $options,
-    array $field_settings = []
+    array $field_settings = [],
   ): array {
     $field_names = $this->configurator->getAvailableFieldNames($relation_bundle);
 
@@ -273,7 +272,6 @@ class RelationshipTwigFormatter {
     return $field_configs;
   }
 
-
   /**
    * Simplifies relationship data for Twig rendering.
    *
@@ -293,7 +291,7 @@ class RelationshipTwigFormatter {
   protected function simplifyForTwig(
     array $relationships,
     bool $include_links,
-    array $extra_fields
+    array $extra_fields,
   ): array {
     $simple = [];
 
@@ -329,14 +327,13 @@ class RelationshipTwigFormatter {
           '_is_fallback' => $is_fallback,
           '_langcode' => $effective_langcode,
           '_available_languages' => $available_languages,
-          '_related_nid' => $rel['_related_nid'] ?? NULL
+          '_related_nid' => $rel['_related_nid'] ?? NULL,
         ]);
       }
     }
 
     return $simple;
   }
-
 
   /**
    * Returns extra fields for a specific relation field from options.
@@ -352,7 +349,6 @@ class RelationshipTwigFormatter {
   protected function getExtraFields(string $relation_field_name, array $options): array {
     return ($options['extra_fields'] ?? [])[$relation_field_name] ?? [];
   }
-
 
   /**
    * Extracts the related bundle name from a relation field name.

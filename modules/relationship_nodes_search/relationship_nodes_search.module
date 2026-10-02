@@ -1,12 +1,13 @@
 <?php
 
+/**
+ * @file
+ */
+
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\relationship_nodes_search\Form\ExtendedIndexAddFieldsForm;
 use Drupal\views\Plugin\views\filter\FilterPluginBase;
 use Drupal\relationship_nodes_search\Plugin\views\filter\RelationshipFilter;
-
-
-
 
 /**
  * Implements hook_entity_type_alter().
@@ -17,7 +18,6 @@ function relationship_nodes_search_entity_type_alter(array &$entity_types) {
   }
 }
 
-
 /**
  * Implements hook_search_api_field_type_mapping_alter().
  */
@@ -25,14 +25,12 @@ function relationship_nodes_search_search_api_field_type_mapping_alter(array &$m
   $mapping['relation_info'] = 'relationship_nodes_search_nested_relationship';
 }
 
-
 /**
  * Implements hook_facets_search_api_query_type_mapping_alter().
  */
 function relationship_nodes_search_facets_search_api_query_type_mapping_alter($backend_plugin_id, array &$query_types) {
   $query_types['relationship_nodes_search_nested_relationship'] = 'search_api_nested';
 }
-
 
 /**
  * Implements hook_form_views_exposed_form_alter().
@@ -63,7 +61,6 @@ function relationship_nodes_search_form_views_exposed_form_alter(&$form, FormSta
     }
   }
 }
-
 
 /**
  * Implements hook_views_filters_summary_info_alter().
@@ -126,7 +123,7 @@ function relationship_nodes_search_views_filters_summary_info_alter(array &$info
     $display = "\u{1F517} " . $entity_label;
   }
   else {
-    // Type-only: "co-worker of anybody"
+    // Type-only: "co-worker of anybody".
     $display = "\u{1F517} " . $type_label;
   }
 
@@ -134,9 +131,9 @@ function relationship_nodes_search_views_filters_summary_info_alter(array &$info
     'id'    => $identifier,
     'raw'   => $identifier,
     'value' => $display,
-  ]];
+  ],
+  ];
 }
-
 
 /**
  * Implements hook_views_data_alter().
@@ -194,7 +191,6 @@ function relationship_nodes_search_views_data_alter(array &$data): void {
   }
   unset($table);
 }
-
 
 /**
  * Implements hook_config_schema_info_alter().

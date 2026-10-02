@@ -8,7 +8,6 @@ use Drupal\entity_events\Event\EntityEvent;
 use Drupal\relationship_nodes\RelationData\NodeHelper\RelationTitleGenerator;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-
 /**
  * Sets the automatic titles of relation nodes on save.
  */
@@ -16,17 +15,15 @@ class RelationNodeSubscriber implements EventSubscriberInterface {
 
   protected RelationTitleGenerator $titleGenerator;
 
-
   /**
    * Constructs a RelationNodeSubscriber object.
    *
-   * @param RelationTitleGenerator $titleGenerator
+   * @param \Drupal\relationship_nodes\RelationData\NodeHelper\RelationTitleGenerator $titleGenerator
    *   The relation title generator.
    */
   public function __construct(RelationTitleGenerator $titleGenerator) {
     $this->titleGenerator = $titleGenerator;
   }
-
 
   /**
    * {@inheritdoc}
@@ -37,11 +34,10 @@ class RelationNodeSubscriber implements EventSubscriberInterface {
     ];
   }
 
-
   /**
    * Sets the title in all translations of relation nodes with auto-title.
    *
-   * @param EntityEvent $event
+   * @param \Drupal\entity_events\Event\EntityEvent $event
    *   The entity event.
    * @param string $event_name
    *   The event name.
@@ -52,4 +48,5 @@ class RelationNodeSubscriber implements EventSubscriberInterface {
       $this->titleGenerator->applyTitles($entity);
     }
   }
+
 }

@@ -13,7 +13,6 @@ use Drupal\relationship_nodes\RelationField\FieldNameResolver;
 use Drupal\taxonomy\TermInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-
 /**
  * Extended inline entity form for relationship nodes.
  *
@@ -26,7 +25,6 @@ class RelationInlineEntityForm extends NodeInlineForm {
   protected ForeignKeyResolver $foreignKeyResolver;
   protected BundleSettingsManager $bundleSettingsManager;
 
-
   /**
    * {@inheritdoc}
    */
@@ -38,7 +36,6 @@ class RelationInlineEntityForm extends NodeInlineForm {
     $instance->bundleSettingsManager = $container->get('relationship_nodes.bundle_settings_manager');
     return $instance;
   }
-
 
   /**
    * {@inheritdoc}
@@ -65,7 +62,6 @@ class RelationInlineEntityForm extends NodeInlineForm {
     return $entity_form;
   }
 
-
   /**
    * {@inheritdoc}
    */
@@ -82,7 +78,8 @@ class RelationInlineEntityForm extends NodeInlineForm {
 
     $current_node = \Drupal::service('relationship_nodes.parent_node_context')->getParentNode();
     if (!($current_node instanceof NodeInterface)) {
-      return; // New parent node: a submit handler binds the relation later.
+      // New parent node: a submit handler binds the relation later.
+      return;
     }
 
     if (empty($entity_form['#rn__foreign_key'])) {
@@ -98,7 +95,6 @@ class RelationInlineEntityForm extends NodeInlineForm {
 
     $relation_node->set($foreign_key, $current_node->id());
   }
-
 
   /**
    * {@inheritdoc}
@@ -133,14 +129,13 @@ class RelationInlineEntityForm extends NodeInlineForm {
     return $fields;
   }
 
-
   /**
    * Callback: renders the non-foreign-key related entity for a table row.
    *
    * Static so the callable stored in the form array contains no object
    * reference and survives form-cache serialization.
    *
-   * @param EntityInterface $entity
+   * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The relation entity for this row.
    * @param array $variables
    *   The preprocess variables array.
@@ -181,7 +176,6 @@ class RelationInlineEntityForm extends NodeInlineForm {
     return ['#plain_text' => $ref->label()];
   }
 
-
   /**
    * Callback: renders the relation type for a table row.
    *
@@ -189,7 +183,7 @@ class RelationInlineEntityForm extends NodeInlineForm {
    * Uses mirror label when the foreign key is the second related entity field,
    * matching the perspective logic used in RelationshipDataBuilder.
    *
-   * @param EntityInterface $entity
+   * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The relation entity for this row.
    * @param array $variables
    *   The preprocess variables array.
@@ -230,4 +224,5 @@ class RelationInlineEntityForm extends NodeInlineForm {
 
     return ['#plain_text' => $label];
   }
+
 }

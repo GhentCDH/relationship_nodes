@@ -17,28 +17,26 @@ class MirrorSync {
   protected EntityTypeManagerInterface $entityTypeManager;
   protected FieldNameResolver $fieldNameResolver;
 
-
   /**
    * Constructs a MirrorSync object.
    *
-   * @param EntityTypeManagerInterface $entityTypeManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
-   * @param FieldNameResolver $fieldNameResolver
+   * @param \Drupal\relationship_nodes\RelationField\FieldNameResolver $fieldNameResolver
    *   The field name resolver.
    */
   public function __construct(
     EntityTypeManagerInterface $entityTypeManager,
-    FieldNameResolver $fieldNameResolver   
+    FieldNameResolver $fieldNameResolver,
   ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->fieldNameResolver = $fieldNameResolver;
   }
 
-
   /**
    * Gets the mirror term ID for a term.
    *
-   * @param TermInterface $term
+   * @param \Drupal\taxonomy\TermInterface $term
    *   The term.
    * @param string $field
    *   The field name.
@@ -48,21 +46,20 @@ class MirrorSync {
    * @return int|null
    *   The mirror term ID or NULL.
    */
-  public function getMirrorTermId(TermInterface $term, string $field, bool $original = false): ?int {
+  public function getMirrorTermId(TermInterface $term, string $field, bool $original = FALSE): ?int {
     if ($original) {
       $term = $this->getOriginalEntity($term);
       if (!$term instanceof TermInterface) {
-        return null;
+        return NULL;
       }
     }
-    return $term->$field->target_id ?? null;
+    return $term->$field->target_id ?? NULL;
   }
-
 
   /**
    * Gets changes in mirror term references.
    *
-   * @param TermInterface $term
+   * @param \Drupal\taxonomy\TermInterface $term
    *   The term.
    * @param string $field
    *   The field name.
@@ -71,41 +68,39 @@ class MirrorSync {
    *   Array with 'original' and 'current' keys, or NULL if unchanged.
    */
   private function getMirrorTermChanges(TermInterface $term, string $field): ?array {
-    $orig_id = $this->getMirrorTermId($term, $field, true) ?? null;
-    $current_id = $this->getMirrorTermId($term, $field) ?? null;
-    return $orig_id === $current_id ? null : ['original'=> $orig_id, 'current'=> $current_id];
+    $orig_id = $this->getMirrorTermId($term, $field, TRUE) ?? NULL;
+    $current_id = $this->getMirrorTermId($term, $field) ?? NULL;
+    return $orig_id === $current_id ? NULL : ['original' => $orig_id, 'current' => $current_id];
   }
 
-  
   /**
    * Loads a taxonomy term by ID.
    *
    * @param int $id
    *   The term ID.
    *
-   * @return TermInterface|null
+   * @return \Drupal\taxonomy\TermInterface|null
    *   The loaded term or NULL.
    */
   private function loadTerm(int $id): ?TermInterface {
     $tax_storage = $this->entityTypeManager->getStorage('taxonomy_term');
     $term = $tax_storage->load($id);
-    return $term instanceof TermInterface ? $term : null;
+    return $term instanceof TermInterface ? $term : NULL;
   }
-
 
   /**
    * Sets mirror term links when a term is created, updated, or deleted.
    *
-   * @param TermInterface $term
+   * @param \Drupal\taxonomy\TermInterface $term
    *   The term.
    * @param string $hook
    *   The hook name ('insert', 'update', or 'delete').
    */
   public function setMirrorTermLink(TermInterface $term, string $hook): void {
-    $ref_field = $this->fieldNameResolver->getMirrorFields('entity_reference');  
+    $ref_field = $this->fieldNameResolver->getMirrorFields('entity_reference');
     if (empty($ref_field)) {
       return;
-    }   
+    }
 
     $term_id = (int) $term->id();
 
@@ -125,7 +120,6 @@ class MirrorSync {
     $this->updateLink($changes['original'], $ref_field, $term_id, NULL);
     $this->updateLink($changes['current'], $ref_field, NULL, $term_id);
   }
-
 
   /**
    * Updates the mirror reference of a linked term when needed.
@@ -162,4 +156,5 @@ class MirrorSync {
     $linked_term->$ref_field->target_id = $new_target;
     $linked_term->save();
   }
+
 }

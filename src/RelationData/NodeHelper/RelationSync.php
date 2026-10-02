@@ -7,10 +7,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\NodeInterface;
 use Drupal\relationship_nodes\Form\Entity\RelationFormHelper;
 use Drupal\relationship_nodes\Plugin\Field\FieldType\ReferencingRelationshipItemList;
-use Drupal\relationship_nodes\RelationData\NodeHelper\ForeignKeyResolver;
-use Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo;
-use Drupal\relationship_nodes\RelationData\NodeHelper\RelationWeightManager;
-
 
 /**
  * Service for synchronizing relationship nodes.
@@ -26,36 +22,34 @@ class RelationSync {
   protected RelationFormHelper $formHelper;
   protected RelationWeightManager $relationWeightManager;
 
-
   /**
    * Constructs a RelationSync object.
    *
-   * @param EntityTypeManagerInterface $entityTypeManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
-   * @param RelationInfo $nodeInfoService
+   * @param \Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo $nodeInfoService
    *   The node info service.
-   * @param ForeignKeyResolver $foreignKeyResolver
+   * @param \Drupal\relationship_nodes\RelationData\NodeHelper\ForeignKeyResolver $foreignKeyResolver
    *   The foreign key field resolver.
-   * @param RelationFormHelper $formHelper
+   * @param \Drupal\relationship_nodes\Form\Entity\RelationFormHelper $formHelper
    *   The form helper.
-   * @param RelationWeightManager $relationWeightManager
+   * @param \Drupal\relationship_nodes\RelationData\NodeHelper\RelationWeightManager $relationWeightManager
    *   The relation subform weight manager.
    */
   public function __construct(
-      EntityTypeManagerInterface $entityTypeManager,
-      RelationInfo $nodeInfoService,
-      ForeignKeyResolver $foreignKeyResolver,
-      RelationFormHelper $formHelper,
-      RelationWeightManager $relationWeightManager
+    EntityTypeManagerInterface $entityTypeManager,
+    RelationInfo $nodeInfoService,
+    ForeignKeyResolver $foreignKeyResolver,
+    RelationFormHelper $formHelper,
+    RelationWeightManager $relationWeightManager,
   ) {
-      $this->entityTypeManager = $entityTypeManager;
-      $this->nodeInfoService = $nodeInfoService;
-      $this->foreignKeyResolver = $foreignKeyResolver;
-      $this->formHelper = $formHelper;
-      $this->relationWeightManager = $relationWeightManager;
+    $this->entityTypeManager = $entityTypeManager;
+    $this->nodeInfoService = $nodeInfoService;
+    $this->foreignKeyResolver = $foreignKeyResolver;
+    $this->formHelper = $formHelper;
+    $this->relationWeightManager = $relationWeightManager;
   }
 
-  
   /**
    * Hard-deletes relation nodes and their associated weights.
    *
@@ -83,19 +77,18 @@ class RelationSync {
     }
   }
 
-
   /**
    * Saves relation changes from the relation widgets of a saved parent node.
    *
    * Runs after the parent node is saved, so new relations can reference it.
    * Removed relations are only deleted once the parent is saved.
    *
-   * @param NodeInterface $parent_node
+   * @param \Drupal\node\NodeInterface $parent_node
    *   The saved parent node.
    * @param array $deferred_per_widget
    *   Per widget: 'entities' (items with 'entity', 'weight', 'needs_save')
    *   and 'delete' (removed relation nodes).
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    */
   public function saveDeferredRelations(NodeInterface $parent_node, array $deferred_per_widget, FormStateInterface $form_state): void {
@@ -128,11 +121,10 @@ class RelationSync {
     }
   }
 
-
   /**
    * Gets relation nodes that were removed from a parent node.
    *
-   * @param NodeInterface $parent_node
+   * @param \Drupal\node\NodeInterface $parent_node
    *   The parent node.
    * @param string $field_name
    *   The field name.
@@ -141,15 +133,14 @@ class RelationSync {
    *   Array of removed relation node IDs.
    */
   public function getRemovedRelations(NodeInterface $parent_node, string $field_name): array {
-    $item_list = $parent_node->get($field_name) ?? null;
-    if(!($item_list instanceof ReferencingRelationshipItemList)){
+    $item_list = $parent_node->get($field_name) ?? NULL;
+    if (!($item_list instanceof ReferencingRelationshipItemList)) {
       return [];
     }
     $original_relations = array_keys($item_list->collectExistingRelations()) ?? [];
     $current_relations = $this->nodeInfoService->getFieldListTargetIds($item_list) ?? [];
     return array_diff($original_relations, $current_relations);
   }
-
 
   /**
    * Checks if a relation entity item needs to be saved.
@@ -165,4 +156,5 @@ class RelationSync {
       && $entity_item['entity'] instanceof NodeInterface
       && !empty($entity_item['needs_save']);
   }
+
 }

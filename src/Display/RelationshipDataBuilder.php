@@ -71,7 +71,7 @@ class RelationshipDataBuilder {
     CalculatedFieldHelper $calculatedFieldHelper,
     FieldResultParser $parser,
     MirrorProvider $mirrorProvider,
-    ForeignKeyResolver $foreignKeyResolver
+    ForeignKeyResolver $foreignKeyResolver,
   ) {
     $this->nodeInfoService = $nodeInfoService;
     $this->fieldNameResolver = $fieldNameResolver;
@@ -82,7 +82,6 @@ class RelationshipDataBuilder {
     $this->mirrorProvider = $mirrorProvider;
     $this->foreignKeyResolver = $foreignKeyResolver;
   }
-
 
   /**
    * Builds relationship data from relation nodes using field configurations.
@@ -200,7 +199,6 @@ class RelationshipDataBuilder {
     ];
   }
 
-
   /**
    * Loads all nodes referenced by the relation nodes in one query.
    *
@@ -228,7 +226,6 @@ class RelationshipDataBuilder {
     }
   }
 
-
   /**
    * Classifies relation nodes by their availability in the requested language.
    *
@@ -254,7 +251,7 @@ class RelationshipDataBuilder {
   protected function classifyRelations(
     array $relation_nodes,
     string $langcode,
-    CacheableMetadata $cache
+    CacheableMetadata $cache,
   ): array {
     $classified = [];
 
@@ -286,7 +283,6 @@ class RelationshipDataBuilder {
     return $classified;
   }
 
-
   /**
    * Determines the availability of a relation node in a given language.
    *
@@ -311,9 +307,15 @@ class RelationshipDataBuilder {
     $cache_contexts = [];
 
     foreach ($relation_node->getFieldDefinitions() as $field_name => $definition) {
-      if ($definition->getType() !== 'entity_reference') continue;
-      if ($definition->getSetting('target_type') !== 'node') continue;
-      if ($relation_node->get($field_name)->isEmpty()) continue;
+      if ($definition->getType() !== 'entity_reference') {
+        continue;
+      }
+      if ($definition->getSetting('target_type') !== 'node') {
+        continue;
+      }
+      if ($relation_node->get($field_name)->isEmpty()) {
+        continue;
+      }
 
       $target_id = $relation_node->get($field_name)->target_id;
       $referenced = $node_storage->load($target_id);
@@ -365,7 +367,6 @@ class RelationshipDataBuilder {
     return new RelationAvailability(RelationAvailability::LANGUAGE_UNAVAILABLE, $intersection, $cache_tags, $cache_contexts);
   }
 
-
   /**
    * Resolves the best fallback language from an availability object.
    *
@@ -383,7 +384,6 @@ class RelationshipDataBuilder {
     $default = $this->languageManager->getDefaultLanguage()->getId();
     return in_array($default, $available) ? $default : $available[0];
   }
-
 
   /**
    * Builds data for a calculated field.
@@ -414,7 +414,7 @@ class RelationshipDataBuilder {
     string $field_name,
     array $config,
     ?NodeInterface $viewing_node = NULL,
-    ?string $langcode = NULL
+    ?string $langcode = NULL,
   ): ?array {
     $related_entities = $this->nodeInfoService->getRelatedEntityValues($relation_node);
 
@@ -466,7 +466,6 @@ class RelationshipDataBuilder {
     ];
   }
 
-
   /**
    * Builds data for a real (non-calculated) field.
    *
@@ -489,7 +488,7 @@ class RelationshipDataBuilder {
     NodeInterface $relation_node,
     string $field_name,
     array $config,
-    ?string $langcode = NULL
+    ?string $langcode = NULL,
   ): ?array {
     if (!$relation_node->hasField($field_name)) {
       return NULL;
@@ -538,7 +537,6 @@ class RelationshipDataBuilder {
     ];
   }
 
-
   /**
    * Builds data for the calculated relation type name field.
    *
@@ -561,7 +559,7 @@ class RelationshipDataBuilder {
     NodeInterface $relation_node,
     array $config,
     ?NodeInterface $viewing_node = NULL,
-    ?string $langcode = NULL
+    ?string $langcode = NULL,
   ): ?array {
     $relation_type_field = $this->fieldNameResolver->getRelationTypeField();
 
@@ -605,11 +603,11 @@ class RelationshipDataBuilder {
       'field_values' => [[
         'value' => $label,
         'link_url' => NULL,
-      ]],
+      ],
+      ],
       'separator' => $config['multiple_separator'] ?? ', ',
     ];
   }
-
 
   /**
    * Groups relationships by a specific field value.
@@ -653,7 +651,6 @@ class RelationshipDataBuilder {
     return $grouped;
   }
 
-
   /**
    * Sorts relationships by a specific field value.
    *
@@ -681,7 +678,6 @@ class RelationshipDataBuilder {
 
     return $relationships;
   }
-
 
   /**
    * Resolves the nid of the "other" referenced entity in a relation node.

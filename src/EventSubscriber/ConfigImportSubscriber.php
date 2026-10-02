@@ -12,7 +12,6 @@ use Drupal\relationship_nodes\RelationBundle\Settings\SettingsCleanupService;
 use Drupal\relationship_nodes\Validation\ConfigImportValidator;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-
 /**
  * Subscriber for configuration import events related to relationship nodes.
  *
@@ -22,32 +21,31 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class ConfigImportSubscriber implements EventSubscriberInterface {
 
   protected EntityTypeManagerInterface $entityTypeManager;
-  protected SettingsCleanupService $cleanupService;  
+  protected SettingsCleanupService $cleanupService;
   protected BundleSettingsManager $settingsManager;
   protected ConfigImportValidator $cimValidationService;
   protected RelationshipFieldManager $relationFieldManager;
 
-
   /**
    * Constructs a ConfigImportSubscriber object.
    *
-   * @param EntityTypeManagerInterface $entityTypeManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
-   * @param SettingsCleanupService $cleanupService
+   * @param \Drupal\relationship_nodes\RelationBundle\Settings\SettingsCleanupService $cleanupService
    *   The cleanup service.
-   * @param BundleSettingsManager $settingsManager
+   * @param \Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager $settingsManager
    *   The settings manager.
-   * @param ConfigImportValidator $cimValidationService
+   * @param \Drupal\relationship_nodes\Validation\ConfigImportValidator $cimValidationService
    *   The validation service.
-   * @param RelationshipFieldManager $relationFieldManager
+   * @param \Drupal\relationship_nodes\RelationField\RelationshipFieldManager $relationFieldManager
    *   The field configurator.
    */
   public function __construct(
-    EntityTypeManagerInterface $entityTypeManager,     
+    EntityTypeManagerInterface $entityTypeManager,
     SettingsCleanupService $cleanupService,
     BundleSettingsManager $settingsManager,
     ConfigImportValidator $cimValidationService,
-    RelationshipFieldManager $relationFieldManager
+    RelationshipFieldManager $relationFieldManager,
   ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->cleanupService = $cleanupService;
@@ -55,7 +53,6 @@ class ConfigImportSubscriber implements EventSubscriberInterface {
     $this->cimValidationService = $cimValidationService;
     $this->relationFieldManager = $relationFieldManager;
   }
-
 
   /**
    * {@inheritdoc}
@@ -67,36 +64,34 @@ class ConfigImportSubscriber implements EventSubscriberInterface {
     ];
   }
 
-
   /**
    * Validates configuration before import.
    *
-   * @param ConfigImporterEvent $event
+   * @param \Drupal\Core\Config\ConfigImporterEvent $event
    *   The config import event.
    */
   public function onConfigImportValidate(ConfigImporterEvent $event): void {
     $storage_comparer = $event->getConfigImporter()->getStorageComparer();
 
     if ($this->getModuleStateChange($storage_comparer) === 'disabling') {
-        return;
+      return;
     }
     $source_storage = $storage_comparer->getSourceStorage();
-    
-    foreach ($this->getUpdatedBundleConfigsToValidate($storage_comparer) as $bundle_config_name) {   
+
+    foreach ($this->getUpdatedBundleConfigsToValidate($storage_comparer) as $bundle_config_name) {
       // Validate all relation node bundles and their linked fields.
       $this->cimValidationService->displayBundleCimValidationErrors($bundle_config_name, $event, $source_storage);
     }
-    foreach ($this->getDeletedFieldsToValidate($storage_comparer) as $field_config_name) {   
+    foreach ($this->getDeletedFieldsToValidate($storage_comparer) as $field_config_name) {
       // Prevent deletion of fields used by the module.
       $this->cimValidationService->displayCimFieldDependenciesValidationErrors($field_config_name, $event, $source_storage);
     }
   }
 
-
   /**
    * Processes configuration after import.
    *
-   * @param ConfigImporterEvent $event
+   * @param \Drupal\Core\Config\ConfigImporterEvent $event
    *   The config import event.
    */
   public function onConfigImport(ConfigImporterEvent $event): void {
@@ -114,45 +109,42 @@ class ConfigImportSubscriber implements EventSubscriberInterface {
     }
   }
 
-
   /**
    * Determines if the module is being enabled or disabled.
    *
-   * @param StorageComparerInterface $storage_comparer
+   * @param \Drupal\Core\Config\StorageComparerInterface $storage_comparer
    *   The storage comparer.
    *
    * @return string|null
    *   Returns 'enabling', 'disabling', or NULL.
    */
   protected function getModuleStateChange(StorageComparerInterface $storage_comparer): ?string {
-      $source_storage = $storage_comparer->getSourceStorage();
-      $target_storage = $storage_comparer->getTargetStorage();
-      $source_extensions = $source_storage->read('core.extension');
-      $target_extensions = $target_storage->read('core.extension');
+    $source_storage = $storage_comparer->getSourceStorage();
+    $target_storage = $storage_comparer->getTargetStorage();
+    $source_extensions = $source_storage->read('core.extension');
+    $target_extensions = $target_storage->read('core.extension');
 
-
-      // The source storage holds the configuration being imported, the target
-      // storage the active configuration.
-      if (!isset($source_extensions['module']['relationship_nodes']) && isset($target_extensions['module']['relationship_nodes'])) {
-        return 'disabling';
-      }
-      if (isset($source_extensions['module']['relationship_nodes']) && !isset($target_extensions['module']['relationship_nodes'])) {
-        return 'enabling';
-      }
-      return NULL;
+    // The source storage holds the configuration being imported, the target
+    // storage the active configuration.
+    if (!isset($source_extensions['module']['relationship_nodes']) && isset($target_extensions['module']['relationship_nodes'])) {
+      return 'disabling';
+    }
+    if (isset($source_extensions['module']['relationship_nodes']) && !isset($target_extensions['module']['relationship_nodes'])) {
+      return 'enabling';
+    }
+    return NULL;
   }
-
 
   /**
    * Gets bundle configurations that need validation.
    *
-   * @param StorageComparerInterface $storage_comparer
+   * @param \Drupal\Core\Config\StorageComparerInterface $storage_comparer
    *   The storage comparer.
    *
    * @return array
    *   Array of configuration names.
    */
-   protected function getUpdatedBundleConfigsToValidate(StorageComparerInterface $storage_comparer): array {
+  protected function getUpdatedBundleConfigsToValidate(StorageComparerInterface $storage_comparer): array {
     $result = [];
     $operations = ['create', 'update'];
     foreach ($storage_comparer->getAllCollectionNames() as $collection) {
@@ -166,13 +158,12 @@ class ConfigImportSubscriber implements EventSubscriberInterface {
       }
     }
     return $result;
-   }
+  }
 
-
-   /**
+  /**
    * Gets updated relation bundle configurations.
    *
-   * @param StorageComparerInterface $storage_comparer
+   * @param \Drupal\Core\Config\StorageComparerInterface $storage_comparer
    *   The storage comparer.
    *
    * @return array
@@ -186,11 +177,10 @@ class ConfigImportSubscriber implements EventSubscriberInterface {
       $config_data = $source_storage->read($bundle_config_name);
       if ($config_data && $this->settingsManager->isCimRelationEntity($config_data)) {
         $result[$bundle_config_name] = $config_data;
-      }        
+      }
     }
     return $result;
   }
-
 
   /**
    * Converts configuration data to loaded entities.
@@ -202,7 +192,7 @@ class ConfigImportSubscriber implements EventSubscriberInterface {
    *   Array of loaded entities.
    */
   protected function fromConfigToEntities(array $config_list): array {
-    $load = ['node_type' => [], 'taxonomy_vocabulary' => [],];
+    $load = ['node_type' => [], 'taxonomy_vocabulary' => []];
     $result = [];
     foreach ($config_list as $config_name => $config_data) {
       $class_names = $this->settingsManager->getConfigFileEntityClasses($config_name);
@@ -211,7 +201,7 @@ class ConfigImportSubscriber implements EventSubscriberInterface {
         $load[$entity_type][] = $class_names['bundle'];
       }
     }
-    foreach ($load as $entity_type => $entities){
+    foreach ($load as $entity_type => $entities) {
       if (empty($entities)) {
         continue;
       }
@@ -221,11 +211,10 @@ class ConfigImportSubscriber implements EventSubscriberInterface {
     return $result;
   }
 
-
   /**
    * Gets field configurations that are being deleted and need validation.
    *
-   * @param StorageComparerInterface $storage_comparer
+   * @param \Drupal\Core\Config\StorageComparerInterface $storage_comparer
    *   The storage comparer.
    *
    * @return array
@@ -237,15 +226,16 @@ class ConfigImportSubscriber implements EventSubscriberInterface {
       $change_list = $storage_comparer->getChangelist('delete', $collection) ?? [];
       foreach ($change_list as $config_name) {
         if (
-          str_starts_with($config_name, 'field.storage.taxonomy_term.') || 
-          str_starts_with($config_name, 'field.storage.node.') || 
+          str_starts_with($config_name, 'field.storage.taxonomy_term.') ||
+          str_starts_with($config_name, 'field.storage.node.') ||
           str_starts_with($config_name, 'field.field.taxonomy_term') ||
           str_starts_with($config_name, 'field.field.node.')
         ) {
-           $result[] = $config_name;
+          $result[] = $config_name;
         }
       }
     }
     return $result;
   }
+
 }

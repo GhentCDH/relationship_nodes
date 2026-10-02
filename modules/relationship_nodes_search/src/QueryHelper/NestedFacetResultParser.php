@@ -13,7 +13,6 @@ use Drupal\search_api\Query\ResultSetInterface;
  */
 class NestedFacetResultParser {
 
-
   /**
    * Extracts facet values from Search API results.
    *
@@ -27,21 +26,20 @@ class NestedFacetResultParser {
    */
   public function extractFacetValues(ResultSetInterface $results, string $field_id): array {
     $facets = $results->getExtraData('search_api_facets', []);
-    
+
     if (empty($facets[$field_id])) {
       return [];
     }
-    
+
     return array_column($facets[$field_id], 'filter');
   }
-
 
   /**
    * Extract and clean facet values from Search API results.
    *
    * Combines extraction with trimming of surrounding quotes.
    *
-   * @param ResultSetInterface $results
+   * @param \Drupal\search_api\Query\ResultSetInterface $results
    *   The search results.
    * @param string $field_id
    *   The field identifier.
@@ -54,7 +52,6 @@ class NestedFacetResultParser {
     return $this->trimQuotes($facet_data);
   }
 
-
   /**
    * Extracts unique values from aggregation buckets.
    *
@@ -63,11 +60,10 @@ class NestedFacetResultParser {
    *
    * @return array
    *   Array of unique values (keys).
-  */
+   */
   public function getUniqueValues(array $buckets): array {
     return array_column($buckets, 'key');
   }
-
 
   /**
    * Remove surrounding quotes from facet values.
@@ -89,4 +85,5 @@ class NestedFacetResultParser {
     }
     return $facet_data;
   }
+
 }

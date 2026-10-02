@@ -3,7 +3,6 @@
 namespace Drupal\relationship_nodes_search\EventSubscriber;
 
 use Drupal\Core\Entity\ContentEntityInterface;
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityPublishedInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
@@ -17,7 +16,6 @@ use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
 use Drupal\relationship_nodes\RelationField\FieldNameResolver;
 use Drupal\taxonomy\TermInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-
 
 /**
  * Event subscriber that triggers Search API reindexing for relationship changes.
@@ -41,21 +39,20 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
   protected RelationInfo $nodeInfoService;
   protected FieldNameResolver $fieldNameResolver;
 
-
   /**
    * Constructs a ReindexTargetsOnRelationUpdate object.
    *
-   * @param EntityTypeManagerInterface $entityTypeManager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
-   * @param CacheTagsInvalidatorInterface $cacheTagsInvalidator
+   * @param \Drupal\Core\Cache\CacheTagsInvalidatorInterface $cacheTagsInvalidator
    *   The cache tags invalidator.
-   * @param LoggerChannelFactoryInterface $loggerFactory
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
    *   The logger factory.
-   * @param BundleSettingsManager $settingsManager
+   * @param \Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager $settingsManager
    *   The relation bundle settings manager.
-   * @param RelationInfo $nodeInfoService
+   * @param \Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo $nodeInfoService
    *   The relation node info service.
-   * @param FieldNameResolver $fieldNameResolver
+   * @param \Drupal\relationship_nodes\RelationField\FieldNameResolver $fieldNameResolver
    *   The field name resolver.
    */
   public function __construct(
@@ -64,7 +61,7 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     LoggerChannelFactoryInterface $loggerFactory,
     BundleSettingsManager $settingsManager,
     RelationInfo $nodeInfoService,
-    FieldNameResolver $fieldNameResolver
+    FieldNameResolver $fieldNameResolver,
   ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->cacheTagsInvalidator = $cacheTagsInvalidator;
@@ -73,7 +70,6 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     $this->nodeInfoService = $nodeInfoService;
     $this->fieldNameResolver = $fieldNameResolver;
   }
-
 
   /**
    * {@inheritdoc}
@@ -90,7 +86,6 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     ];
   }
 
-
   /**
    * Tracks related entities for Search API reindexing.
    *
@@ -98,7 +93,7 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
    * and marks them for reindexing. For UPDATE events, includes both old
    * and new target entities.
    *
-   * @param EntityEvent $event
+   * @param \Drupal\entity_events\Event\EntityEvent $event
    *   The entity event.
    * @param string $event_name
    *   The event name (INSERT, UPDATE, or PREDELETE).
@@ -127,7 +122,6 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
       }
     }
 
-
     // Merge the new/current related IDs.
     if (!empty($related_entity_values)) {
       foreach ($related_entity_values as $ids) {
@@ -154,14 +148,13 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     $this->logReindexOperation($event_name, $entity->id(), $relation_bundle, $sapi_count);
   }
 
-
   /**
    * Reindexes the nodes related to a node whose title or status changed.
    *
    * Their index documents contain this node's title, and only contain
    * relations to it while it is published.
    *
-   * @param EntityEvent $event
+   * @param \Drupal\entity_events\Event\EntityEvent $event
    *   The entity event.
    * @param string $event_name
    *   The event name.
@@ -191,7 +184,6 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     $this->reindexNodes($nids);
   }
 
-
   /**
    * Reindexes both sides of relations whose relation type term changed.
    *
@@ -199,7 +191,7 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
    * the name of its mirror, so relations typed with the term's mirror are
    * included as well.
    *
-   * @param EntityEvent $event
+   * @param \Drupal\entity_events\Event\EntityEvent $event
    *   The entity event.
    * @param string $event_name
    *   The event name.
@@ -242,15 +234,14 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     $this->reindexNodes(array_unique($nids));
   }
 
-
   /**
    * Checks whether an entity's label, status or given fields changed.
    *
    * All translations are compared, including added or removed ones.
    *
-   * @param ContentEntityInterface $entity
+   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
    *   The updated entity.
-   * @param ContentEntityInterface $original
+   * @param \Drupal\Core\Entity\ContentEntityInterface $original
    *   The entity before the update.
    * @param string[] $fields
    *   Additional field names to compare.
@@ -284,11 +275,10 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     return FALSE;
   }
 
-
   /**
    * Returns the IDs of the nodes on both sides of a relation.
    *
-   * @param Node $relation
+   * @param \Drupal\node\Entity\Node $relation
    *   The relation node.
    *
    * @return int[]
@@ -303,7 +293,6 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     }
     return $nids;
   }
-
 
   /**
    * Marks nodes for reindexing in all their translations.
@@ -331,7 +320,6 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     return count($sapi_ids);
   }
 
-
   /**
    * Tracks items in all active Search API indexes.
    *
@@ -351,7 +339,6 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     }
   }
 
-
   /**
    * Invalidates dropdown option caches for affected relationships.
    *
@@ -361,20 +348,19 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
    *   Array of affected node IDs.
    */
   protected function invalidateRelationshipCache(string $relation_bundle, array $affected_node_ids): void {
-    // Invalidate general relationship options cache
+    // Invalidate general relationship options cache.
     $cache_tags = ['relationship_filter_options'];
-    
-    // Add specific tags for this relation bundle
+
+    // Add specific tags for this relation bundle.
     $cache_tags[] = 'relationship_filter_options:' . $relation_bundle;
-    
+
     // Add tags for affected nodes (if they have relationship fields displayed)
     foreach ($affected_node_ids as $nid) {
       $cache_tags[] = 'relationship_filter_options:node:' . $nid;
     }
-    
+
     $this->cacheTagsInvalidator->invalidateTags($cache_tags);
   }
-
 
   /**
    * Logs reindex operation for debugging.
@@ -399,4 +385,5 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
       ]
     );
   }
+
 }

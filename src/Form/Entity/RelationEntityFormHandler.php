@@ -6,10 +6,8 @@ use Drupal\Core\Entity\EntityFormInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\node\Entity\Node;
-use Drupal\relationship_nodes\Form\Entity\RelationFormHelper;
 use Drupal\relationship_nodes\RelationData\NodeHelper\RelationSync;
 use Drupal\relationship_nodes\RelationField\FieldNameResolver;
-
 
 /**
  * Service for handling relationship entity forms.
@@ -22,27 +20,25 @@ class RelationEntityFormHandler {
   protected RelationSync $syncService;
   protected RelationFormHelper $formHelper;
 
-
   /**
    * Constructs a RelationEntityFormHandler object.
    *
-   * @param FieldNameResolver $fieldNameResolver
+   * @param \Drupal\relationship_nodes\RelationField\FieldNameResolver $fieldNameResolver
    *   The field name resolver.
-   * @param RelationSync $syncService
+   * @param \Drupal\relationship_nodes\RelationData\NodeHelper\RelationSync $syncService
    *   The relation sync service.
-   * @param RelationFormHelper $formHelper
+   * @param \Drupal\relationship_nodes\Form\Entity\RelationFormHelper $formHelper
    *   The form helper.
    */
   public function __construct(
     FieldNameResolver $fieldNameResolver,
     RelationSync $syncService,
-    RelationFormHelper $formHelper
+    RelationFormHelper $formHelper,
   ) {
     $this->fieldNameResolver = $fieldNameResolver;
     $this->syncService = $syncService;
-    $this->formHelper = $formHelper; 
+    $this->formHelper = $formHelper;
   }
-
 
   /**
    * Takes the relation changes of a widget out of IEF's submit processing.
@@ -56,7 +52,7 @@ class RelationEntityFormHandler {
    *   The Inline Entity Form widget ID.
    * @param array $widget_state
    *   The widget state (passed by reference).
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    */
   public function deferRelationWidgetSubmit(string $ief_id, array &$widget_state, FormStateInterface $form_state): void {
@@ -80,13 +76,12 @@ class RelationEntityFormHandler {
     $form_state->set(['rn_deferred_relations', $ief_id], $deferred);
   }
 
-
   /**
    * Submit handler: saves the deferred relation changes after the parent.
    *
    * @param array $form
    *   The form array.
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state.
    */
   public static function saveDeferredRelations(array &$form, FormStateInterface $form_state): void {
