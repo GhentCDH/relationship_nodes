@@ -44,11 +44,13 @@ class NestedFilterBuilder extends FilterBuilder {
   /**
    * {@inheritdoc}
    */
-  public function buildFilters(ConditionGroupInterface $condition_group, array $index_fields) {
+  public function buildFilters(ConditionGroupInterface $condition_group, array $index_fields, array $querySettings = []) {
+    // $querySettings was added in elasticsearch_connector 8.0.0-alpha7; older
+    // versions ignore the extra argument.
     if (!($condition_group instanceof NestedParentFieldConditionGroup)) {
-      return parent::buildFilters($condition_group, $index_fields);
+      return parent::buildFilters($condition_group, $index_fields, $querySettings);
     }
-    return $this->buildNestedFieldConditionFilters($condition_group, $index_fields);
+    return $this->buildNestedFieldConditionFilters($condition_group, $index_fields, $querySettings);
   }
 
 
@@ -62,19 +64,21 @@ class NestedFilterBuilder extends FilterBuilder {
    *   The condition group to process.
    * @param array $index_fields
    *   The index fields configuration.
+   * @param array $querySettings
+   *   The query settings (elasticsearch_connector 8.0.0-alpha7 and later).
    *
    * @return array
    *   Flat list of Elasticsearch filter fragments.
    */
-  protected function buildConditionGroupSubfilters(NestedConditionGroupBase $group, array $index_fields): array {
+  protected function buildConditionGroupSubfilters(NestedConditionGroupBase $group, array $index_fields, array $querySettings = []): array {
     $subfilters = [];
     foreach ($group->getConditions() ?? [] as $condition) {
       if ($condition instanceof NestedChildFieldConditionGroup) {
-        $inner = $this->buildConditionGroupSubfilters($condition, $index_fields);
+        $inner = $this->buildConditionGroupSubfilters($condition, $index_fields, $querySettings);
         $subfilters[] = $this->wrapWithConjunction($inner, $condition->getConjunction());
       }
       elseif ($condition instanceof NestedChildFieldCondition) {
-        $subfilters[] = $this->buildFilterTerm($condition, $index_fields);
+        $subfilters[] = $this->buildFilterTerm($condition, $index_fields, $querySettings);
       }
     }
     return $subfilters;
@@ -84,7 +88,7 @@ class NestedFilterBuilder extends FilterBuilder {
   /**
    * Builds an Elasticsearch nested query from a NestedParentFieldConditionGroup.
    */
-  protected function buildNestedFieldConditionFilters(NestedParentFieldConditionGroup $condition_group, array $index_fields): array {
+  protected function buildNestedFieldConditionFilters(NestedParentFieldConditionGroup $condition_group, array $index_fields, array $querySettings = []): array {
     $parent = $condition_group->getParentFieldName();
     
     // The parent's buildFilters() reads all three keys of a nested result.
@@ -95,7 +99,7 @@ class NestedFilterBuilder extends FilterBuilder {
       return $result;
     }
 
-    $subfilters = $this->buildConditionGroupSubfilters($condition_group, $index_fields);
+    $subfilters = $this->buildConditionGroupSubfilters($condition_group, $index_fields, $querySettings);
 
     if (empty($subfilters)) {
       return $result;

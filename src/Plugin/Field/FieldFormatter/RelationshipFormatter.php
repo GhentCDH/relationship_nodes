@@ -10,6 +10,8 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\relationship_nodes\Display\Configurator\FormatterConfigurator;
 use Drupal\relationship_nodes\Display\RelationshipDataBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Field\Attribute\FieldFormatter;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**
  * Plugin implementation of the 'relationship_formatter' formatter.
@@ -24,16 +26,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * 
  * The formatter uses FormatterConfigurator to build configuration
  * forms and RelationshipDataBuilder to process and render the data.
- *
- * @FieldFormatter(
- *   id = "relationship_formatter",
- *   label = @Translation("Relationship Formatter"),
- *   description = @Translation("Display relationship nodes with their connected entities."),
- *   field_types = {
- *     "entity_reference"
- *   }
- * )
  */
+#[FieldFormatter(
+  id: 'relationship_formatter',
+  label: new TranslatableMarkup('Relationship Formatter'),
+  description: new TranslatableMarkup('Display relationship nodes with their connected entities.'),
+  field_types: ['entity_reference'],
+)]
 class RelationshipFormatter extends EntityReferenceFormatterBase implements ContainerFactoryPluginInterface {
 
   protected RelationshipDataBuilder $displayBuilder;

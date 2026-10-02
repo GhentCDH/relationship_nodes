@@ -14,12 +14,12 @@ use Drupal\relationship_nodes_search\Views\Widget\NestedExposedFormBuilder;
 use Drupal\relationship_nodes_search\Views\Config\NestedFieldViewsFilterConfigurator;
 use Drupal\relationship_nodes_search\FieldHelper\NestedIndexFieldHelper;
 use Drupal\relationship_nodes_search\QueryHelper\FilterOperatorHelper;
+use Drupal\views\Attribute\ViewsFilter;
 
 /**
  * Filter for nested relationship data in Search API.
- *
- * @ViewsFilter("search_api_relationship_filter")
  */
+#[ViewsFilter('search_api_relationship_filter')]
 class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPluginInterface {
 
   use SearchApiFilterTrait;

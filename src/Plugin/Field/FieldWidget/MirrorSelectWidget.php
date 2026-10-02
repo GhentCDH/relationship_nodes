@@ -9,22 +9,21 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\ElementInfoManagerInterface;
 use Drupal\relationship_nodes\RelationData\TermHelper\MirrorProvider;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Field\Attribute\FieldWidget;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 
 /**
  * Plugin implementation of the 'mirror_select_widget' widget.
  *
  * Provides a select widget for mirror term fields with filtered options.
- *
- * @FieldWidget(
- *   id = "mirror_select_widget",
- *   label = @Translation("Mirror Select Widget"),
- *   field_types = {
- *     "entity_reference"
- *   },
- *   multiple_values = TRUE
- * )
  */
+#[FieldWidget(
+  id: 'mirror_select_widget',
+  label: new TranslatableMarkup('Mirror Select Widget'),
+  field_types: ['entity_reference'],
+  multiple_values: TRUE,
+)]
 class MirrorSelectWidget extends OptionsSelectWidget {
   
   protected MirrorProvider $mirrorProvider;

@@ -9,21 +9,20 @@ use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\relationship_nodes\RelationData\TermHelper\MirrorProvider;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Field\Attribute\FieldFormatter;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**
  * Displays an entity reference field as the mirror label of the referenced term.
  *
  * Falls back to the plain term label if no mirror label is configured.
- *
- * @FieldFormatter(
- *   id = "relation_type_mirror_label",
- *   label = @Translation("Mirror label (relation type only)"),
- *   description = @Translation("Only for use on the relation type field of typed relation bundles."),
- *   field_types = {
- *     "entity_reference"
- *   }
- * )
  */
+#[FieldFormatter(
+  id: 'relation_type_mirror_label',
+  label: new TranslatableMarkup('Mirror label (relation type only)'),
+  description: new TranslatableMarkup('Only for use on the relation type field of typed relation bundles.'),
+  field_types: ['entity_reference'],
+)]
 class MirrorLabelFormatter extends EntityReferenceLabelFormatter implements ContainerFactoryPluginInterface {
 
   protected MirrorProvider $mirrorProvider;

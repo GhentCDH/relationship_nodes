@@ -19,12 +19,6 @@ use Drupal\relationship_nodes\RelationData\NodeHelper\RelationWeightManager;
  * `computed_relationshipfield__*` virtual field. On first access it queries
  * the database for relation nodes that reference the host entity through
  * one of the configured join fields, then sorts them by stored weight.
- *
- * @FieldType(
- *   id = "referencing_relationship_item_list",
- *   label = @Translation("Referencing Relationship Item List"),
- *   description = @Translation("Field type: reference in two directions (referencing and referenced)."),
- * )
  */
 class ReferencingRelationshipItemList extends EntityReferenceFieldItemList implements CacheableDependencyInterface {
 

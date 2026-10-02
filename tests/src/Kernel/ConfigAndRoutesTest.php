@@ -77,4 +77,22 @@ class ConfigAndRoutesTest extends RelationshipNodesKernelTestBase {
     $this->assertFalse($access($rn_field, static::RELATION_BUNDLE, $editor), 'User without permission.');
   }
 
+  /**
+   * The module's plugins are discovered.
+   */
+  public function testPluginDiscovery(): void {
+    $plugins = [
+      'plugin.manager.field.widget' => ['relation_extended_ief_complex_widget', 'mirror_select_widget'],
+      'plugin.manager.field.formatter' => ['relationship_formatter', 'relation_type_mirror_label'],
+      'validation.constraint' => ['valid_relation_reference_constraint', 'available_mirror_term_constraint'],
+    ];
+    foreach ($plugins as $manager => $ids) {
+      foreach ($ids as $id) {
+        $this->assertTrue($this->container->get($manager)->hasDefinition($id), "$id is discovered.");
+      }
+    }
+    // The computed field's item list class is not a field type.
+    $this->assertFalse($this->container->get('plugin.manager.field.field_type')->hasDefinition('referencing_relationship_item_list'));
+  }
+
 }

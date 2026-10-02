@@ -13,6 +13,8 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\inline_entity_form\Plugin\Field\FieldWidget\InlineEntityFormComplex;
 use Drupal\relationship_nodes\Form\Entity\RelationEntityFormHandler;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Field\Attribute\FieldWidget;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**
  * Relation extended IEF widget.
@@ -22,14 +24,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * - Removed relations are always deleted.
  * - Duplication is disabled.
  * - Cleaner UX labels.
- *
- * @FieldWidget(
- *   id = "relation_extended_ief_complex_widget",
- *   label = @Translation("Relation extended IEF complex widget"),
- *   field_types = {"entity_reference"},
- *   multiple_values = true
- * )
  */
+#[FieldWidget(
+  id: 'relation_extended_ief_complex_widget',
+  label: new TranslatableMarkup('Relation extended IEF complex widget'),
+  field_types: ['entity_reference'],
+  multiple_values: TRUE,
+)]
 class RelationIefWidget extends InlineEntityFormComplex {
 
 	/**

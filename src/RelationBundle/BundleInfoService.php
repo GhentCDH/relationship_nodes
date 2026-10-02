@@ -88,10 +88,15 @@ class BundleInfoService {
       // field definitions themselves depend on the bundle info (through the
       // computed relationship fields). Using them here can return field
       // definitions that were built from incomplete bundle info.
+      // Only the module's fields are loaded, by ID: loading all field configs
+      // fails on any unrelated broken field config.
+      $field_names = array_merge(
+        array_values($this->fieldNameResolver->getRelatedEntityFields()),
+        [$this->fieldNameResolver->getRelationTypeField()]
+      );
+      $ids = array_map(fn($field_name) => "node.$bundle.$field_name", $field_names);
       $fields = [];
-      $field_configs = $this->entityTypeManager->getStorage('field_config')
-        ->loadByProperties(['entity_type' => 'node', 'bundle' => $bundle]);
-      foreach ($field_configs as $field_config) {
+      foreach ($this->entityTypeManager->getStorage('field_config')->loadMultiple($ids) as $field_config) {
         $fields[$field_config->getName()] = $field_config;
       }
     }

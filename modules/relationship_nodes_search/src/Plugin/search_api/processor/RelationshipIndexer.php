@@ -24,23 +24,21 @@ use Drupal\relationship_nodes\RelationField\CalculatedFieldHelper;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api\IndexInterface;
+use Drupal\search_api\Attribute\SearchApiProcessor;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 
 /**
  * Adds nested relationship data to specified fields.
- *
- * @SearchApiProcessor(
- *   id = "relationship_indexer",
- *   label = @Translation("Relationship Indexer"),
- *   description = @Translation("Nests relationship data into specified fields."),
- *   stages = {
- *     "add_properties" = 0,
- *   },
- *   locked = false,
- *   hidden = false,
- * )
  */
-
+#[SearchApiProcessor(
+  id: 'relationship_indexer',
+  label: new TranslatableMarkup('Relationship Indexer'),
+  description: new TranslatableMarkup('Nests relationship data into specified fields.'),
+  stages: ['add_properties' => 0],
+  locked: FALSE,
+  hidden: FALSE,
+)]
 class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactoryPluginInterface {
 
   protected EntityTypeManagerInterface $entityTypeManager;

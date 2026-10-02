@@ -11,13 +11,13 @@ use Drupal\search_api\Entity\Index;
 use Drupal\relationship_nodes_search\Views\Parser\NestedFieldResultViewsParser;
 use Drupal\relationship_nodes\RelationField\CalculatedFieldHelper;
 use Drupal\relationship_nodes_search\Views\Config\NestedFieldViewsFieldConfigurator;
+use Drupal\views\Attribute\ViewsField;
 
 
 /**
  * Views field plugin for displaying nested relationship data.
- *
- * @ViewsField("search_api_relationship_field")
  */
+#[ViewsField('search_api_relationship_field')]
 class RelationshipField extends SearchApiStandard implements ContainerFactoryPluginInterface {
     
   protected NestedFieldViewsFieldConfigurator $fieldConfigurator;
