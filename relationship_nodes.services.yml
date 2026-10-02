@@ -57,10 +57,14 @@ services:
       - '@keyvalue'
 
   # ── RelationData layer ─────────────────────────────────────────────────────
+  relationship_nodes.parent_node_context:
+    class: Drupal\relationship_nodes\Form\Entity\ParentNodeContext
+    arguments:
+      - '@current_route_match'
   relationship_nodes.foreign_key_field_resolver:
     class: Drupal\relationship_nodes\RelationData\NodeHelper\ForeignKeyResolver
     arguments:
-      - '@current_route_match'
+      - '@relationship_nodes.parent_node_context'
       - '@relationship_nodes.bundle_info_service'
       - '@relationship_nodes.relation_info'
   relationship_nodes.mirror_provider:
@@ -79,14 +83,14 @@ services:
   relationship_nodes.relation_entity_validator:
     class: Drupal\relationship_nodes\RelationData\NodeHelper\RelationEntityValidator
     arguments:
-      - '@current_route_match'
+      - '@relationship_nodes.parent_node_context'
       - '@relationship_nodes.relation_info'
       - '@relationship_nodes.foreign_key_field_resolver'
   relationship_nodes.relation_info:
     class: Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo
     arguments:
       - '@entity_type.manager'
-      - '@current_route_match'
+      - '@relationship_nodes.parent_node_context'
       - '@relationship_nodes.field_name_resolver'
       - '@relationship_nodes.bundle_info_service'
       - '@relationship_nodes.bundle_settings_manager'

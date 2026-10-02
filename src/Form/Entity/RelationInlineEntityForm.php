@@ -5,7 +5,6 @@ namespace Drupal\relationship_nodes\Form\Entity;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\inline_entity_form\Form\NodeInlineForm;
 use Drupal\node\NodeInterface;
 use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
@@ -23,7 +22,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class RelationInlineEntityForm extends NodeInlineForm {
 
-  protected RouteMatchInterface $routeMatch;
   protected FieldNameResolver $fieldNameResolver;
   protected ForeignKeyResolver $foreignKeyResolver;
   protected BundleSettingsManager $bundleSettingsManager;
@@ -34,7 +32,6 @@ class RelationInlineEntityForm extends NodeInlineForm {
    */
   public static function createInstance(ContainerInterface $container, EntityTypeInterface $entity_type) {
     $instance = parent::createInstance($container, $entity_type);
-    $instance->routeMatch = $container->get('current_route_match');
     $instance->fieldNameResolver = $container->get('relationship_nodes.field_name_resolver');
     $instance->foreignKeyResolver = $container->get('relationship_nodes.foreign_key_field_resolver');
     $instance->entityTypeManager = $container->get('entity_type.manager');
@@ -82,7 +79,7 @@ class RelationInlineEntityForm extends NodeInlineForm {
       return;
     }
 
-    $current_node = $this->routeMatch->getParameter('node');
+    $current_node = \Drupal::service('relationship_nodes.parent_node_context')->getParentNode();
     if (!($current_node instanceof NodeInterface)) {
       return; // New parent node: a submit handler binds the relation later.
     }
@@ -158,7 +155,7 @@ class RelationInlineEntityForm extends NodeInlineForm {
     $fieldNameResolver = \Drupal::service('relationship_nodes.field_name_resolver');
     $foreignKeyResolver = \Drupal::service('relationship_nodes.foreign_key_field_resolver');
     $languageManager = \Drupal::languageManager();
-    $current_node = \Drupal::routeMatch()->getParameter('node');
+    $current_node = \Drupal::service('relationship_nodes.parent_node_context')->getParentNode();
 
     $foreign_key = $foreignKeyResolver->getEntityForeignKeyField($entity, $current_node);
     $other_field = $foreign_key
@@ -224,7 +221,7 @@ class RelationInlineEntityForm extends NodeInlineForm {
       $term = $term->getTranslation($langcode);
     }
 
-    $current_node = \Drupal::routeMatch()->getParameter('node');
+    $current_node = \Drupal::service('relationship_nodes.parent_node_context')->getParentNode();
     $fk_field = $foreignKeyResolver->getEntityForeignKeyField($entity, $current_node);
     $use_mirror = ($fk_field === $fieldNameResolver->getRelatedEntityFields(2));
 

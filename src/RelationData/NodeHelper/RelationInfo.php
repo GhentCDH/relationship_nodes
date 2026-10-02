@@ -5,7 +5,7 @@ namespace Drupal\relationship_nodes\RelationData\NodeHelper;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
-use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\relationship_nodes\Form\Entity\ParentNodeContext;
 use Drupal\node\Entity\Node;
 use Drupal\relationship_nodes\RelationBundle\BundleInfoService;
 use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
@@ -21,7 +21,7 @@ use Drupal\relationship_nodes\RelationField\FieldNameResolver;
 class RelationInfo {
 
   protected EntityTypeManagerInterface $entityTypeManager;
-  protected RouteMatchInterface $routeMatch;
+  protected ParentNodeContext $parentNodeContext;
   protected FieldNameResolver $fieldNameResolver;
   protected BundleInfoService $bundleInfoService;
   protected BundleSettingsManager $settingsManager;
@@ -32,8 +32,8 @@ class RelationInfo {
    *
    * @param EntityTypeManagerInterface $entityTypeManager
    *   The entity type manager.
-   * @param RouteMatchInterface $routeMatch
-   *   The current route match.
+   * @param ParentNodeContext $parentNodeContext
+   *   The parent node context.
    * @param FieldNameResolver $fieldNameResolver
    *   The field name resolver.
    * @param BundleInfoService $bundleInfoService
@@ -43,13 +43,13 @@ class RelationInfo {
    */
   public function __construct(
     EntityTypeManagerInterface $entityTypeManager,
-    RouteMatchInterface $routeMatch,
+    ParentNodeContext $parentNodeContext,
     FieldNameResolver $fieldNameResolver,
     BundleInfoService $bundleInfoService,
     BundleSettingsManager $settingsManager
   ) {
     $this->entityTypeManager = $entityTypeManager;
-    $this->routeMatch = $routeMatch;
+    $this->parentNodeContext = $parentNodeContext;
     $this->fieldNameResolver = $fieldNameResolver;
     $this->bundleInfoService = $bundleInfoService;
     $this->settingsManager = $settingsManager;
@@ -133,7 +133,7 @@ class RelationInfo {
    */
   public function getEntityConnectionInfo(Node $relation_node, ?Node $target_node = NULL): array {
     if (empty($target_node)) {
-      $target_node = $this->routeMatch->getParameter('node');
+      $target_node = $this->parentNodeContext->getParentNode();
     }
 
     if (!$target_node instanceof Node) {

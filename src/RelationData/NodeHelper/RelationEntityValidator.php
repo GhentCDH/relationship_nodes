@@ -2,7 +2,7 @@
 
 namespace Drupal\relationship_nodes\RelationData\NodeHelper;
 
-use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\relationship_nodes\Form\Entity\ParentNodeContext;
 use Drupal\node\Entity\Node;
 use Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo;
 
@@ -11,7 +11,7 @@ use Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo;
  */
 class RelationEntityValidator {
 
-  protected RouteMatchInterface $routeMatch;
+  protected ParentNodeContext $parentNodeContext;
   protected RelationInfo $nodeInfoService;
   protected ForeignKeyResolver $foreignKeyResolver;
 
@@ -19,19 +19,19 @@ class RelationEntityValidator {
   /**
    * Constructs a RelationEntityValidator object.
    *
-   * @param RouteMatchInterface $routeMatch
-   *   The current route match.
+   * @param ParentNodeContext $parentNodeContext
+   *   The parent node context.
    * @param RelationInfo $nodeInfoService
    *   The node info service.
    * @param ForeignKeyResolver $foreignKeyResolver
    *   The foreign key field resolver.
    */
   public function __construct(
-    RouteMatchInterface $routeMatch,
+    ParentNodeContext $parentNodeContext,
     RelationInfo $nodeInfoService,
     ForeignKeyResolver $foreignKeyResolver
   ) {
-    $this->routeMatch = $routeMatch;
+    $this->parentNodeContext = $parentNodeContext;
     $this->nodeInfoService = $nodeInfoService;
     $this->foreignKeyResolver = $foreignKeyResolver;
   }
@@ -54,7 +54,7 @@ class RelationEntityValidator {
 
     $new_relation = false;
     if ($relation_entity->isNew()) {
-      $current_node = $this->routeMatch->getParameter('node');
+      $current_node = $this->parentNodeContext->getParentNode();
       $new_relation = true;
       if ($current_node instanceof Node && $current_node !== $relation_entity) {
         // Relation is added in a subform (IEF)

@@ -100,6 +100,8 @@ class RelationIefWidget extends InlineEntityFormComplex {
 		$element = parent::formElement($items, $delta, $element, $form, $form_state);
 
 		$element['#relation_extended_widget'] = TRUE;
+		// Runs on every build, also when a cached form is submitted.
+		$element['#after_build'][] = [static::class, 'registerParentNode'];
 		$ief_id = $this->getIefId();
 
 		// Set flag in widget state so RelationFormHelper can detect these widgets
@@ -212,6 +214,15 @@ class RelationIefWidget extends InlineEntityFormComplex {
 			);
 		}
 
+		return $element;
+	}
+
+
+	/**
+	 * After build callback: registers the node whose relations are edited.
+	 */
+	public static function registerParentNode(array $element, FormStateInterface $form_state): array {
+		\Drupal::service('relationship_nodes.parent_node_context')->setFromFormState($form_state);
 		return $element;
 	}
 

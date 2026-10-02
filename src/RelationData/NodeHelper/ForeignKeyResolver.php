@@ -3,7 +3,7 @@
 namespace Drupal\relationship_nodes\RelationData\NodeHelper;
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\relationship_nodes\Form\Entity\ParentNodeContext;
 use Drupal\node\NodeInterface;
 use Drupal\relationship_nodes\RelationBundle\BundleInfoService;
 use Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo;
@@ -13,7 +13,7 @@ use Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo;
  */
 class ForeignKeyResolver {
 
-  protected RouteMatchInterface $routeMatch;
+  protected ParentNodeContext $parentNodeContext;
   protected BundleInfoService $bundleInfoService;
   protected RelationInfo $nodeInfoService;
 
@@ -21,19 +21,19 @@ class ForeignKeyResolver {
   /**
    * Constructs a ForeignKeyResolver object.
    *
-   * @param RouteMatchInterface $routeMatch
-   *   The current route match.
+   * @param ParentNodeContext $parentNodeContext
+   *   The parent node context.
    * @param BundleInfoService $bundleInfoService
    *   The bundle info service.
    * @param RelationInfo $nodeInfoService
    *   The node info service.
    */
   public function __construct(
-    RouteMatchInterface $routeMatch,
+    ParentNodeContext $parentNodeContext,
     BundleInfoService $bundleInfoService,
     RelationInfo $nodeInfoService,
   ) {
-    $this->routeMatch = $routeMatch;
+    $this->parentNodeContext = $parentNodeContext;
     $this->bundleInfoService = $bundleInfoService;
     $this->nodeInfoService = $nodeInfoService;
   }
@@ -110,7 +110,7 @@ class ForeignKeyResolver {
     if ($node instanceof NodeInterface) {
       return $node;
     }
-    $current_node = $this->routeMatch->getParameter('node');
+    $current_node = $this->parentNodeContext->getParentNode();
     return $current_node instanceof NodeInterface ? $current_node : null;
   }
 
