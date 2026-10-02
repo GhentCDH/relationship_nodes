@@ -2,6 +2,7 @@
 
 namespace Drupal\relationship_nodes\RelationBundle\Settings;
 
+use Drupal\relationship_nodes\Plugin\Field\FieldWidget\RelationIefWidget;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\KeyValueStore\KeyValueFactoryInterface;
@@ -105,7 +106,7 @@ class SettingsCleanupService {
           if (str_starts_with($field_name, 'computed_relationshipfield__')) {
             unset($content[$field_name]);
             $changed = TRUE;
-          } elseif (!empty($settings['type']) && $settings['type'] === 'relation_extended_ief_widget') {
+          } elseif (!empty($settings['type']) && $settings['type'] === RelationIefWidget::PLUGIN_ID) {
             $content[$field_name]['type'] = 'entity_reference_autocomplete';
             $content[$field_name]['settings'] = [
               'match_operator' => 'CONTAINS',

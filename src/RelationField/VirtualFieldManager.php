@@ -2,6 +2,7 @@
 
 namespace Drupal\relationship_nodes\RelationField;
 
+use Drupal\relationship_nodes\Plugin\Field\FieldWidget\RelationIefWidget;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -67,7 +68,7 @@ class VirtualFieldManager {
         ->setTargetEntityTypeId('node')
         ->setTargetBundle($relation_bundle)
         ->setDisplayOptions('form', [
-          'type' => 'relation_extended_ief_widget',
+          'type' => RelationIefWidget::PLUGIN_ID,
           'weight' => 0,
         ])
         ->setDisplayOptions('view', [

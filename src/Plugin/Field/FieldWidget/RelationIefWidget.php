@@ -32,6 +32,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class RelationIefWidget extends InlineEntityFormComplex {
 
+	/**
+	 * The widget's plugin ID, as in the annotation.
+	 */
+	const PLUGIN_ID = 'relation_extended_ief_complex_widget';
+
 	protected RelationEntityFormHandler $relationFormHandler;
 
 
