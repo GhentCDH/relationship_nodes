@@ -1,0 +1,116 @@
+relationship_nodes.settings:
+  type: config_object
+  label: 'Relationship Nodes settings'
+  mapping:
+    related_entity_fields:
+      type: mapping
+      label: 'Related entity field names'
+      mapping:
+        related_entity_1:
+          type: string
+          label: 'First related entity field'
+        related_entity_2:
+          type: string
+          label: 'Second related entity field'
+    relation_type:
+      type: string
+      label: 'Relation type field name'
+    mirror_fields:
+      type: mapping
+      label: 'Mirror field names'
+      mapping:
+        mirror_entity_reference:
+          type: string
+          label: 'Mirror reference field'
+        mirror_string:
+          type: string
+          label: 'Mirror string field'
+
+node.type.*.third_party.relationship_nodes:
+  type: mapping
+  label: 'Relationship Nodes settings'
+  mapping:
+    enabled:
+      type: boolean
+      label: 'Relation node type'
+    typed_relation:
+      type: boolean
+      label: 'Typed relation'
+    auto_title:
+      type: boolean
+      label: 'Automatic title'
+
+taxonomy.vocabulary.*.third_party.relationship_nodes:
+  type: mapping
+  label: 'Relationship Nodes settings'
+  mapping:
+    enabled:
+      type: boolean
+      label: 'Relation type vocabulary'
+    referencing_type:
+      type: string
+      label: 'Mirror type: string, entity_reference or none'
+
+field.storage.*.*.third_party.relationship_nodes:
+  type: mapping
+  label: 'Relationship Nodes settings'
+  mapping:
+    rn_created:
+      type: boolean
+      label: 'Created by Relationship Nodes'
+
+field.field.*.*.*.third_party.relationship_nodes:
+  type: mapping
+  label: 'Relationship Nodes settings'
+  mapping:
+    rn_created:
+      type: boolean
+      label: 'Created by Relationship Nodes'
+
+field.formatter.settings.relationship_formatter:
+  type: mapping
+  label: 'Relationship formatter settings'
+  mapping:
+    field_settings:
+      type: sequence
+      label: 'Settings per relation field'
+      sequence:
+        type: mapping
+        label: 'Field settings'
+        mapping:
+          enabled:
+            type: boolean
+            label: 'Show this field'
+          label:
+            type: label
+            label: 'Label'
+          hide_label:
+            type: boolean
+            label: 'Hide label'
+          display_mode:
+            type: string
+            label: 'Display mode'
+          multiple_separator:
+            type: string
+            label: 'Separator for multiple values'
+          weight:
+            type: integer
+            label: 'Weight'
+    sort_by_field:
+      type: string
+      label: 'Sort by field'
+    group_by_field:
+      type: string
+      label: 'Group by field'
+
+field.formatter.settings.relation_type_mirror_label:
+  type: field.formatter.settings.entity_reference_label
+  label: 'Relation type mirror label formatter settings'
+
+field.widget.settings.relation_extended_ief_complex_widget:
+  type: field.widget.settings.inline_entity_form_complex
+  label: 'Relation extended IEF complex widget settings'
+
+field.widget.settings.mirror_select_widget:
+  type: field.widget.settings.options_select
+  label: 'Mirror select widget settings'

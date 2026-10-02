@@ -107,6 +107,11 @@ function relationship_nodes_field_config_update(FieldConfig $field) {
   if (!$bundleValidator->validateFieldConfig($field)->isValid()) {
     throw new ConfigException("The field config {$field_name} doesn't meet the required 'Relationship Nodes' configuration.");
   }
+
+  // The relation info in the bundle info and the computed relationship fields
+  // depend on the target bundles of these fields.
+  \Drupal::service('entity_type.bundle.info')->clearCachedBundles();
+  \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
 }
 
 
