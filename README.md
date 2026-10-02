@@ -4,7 +4,7 @@ Core module for managing bidirectional relationships between nodes, with optiona
 
 ## Requirements
 
-- Drupal 10 or higher
+- Drupal 10.3 or later, or Drupal 11.2 or later
 - [`entity_events`](https://www.drupal.org/project/entity_events) `^2.0`
 - [`inline_entity_form`](https://www.drupal.org/project/inline_entity_form) `^3.0`
 
@@ -30,7 +30,7 @@ Add the repository to your project's `composer.json`:
 Then require the module:
 
 ```bash
-composer require drupal/relationship_nodes:dev-main
+composer require "drupal/relationship_nodes:^1.0@beta"
 ```
 
 Enable the module (and optionally the search submodule):
@@ -133,7 +133,7 @@ When `auto_title` is enabled on a bundle, `RelationNodeSubscriber` generates a t
 
 `RelationshipDataBuilder::buildRelationshipData()` is the entry point for rendering:
 1. Loads all relation nodes for the viewing node
-2. Classifies each by availability (`AVAILABLE`, `LANGUAGE_UNAVAILABLE`, `UNAVAILABLE`) by intersecting published-translation sets of all referenced entities
+2. Skips relation nodes the current user may not view, and classifies the others by availability (`AVAILABLE`, `LANGUAGE_UNAVAILABLE`, `UNAVAILABLE`) by intersecting the sets of translations of all referenced entities that the current user may view (for anonymous visitors: the published ones)
 3. Resolves calculated fields vs real fields for each enabled field config
 4. Returns structured arrays with `field_values`, `separator`, and availability metadata
 
@@ -145,12 +145,35 @@ Templates access this via the `relationship_nodes.twig_extension` Twig functions
 - Field config form: configure which fields to display and how
 - Locked field list: prevents accidental deletion of `rn_*` fields that have live data
 
-## Known limitations (from `todo.md`)
+## Known limitations
 
-- Display of nested fields is not yet functional
-- Relation nodes can only be enabled on existing content types, not on the node type creation form (same limitation applies to taxonomy vocabulary forms — the option is shown but not stored)
-- No constraint prevents a relation node from referencing itself
-- Testing and debugging incomplete
+- **Nested field display**: `computed_relationshipfield__*` fields show the relation node, but displaying fields *of* the relation node (nested field display) is not implemented.
+- **One relation type per pair of content types**: the computed relationship field of a content type is named after the content types it connects, so two relation types between the same content types are refused.
+- **Auto-title**: only the translation being saved gets a title, and titles are not updated when a related node is renamed. The title field is not hidden in the relation form when auto-title is enabled.
+- **Revisions**: relations are separate nodes, so reverting a node to an older revision does not restore its relations.
+- **Access**: relations are shown when the viewer may view the relation node and the related nodes (node access, including node grants and permission modules).
+
+## Upgrading
+
+### From 1.0.0-beta2 to 1.0.0-beta3
+
+- Drupal 10.3+ or 11.2+ is required.
+- Run `drush updb` (or `drush deploy`). With `relationship_nodes_search`, this rebuilds the Elasticsearch indexes that use the relationship indexer: their relationship fields get an explicit mapping, which Elasticsearch cannot apply to an existing index. Until the update has run, saving such an index's settings fails.
+- Behaviour changes:
+  - Users who may view unpublished content (e.g. administrators) also see unpublished relations; anonymous visitors only see published ones, as before.
+  - Relations are saved after their parent node, also for new nodes.
+  - A relation field's target cannot be changed while relations use it.
+  - In `relationship_nodes_search`: unpublished relations and relations to unpublished nodes are no longer indexed; the "Contains" operator is now labelled "Is not equal to" (what it always did); a single "not equal" condition excludes items with a matching relation; nested facets count items instead of relations.
+
+## Development
+
+Kernel tests are in `tests/src/Kernel`. They need `search_api`, `elasticsearch_connector`, `facets` and `better_exposed_filters` for the search submodule tests (no Elasticsearch server).
+
+```bash
+SIMPLETEST_DB=sqlite://localhost//tmp/test.sqlite vendor/bin/phpunit -c web/core/phpunit.xml.dist web/modules/contrib/relationship_nodes/tests
+```
+
+Refactoring candidates: `BundleInfoService` mixes live-site and config-import methods; `RelationInlineEntityForm::getTableFields()` is a near-copy of the parent.
 
 ## Dependencies
 

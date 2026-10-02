@@ -63,7 +63,7 @@ A query for `relation_type = employs AND related_id = 202` would incorrectly mat
 
 ## Service decoration pattern
 
-`NestedFacetParamBuilder` and `NestedFilterBuilder` **decorate** `elasticsearch_connector`'s built-in services rather than replacing them:
+The module replaces three `elasticsearch_connector` services with subclasses:
 
 ```yaml
 relationship_nodes_search.nested_facet_builder:
@@ -71,32 +71,46 @@ relationship_nodes_search.nested_facet_builder:
 
 relationship_nodes_search.nested_query_filter_builder:
   decorates: elasticsearch_connector.query_filter_builder
+
+relationship_nodes_search.nested_facet_result_parser_es:
+  decorates: elasticsearch_connector.facet_result_parser
 ```
 
-When a field is a `nested_relationship` type, the decorated service intercepts and builds the Elasticsearch `nested` query structure. For all other fields, it delegates to the original service. Replacing the services entirely would break non-nested fields.
+For relationship fields, they build and parse the Elasticsearch `nested` structures; all other fields are handled by the parent classes. They depend on protected methods of `elasticsearch_connector`, so check this module after updating it. Supported: `8.0.0-alpha7` and the `8.0.x` branch before it.
+
+### Query semantics
+
+- Conditions on one relationship field are combined in one `nested` query: they must match the same relation ("a relation with person X of type Y").
+- A single negative condition (not equal, not one of, field is empty) means that **no** relation matches: it is a `must_not` around a `nested` query for the positive condition.
+- Nested facets are built as filter > nested > terms, so other active facets filter the indexed items, and each bucket counts items (`reverse_nested`), not relations.
 
 ## The `parent:child` field ID convention
 
 Nested relationship fields are identified with a `parent:child` notation throughout the query builder (e.g. `my_relation_field:calculated_related_id`). `NestedQueryStructureBuilder` splits on `:` to construct the ES nested path and child field path.
 
-## Reindex on relation update
+## Reindexing
 
-`ReindexTargetsOnRelationUpdate` fires on `INSERT`, `UPDATE`, and `PREDELETE` of relation nodes. When a relation node changes, both the old and new target nodes must be reindexed in Search API — cache tag invalidation alone is insufficient because Search API uses its own item-tracking queue, not Drupal's cache system.
+`ReindexTargetsOnRelationUpdate` marks nodes for reindexing in the indexes that use the relationship indexer:
 
-For UPDATE events, the subscriber reads both `$entity->original` (old state) and the current entity to cover cases where a relation is reassigned from one node to another.
+- When a relation node is created, updated or deleted: the nodes on both sides, before and after the change.
+- When a node's title or published status changes (in any translation): the nodes on the other side of its relations. A deleted node's relations are deleted, which is covered by the first case.
+- When a relation type term's name or mirror changes: both sides of the relations typed with it or with its mirror.
+
+Only published relations to published nodes are indexed, in the language of the indexed item.
 
 ## Field mapping
 
 `NestedRelationshipMappingSubscriber` handles two `elasticsearch_connector` events:
 - `SupportsDataTypeEvent` — marks `relationship_nodes_search_nested_relationship` as a supported data type
-- `FieldMappingEvent` — maps that data type to `{ "type": "nested" }` in the Elasticsearch index mapping
+- `FieldMappingEvent` — maps that data type to `nested`, with an explicit mapping of the child fields based on their configured Search API types (string: `keyword`, text: `text` with a `keyword` subfield, numbers, dates)
 
-## Known limitations (from `relationship_nodes/todo.md`)
+Elasticsearch cannot change the type of an existing field: after changing child field types, clear the index ("Clear all indexed data"), which recreates it, and reindex.
 
-- Should be moved to a submodule of `relationship_nodes` rather than a sibling module
-- Child field types are not yet recognized for mapping before indexing (the mapping inspector inspects the live ES index, not SAPI metadata)
-- Autocomplete widget not yet implemented
-- Disabling this module mid-production can cause `SearchApiException` errors from `elasticsearch_connector` when it tries to update index settings and finds the custom data type unresolvable
+## Known limitations
+
+- **Child field types**: child fields of relations are indexed with the type set in their configuration (default `string`); they are not derived from the Drupal field types.
+- **Autocomplete widget**: the exposed relationship filter has no autocomplete widget.
+- **Disabling the module** while indexes still contain relationship fields can cause `SearchApiException` errors from `elasticsearch_connector` when it updates the index settings and cannot resolve the data type. Remove the relationship fields from the indexes first.
 
 ## Dependencies
 
