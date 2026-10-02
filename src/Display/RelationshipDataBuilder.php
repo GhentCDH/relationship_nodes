@@ -230,10 +230,19 @@ class RelationshipDataBuilder {
     $classified = [];
 
     foreach ($relation_nodes as $relation_node) {
+      // Skip relations the current user may not view, e.g. unpublished ones.
+      $access = $relation_node->access('view', NULL, TRUE);
+      $cache->addCacheableDependency($relation_node);
+      $cache->addCacheableDependency($access);
+      if (!$access->isAllowed()) {
+        continue;
+      }
+
       $availability = $this->getRelationAvailability($relation_node, $langcode);
 
-      // Always collect cache tags, even for discarded relations.
+      // Always collect cache metadata, even for discarded relations.
       $cache->addCacheTags($availability->getCacheTags());
+      $cache->addCacheContexts($availability->getCacheContexts());
 
       if ($availability->isUnavailable()) {
         continue;
@@ -270,6 +279,7 @@ class RelationshipDataBuilder {
     // Start with NULL so the first entity sets the baseline language list.
     $intersection = NULL;
     $cache_tags = [];
+    $cache_contexts = [];
 
     foreach ($relation_node->getFieldDefinitions() as $field_name => $definition) {
       if ($definition->getType() !== 'entity_reference') continue;
@@ -281,23 +291,27 @@ class RelationshipDataBuilder {
 
       if (!$referenced) {
         // Referenced entity no longer exists.
-        return new RelationAvailability(RelationAvailability::UNAVAILABLE, [], $cache_tags);
+        return new RelationAvailability(RelationAvailability::UNAVAILABLE, [], $cache_tags, $cache_contexts);
       }
 
       // Collect cache tags so the page invalidates on publish/unpublish.
       $cache_tags = array_merge($cache_tags, $referenced->getCacheTags());
 
-      // Collect languages with a published translation for this entity.
+      // Collect languages with a translation the current user may view. For
+      // visitors without extra permissions, these are the published ones.
       $published_langs = [];
       foreach ($referenced->getTranslationLanguages() as $lang => $language) {
-        if ($referenced->getTranslation($lang)->isPublished()) {
+        $access = $referenced->getTranslation($lang)->access('view', NULL, TRUE);
+        $cache_tags = array_merge($cache_tags, $access->getCacheTags());
+        $cache_contexts = array_merge($cache_contexts, $access->getCacheContexts());
+        if ($access->isAllowed()) {
           $published_langs[] = $lang;
         }
       }
 
       if (empty($published_langs)) {
         // No published translation in any language.
-        return new RelationAvailability(RelationAvailability::UNAVAILABLE, [], $cache_tags);
+        return new RelationAvailability(RelationAvailability::UNAVAILABLE, [], $cache_tags, $cache_contexts);
       }
 
       // Narrow the intersection across all referenced entities.
@@ -305,21 +319,21 @@ class RelationshipDataBuilder {
 
       if (empty($intersection)) {
         // Entities exist and are published but share no common language.
-        return new RelationAvailability(RelationAvailability::UNAVAILABLE, [], $cache_tags);
+        return new RelationAvailability(RelationAvailability::UNAVAILABLE, [], $cache_tags, $cache_contexts);
       }
     }
 
     // No entity reference fields found — treat as available.
     if ($intersection === NULL) {
-      return new RelationAvailability(RelationAvailability::AVAILABLE, [], $cache_tags);
+      return new RelationAvailability(RelationAvailability::AVAILABLE, [], $cache_tags, $cache_contexts);
     }
 
     if (in_array($langcode, $intersection)) {
-      return new RelationAvailability(RelationAvailability::AVAILABLE, $intersection, $cache_tags);
+      return new RelationAvailability(RelationAvailability::AVAILABLE, $intersection, $cache_tags, $cache_contexts);
     }
 
     // Requested language missing, but other languages are available.
-    return new RelationAvailability(RelationAvailability::LANGUAGE_UNAVAILABLE, $intersection, $cache_tags);
+    return new RelationAvailability(RelationAvailability::LANGUAGE_UNAVAILABLE, $intersection, $cache_tags, $cache_contexts);
   }
 
 

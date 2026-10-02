@@ -2,6 +2,8 @@
 
 namespace Drupal\relationship_nodes\Plugin\Field\FieldType;
 
+use Drupal\Core\Cache\Cache;
+use Drupal\Core\Cache\CacheableDependencyInterface;
 use Drupal\Core\Field\EntityReferenceFieldItemList;
 use Drupal\Core\TypedData\ComputedItemListTrait;
 use Drupal\node\Entity\Node;
@@ -24,7 +26,7 @@ use Drupal\relationship_nodes\RelationData\NodeHelper\RelationWeightManager;
  *   description = @Translation("Field type: reference in two directions (referencing and referenced)."),
  * )
  */
-class ReferencingRelationshipItemList extends EntityReferenceFieldItemList {
+class ReferencingRelationshipItemList extends EntityReferenceFieldItemList implements CacheableDependencyInterface {
 
   use ComputedItemListTrait;
 
@@ -74,6 +76,33 @@ class ReferencingRelationshipItemList extends EntityReferenceFieldItemList {
     return $this->getRelationWeightManager()->sortByWeight($relations_by_field);
   }
 
+
+  /**
+   * {@inheritdoc}
+   *
+   * The list depends on relation nodes stored elsewhere, so it must be
+   * invalidated whenever a relation node of this bundle is created, changed or
+   * deleted, also when the list is empty. FormatterBase::view() bubbles this
+   * metadata for every formatter.
+   */
+  public function getCacheTags() {
+    $relation_bundle = $this->definition['bundle'] ?? '';
+    return $relation_bundle ? ['node_list:' . $relation_bundle] : [];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCacheContexts() {
+    return [];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCacheMaxAge() {
+    return Cache::PERMANENT;
+  }
 
   /**
    * Returns the RelationInfo service.

@@ -9,11 +9,11 @@ namespace Drupal\relationship_nodes\Display;
  * Represents the availability of a relation node in a given language.
  *
  * Distinguishes between three states:
- * - AVAILABLE: all referenced entities have a published translation in the
- *   requested language.
+ * - AVAILABLE: all referenced entities have a translation in the requested
+ *   language that the current user may view.
  * - LANGUAGE_UNAVAILABLE: all referenced entities exist and have at least one
- *   published translation, but not in the requested language.
- * - UNAVAILABLE: at least one referenced entity has no published translation
+ *   viewable translation, but not in the requested language.
+ * - UNAVAILABLE: at least one referenced entity has no viewable translation
  *   in any language, or could not be loaded at all.
  */
 class RelationAvailability {
@@ -41,10 +41,18 @@ class RelationAvailability {
    */
   private array $cacheTags;
 
-  public function __construct(string $status, array $availableLanguages = [], array $cacheTags = []) {
+  /**
+   * Cache contexts of the access checks on the referenced entities.
+   *
+   * @var string[]
+   */
+  private array $cacheContexts;
+
+  public function __construct(string $status, array $availableLanguages = [], array $cacheTags = [], array $cacheContexts = []) {
     $this->status = $status;
     $this->availableLanguages = $availableLanguages;
     $this->cacheTags = $cacheTags;
+    $this->cacheContexts = $cacheContexts;
   }
 
   /**
@@ -93,6 +101,15 @@ class RelationAvailability {
    */
   public function getCacheTags(): array {
     return $this->cacheTags;
+  }
+
+  /**
+   * Returns cache contexts of the access checks on the referenced entities.
+   *
+   * @return string[]
+   */
+  public function getCacheContexts(): array {
+    return $this->cacheContexts;
   }
 
 }
