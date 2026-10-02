@@ -40,14 +40,17 @@ class AvailableMirrorTermConstraintValidator extends ConstraintValidator impleme
       if ($updated_term_id == $updated_term_mirror_id) {
         $this->context->addViolation($constraint->noSelfMirroring);
       }
-      $all_existing_terms = $this->entityTypeManager->getStorage('taxonomy_term')->loadTree($value->getParent()->getEntity()->bundle(), 0, NULL, TRUE);
-      $mirror_reference_field = $this->fieldNameResolver->getMirrorFields('entity_reference');
-      foreach ($all_existing_terms as $loop_term) {
-        $loop_term_id = $loop_term->id();
-        $loop_term_mirror_id = $loop_term->$mirror_reference_field->target_id;
-        if ($updated_term_id != $loop_term_id && $updated_term_mirror_id == $loop_term_mirror_id) {
-          $this->context->addViolation($constraint->termAlreadyMirrored);
-        }
+      // Is another term of the vocabulary already mirrored by this term's
+      // mirror? Queried instead of loading the whole vocabulary.
+      $query = $this->entityTypeManager->getStorage('taxonomy_term')->getQuery()
+        ->accessCheck(FALSE)
+        ->condition('vid', $value->getParent()->getEntity()->bundle())
+        ->condition($this->fieldNameResolver->getMirrorFields('entity_reference'), $updated_term_mirror_id);
+      if ($updated_term_id) {
+        $query->condition('tid', $updated_term_id, '<>');
+      }
+      if ($query->range(0, 1)->count()->execute()) {
+        $this->context->addViolation($constraint->termAlreadyMirrored);
       }
     }
   }

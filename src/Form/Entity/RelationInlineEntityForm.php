@@ -177,7 +177,7 @@ class RelationInlineEntityForm extends NodeInlineForm {
       $ref = $ref->getTranslation($langcode);
     }
 
-    return ['#markup' => $ref->label()];
+    return ['#plain_text' => $ref->label()];
   }
 
 
@@ -227,6 +227,6 @@ class RelationInlineEntityForm extends NodeInlineForm {
 
     $label = $use_mirror ? ($mirrorProvider->getMirrorLabelFromTerm($term) ?? $term->getName()) : $term->getName();
 
-    return ['#markup' => $label];
+    return ['#plain_text' => $label];
   }
 }

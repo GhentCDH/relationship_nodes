@@ -227,6 +227,7 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
 
     $prefix = 'relationship_info__';
     $node_storage = $this->entityTypeManager->getStorage('node');
+    $calc_fld_nms = NULL;
 
     foreach ($item->getFields() as $sapi_fld) {
       $relation_nodetype_name = $sapi_fld->getPropertyPath();     
@@ -290,8 +291,9 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
           continue;
         }
 
-        $calc_fld_nms = $this->calculatedFieldHelper->getCalculatedFieldNames(NULL, NULL, TRUE);
-       
+        $calc_fld_nms ??= $this->calculatedFieldHelper->getCalculatedFieldNames(NULL, NULL, TRUE);
+        $this->preloadReferencedEntities($entities, $join_field);
+
         foreach($entities as $relationship_entity){
           // The index is public: skip unpublished relations and relations
           // pointing to unpublished nodes.
@@ -366,6 +368,38 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
       // field bloats the index and would count as a relation without values.
       $sapi_fld->setValues($serialized);
     }  
+  }
+
+
+  /**
+   * Loads the related nodes and relation type terms of relations at once.
+   *
+   * They are loaded one by one later (publish check, calculated fields);
+   * after this they come from the entity cache.
+   *
+   * @param EntityInterface[] $relations
+   *   The relation nodes.
+   * @param string $join_field
+   *   The join field that references the indexed entity.
+   */
+  protected function preloadReferencedEntities(array $relations, string $join_field): void {
+    $other_field = $this->fieldResolver->getOppositeRelatedEntityField($join_field);
+    $type_field = $this->fieldResolver->getRelationTypeField();
+    $node_ids = $term_ids = [];
+    foreach ($relations as $relation) {
+      if ($other_field && $relation->hasField($other_field) && $relation->get($other_field)->target_id) {
+        $node_ids[] = $relation->get($other_field)->target_id;
+      }
+      if ($type_field && $relation->hasField($type_field) && $relation->get($type_field)->target_id) {
+        $term_ids[] = $relation->get($type_field)->target_id;
+      }
+    }
+    if ($node_ids) {
+      $this->entityTypeManager->getStorage('node')->loadMultiple(array_unique($node_ids));
+    }
+    if ($term_ids) {
+      $this->entityTypeManager->getStorage('taxonomy_term')->loadMultiple(array_unique($term_ids));
+    }
   }
 
 

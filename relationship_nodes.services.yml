@@ -104,7 +104,7 @@ services:
       - '@relationship_nodes.relation_weight_manager'
   relationship_nodes.relation_weight_manager:
     class: Drupal\relationship_nodes\RelationData\NodeHelper\RelationWeightManager
-    arguments: ['@keyvalue']
+    arguments: ['@keyvalue', '@relationship_nodes.field_name_resolver']
 
   # ── RelationField layer ────────────────────────────────────────────────────
   relationship_nodes.calculated_field_helper:

@@ -128,6 +128,7 @@ class RelationshipDataBuilder {
     $langcode = $settings['language'] ?? $this->languageManager->getCurrentLanguage()->getId();
 
     $cache = new CacheableMetadata();
+    $this->preloadReferencedNodes($relation_nodes);
 
     // Classify relations by availability. Cache tags are always collected,
     // even for discarded relations, so the page invalidates on publish changes.
@@ -197,6 +198,34 @@ class RelationshipDataBuilder {
       'items' => $data,
       'cache' => $cache,
     ];
+  }
+
+
+  /**
+   * Loads all nodes referenced by the relation nodes in one query.
+   *
+   * The availability check and the field data load them one by one; after
+   * this they come from the entity cache.
+   *
+   * @param \Drupal\node\NodeInterface[] $relation_nodes
+   *   The relation nodes.
+   */
+  protected function preloadReferencedNodes(array $relation_nodes): void {
+    $ids = [];
+    foreach ($relation_nodes as $relation_node) {
+      foreach ($relation_node->getFieldDefinitions() as $field_name => $definition) {
+        if ($definition->getType() === 'entity_reference' && $definition->getSetting('target_type') === 'node') {
+          foreach ($relation_node->get($field_name) as $item) {
+            if ($item->target_id) {
+              $ids[$item->target_id] = $item->target_id;
+            }
+          }
+        }
+      }
+    }
+    if ($ids) {
+      $this->entityTypeManager->getStorage('node')->loadMultiple($ids);
+    }
   }
 
 

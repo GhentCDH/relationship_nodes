@@ -3,6 +3,7 @@
 namespace Drupal\relationship_nodes_search\Views\Widget;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Session\AccountProxyInterface;
@@ -440,12 +441,32 @@ class NestedFilterDropdownOptionsProvider {
         ],
       ]);
 
+      // The options only change when the index changes. They depend on the
+      // language, the view's fixed conditions and, through Search API's access
+      // processors and the entity labels, on the user's permissions.
+      $cid = 'relationship_nodes_search:options:' . hash('sha256', serialize([
+        $index->id(),
+        $field_key,
+        $display_mode,
+        $this->languageManager->getCurrentLanguage()->getId(),
+        \Drupal::service('user_permissions_hash_generator')->generate($this->currentUser),
+        $this->normalizeConditions($query->getConditionGroup()),
+      ]));
+      if ($cached = $this->cache->get($cid)) {
+        return $cached->data;
+      }
+
       // Execute query.
       $results = $query->execute();
       $raw_values = $this->facetResultParser->extractTrimmedFacetValues($results, $field_key);
 
       // Reuse existing conversion logic.
-      return $this->convertToFormOptions($raw_values, $index, $sapi_fld_nm, $child_fld_nm, $display_mode);
+      $options = $this->convertToFormOptions($raw_values, $index, $sapi_fld_nm, $child_fld_nm, $display_mode);
+      $this->cache->set($cid, $options, Cache::PERMANENT, [
+        'search_api_list:' . $index->id(),
+        'relationship_filter_options',
+      ]);
+      return $options;
     }
     catch (\Exception $e) {
       $this->loggerFactory->get('relationship_nodes_search')->error(
@@ -454,6 +475,30 @@ class NestedFilterDropdownOptionsProvider {
       );
       return [];
     }
+  }
+
+
+  /**
+   * Returns the conditions of a condition group as plain arrays.
+   *
+   * Used for the cache key: condition groups can hold objects (such as the
+   * index) that should not be serialized.
+   *
+   * @param ConditionGroupInterface $group
+   *   The condition group.
+   *
+   * @return array
+   *   The conjunction, tags and conditions.
+   */
+  protected function normalizeConditions(ConditionGroupInterface $group): array {
+    $conditions = [];
+    foreach ($group->getConditions() as $condition) {
+      $conditions[] = $condition instanceof ConditionGroupInterface
+        ? $this->normalizeConditions($condition)
+        : [$condition->getField(), $condition->getValue(), $condition->getOperator()];
+    }
+    $parent = method_exists($group, 'getParentFieldName') ? $group->getParentFieldName() : NULL;
+    return [$group->getConjunction(), $group->getTags(), $parent, $conditions];
   }
 
 

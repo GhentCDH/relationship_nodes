@@ -158,4 +158,21 @@ class RelationsTest extends RelationshipNodesKernelTestBase {
     $this->assertSame([$existing], $deferred['delete']);
   }
 
+  /**
+   * Relations are listed in the order of their stored weights.
+   */
+  public function testWeightOrder(): void {
+    $a = $this->createPerson('A');
+    $first = $this->createRelation($a, $this->createPerson('B'));
+    $second = $this->createRelation($a, $this->createPerson('C'));
+    $third = $this->createRelation($a, $this->createPerson('D'));
+    $weights = $this->container->get('relationship_nodes.relation_weight_manager');
+    $weights->setWeight((int) $first->id(), 'rn_related_entity_1', 2);
+    $weights->setWeight((int) $second->id(), 'rn_related_entity_1', 0);
+    // $third has no weight and comes last.
+    $expected = [(int) $second->id(), (int) $first->id(), (int) $third->id()];
+    $this->assertSame($expected, $this->getComputedRelationIds($a));
+    $this->assertSame([(int) $first->id() => 2, (int) $third->id() => 9999], $weights->getMultiple([$first->id(), $third->id()], 'rn_related_entity_1'));
+  }
+
 }

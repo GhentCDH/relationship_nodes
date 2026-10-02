@@ -4,6 +4,7 @@ namespace Drupal\relationship_nodes\RelationData\NodeHelper;
 
 use Drupal\Core\KeyValueStore\KeyValueFactoryInterface;
 use Drupal\Core\KeyValueStore\KeyValueStoreInterface;
+use Drupal\relationship_nodes\RelationField\FieldNameResolver;
 
 /**
  * Service for managing relationship node weights using Key-Value storage.
@@ -12,9 +13,11 @@ class RelationWeightManager {
 
   protected KeyValueFactoryInterface $keyValueFactory;
   protected ?KeyValueStoreInterface $store = NULL;
+  protected ?FieldNameResolver $fieldNameResolver = NULL;
 
-  public function __construct(KeyValueFactoryInterface $key_value_factory) {
+  public function __construct(KeyValueFactoryInterface $key_value_factory, ?FieldNameResolver $field_name_resolver = NULL) {
     $this->keyValueFactory = $key_value_factory;
+    $this->fieldNameResolver = $field_name_resolver;
   }
 
 
@@ -94,16 +97,22 @@ class RelationWeightManager {
    *   The relation node ID.
    */
   public function deleteAllWeights(int $relation_nid): void {
-    $store = $this->getStore();
-    $all_keys = $store->getAll();
+    // Weights are stored per related entity field; delete those keys directly
+    // instead of loading the whole collection.
+    if ($this->fieldNameResolver) {
+      $keys = array_map(fn($field) => $this->getKey($relation_nid, $field), array_values($this->fieldNameResolver->getRelatedEntityFields()));
+      $this->getStore()->deleteMultiple($keys);
+      return;
+    }
     $prefix = $relation_nid . '.';
-    
-    foreach (array_keys($all_keys) as $key) {
-      if (strpos($key, $prefix) === 0) {
+    $store = $this->getStore();
+    foreach (array_keys($store->getAll()) as $key) {
+      if (str_starts_with($key, $prefix)) {
         $store->delete($key);
       }
     }
   }
+
 
 
   /**
@@ -118,14 +127,18 @@ class RelationWeightManager {
    *   Keyed array of relation_nid => weight.
    */
   public function getMultiple(array $relation_nids, string $reference_field_name): array {
-    $weights = [];
-    
+    $keys = [];
     foreach ($relation_nids as $nid) {
-      $weights[$nid] = $this->getWeight($nid, $reference_field_name);
+      $keys[$nid] = $this->getKey((int) $nid, $reference_field_name);
     }
-    
+    $stored = $keys ? $this->getStore()->getMultiple(array_values($keys)) : [];
+    $weights = [];
+    foreach ($keys as $nid => $key) {
+      $weights[$nid] = (int) ($stored[$key] ?? 9999);
+    }
     return $weights;
   }
+
 
   
   /**
@@ -155,11 +168,20 @@ class RelationWeightManager {
     // Flatten met weight info
     $all_relations = [];
     
+    // Read all weights in one query.
+    $keys = [];
+    foreach ($relations_by_field as $field => $relations) {
+      foreach (array_keys($relations) as $rel_id) {
+        $keys[] = $this->getKey((int) $rel_id, $field);
+      }
+    }
+    $stored = $keys ? $this->getStore()->getMultiple($keys) : [];
+
     foreach($relations_by_field as $field => $relations){
       foreach($relations as $rel_id => $rel_ent){
         $all_relations[$rel_id] = [
           'entity' => $rel_ent,
-          'weight' => $this->getWeight($rel_id, $field),
+          'weight' => (int) ($stored[$this->getKey((int) $rel_id, $field)] ?? 9999),
         ];
       }
     }

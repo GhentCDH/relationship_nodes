@@ -73,4 +73,24 @@ class MirrorSyncTest extends RelationshipNodesKernelTestBase {
     $this->assertNull($this->getMirror($b));
   }
 
+  /**
+   * A term cannot mirror itself or a term that is already mirrored.
+   */
+  public function testMirrorValidation(): void {
+    $a = $this->createRelationType('A');
+    $b = $this->createRelationType('B');
+    $c = $this->createRelationType('C');
+    $this->setMirror($a, $b);
+
+    $a = Term::load($a->id());
+    $this->assertCount(0, $a->validate(), 'A correctly linked term stays valid.');
+
+    $c = Term::load($c->id());
+    $c->set(static::MIRROR_FIELD, $b->id());
+    $this->assertGreaterThan(0, count($c->validate()), 'B is already the mirror of A.');
+
+    $c->set(static::MIRROR_FIELD, $c->id());
+    $this->assertGreaterThan(0, count($c->validate()), 'A term cannot mirror itself.');
+  }
+
 }
