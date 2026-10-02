@@ -11,8 +11,19 @@ use Drupal\relationship_nodes\RelationField\FieldNameResolver;
  */
 class RelationWeightManager {
 
+  /**
+   * The key value factory.
+   */
   protected KeyValueFactoryInterface $keyValueFactory;
+
+  /**
+   * The key value store.
+   */
   protected ?KeyValueStoreInterface $store = NULL;
+
+  /**
+   * The field name resolver.
+   */
   protected ?FieldNameResolver $fieldNameResolver = NULL;
 
   public function __construct(KeyValueFactoryInterface $key_value_factory, ?FieldNameResolver $field_name_resolver = NULL) {
@@ -145,7 +156,8 @@ class RelationWeightManager {
    * Sorts node IDs by their weights for a specific reference field.
    *
    * @param array $relations_by_field
-   *   Array of relation node IDs : ['field_1' => [rel_id_A => rel_ent_A, rel_id_B => rel_ent_B], 'field_2' => [rel_id_C => rel_ent_C]].
+   *   Array of relation node IDs : ['field_1' => [rel_id_A => rel_ent_A,
+   *   rel_id_B => rel_ent_B], 'field_2' => [rel_id_C => rel_ent_C]].
    *
    * @return array
    *   Sorted array of node IDs.

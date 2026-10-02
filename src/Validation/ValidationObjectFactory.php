@@ -27,8 +27,6 @@ final class ValidationObjectFactory {
     private readonly BundleInfoService $bundleInfoService,
   ) {}
 
-  // ========== Bundle Validators ==========
-
   /**
    * Creates validation object from a bundle entity.
    */
@@ -83,8 +81,6 @@ final class ValidationObjectFactory {
     );
   }
 
-  // ========== Field Config Validators ==========
-
   /**
    * Creates validation object from field configuration.
    */
@@ -118,8 +114,6 @@ final class ValidationObjectFactory {
       $this->settingsManager
     );
   }
-
-  // ========== Field Storage Validators ==========
 
   /**
    * Creates validation object from field storage.

@@ -37,14 +37,20 @@ final class BundleValidator {
   }
 
   /**
+   * Checks whether the bundle is a node type or a vocabulary.
    *
+   * @return bool
+   *   TRUE for node types and vocabularies.
    */
   private function isRelevantEntityType(): bool {
     return in_array($this->entityTypeId, ['node_type', 'taxonomy_vocabulary'], TRUE);
   }
 
   /**
+   * Checks that a vocabulary is not disabled while node types use it.
    *
+   * @return \Drupal\relationship_nodes\Validation\ValidationResult
+   *   The validation result.
    */
   private function validateDependencies(): ValidationResult {
     if ($this->entityTypeId === 'taxonomy_vocabulary' && !empty($this->dependentBundles)) {
@@ -54,7 +60,10 @@ final class BundleValidator {
   }
 
   /**
+   * Validates an enabled relation bundle.
    *
+   * @return \Drupal\relationship_nodes\Validation\ValidationResult
+   *   The validation result.
    */
   private function validateEnabledBundle(): ValidationResult {
     return ValidationResult::mergeAll([
@@ -64,7 +73,10 @@ final class BundleValidator {
   }
 
   /**
+   * Validates the field name configuration for the bundle type.
    *
+   * @return \Drupal\relationship_nodes\Validation\ValidationResult
+   *   The validation result.
    */
   private function validateFieldNameConfig(): ValidationResult {
     if ($this->entityTypeId === 'node_type') {
@@ -79,7 +91,10 @@ final class BundleValidator {
   }
 
   /**
+   * Validates the field name configuration of a relation node type.
    *
+   * @return \Drupal\relationship_nodes\Validation\ValidationResult
+   *   The validation result.
    */
   private function validateNodeTypeFields(): ValidationResult {
     if (!$this->validBasicRelationConfig()) {
@@ -94,7 +109,10 @@ final class BundleValidator {
   }
 
   /**
+   * Validates the field name configuration of a relation vocabulary.
    *
+   * @return \Drupal\relationship_nodes\Validation\ValidationResult
+   *   The validation result.
    */
   private function validateVocabularyFields(): ValidationResult {
     return $this->validRelationVocabConfig()
@@ -103,7 +121,10 @@ final class BundleValidator {
   }
 
   /**
+   * Validates the mirror type of a relation vocabulary.
    *
+   * @return \Drupal\relationship_nodes\Validation\ValidationResult
+   *   The validation result.
    */
   private function validateMirrorType(): ValidationResult {
     if ($this->entityTypeId !== 'taxonomy_vocabulary') {
@@ -124,7 +145,10 @@ final class BundleValidator {
   }
 
   /**
+   * Checks the configuration of the related entity field names.
    *
+   * @return bool
+   *   TRUE if all related entity field names are configured.
    */
   private function validBasicRelationConfig(): bool {
     return $this->validChildFieldConfig(
@@ -134,7 +158,10 @@ final class BundleValidator {
   }
 
   /**
+   * Checks the configuration of the relation type field names.
    *
+   * @return bool
+   *   TRUE if the relation type and mirror field names are configured.
    */
   private function validTypedRelationConfig(): bool {
     return !empty($this->fieldResolver->getRelationTypeField())
@@ -142,7 +169,10 @@ final class BundleValidator {
   }
 
   /**
+   * Checks the configuration of the mirror field names.
    *
+   * @return bool
+   *   TRUE if all mirror field names are configured.
    */
   private function validRelationVocabConfig(): bool {
     return $this->validChildFieldConfig(
@@ -152,7 +182,15 @@ final class BundleValidator {
   }
 
   /**
+   * Checks that all configured field names of a group are set.
    *
+   * @param array $fields
+   *   The field names, keyed by configuration key.
+   * @param string $configKey
+   *   The configuration key of the group.
+   *
+   * @return bool
+   *   TRUE if every configured field name is set.
    */
   private function validChildFieldConfig(array $fields, string $configKey): bool {
     if (!is_array($fields)) {

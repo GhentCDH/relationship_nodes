@@ -9,11 +9,9 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\field\Entity\FieldConfig;
-use Drupal\node\Entity\NodeType;
 use Drupal\relationship_nodes\RelationBundle\BundleInfoService;
 use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
 use Drupal\relationship_nodes\RelationField\FieldNameResolver;
-use Drupal\taxonomy\Entity\Vocabulary;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -23,14 +21,49 @@ class FieldConfigForm extends FormBase {
 
   use StringTranslationTrait;
 
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldResolver;
+
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $settingsManager;
+
+  /**
+   * The field UI manager.
+   */
   protected FieldUiManager $uiUpdater;
+
+  /**
+   * The bundle info service.
+   */
   protected BundleInfoService $bundleInfoService;
+
+  /**
+   * The field config.
+   */
   protected ?FieldConfig $fieldConfig = NULL;
+
+  /**
+   * The field name.
+   */
   protected ?string $fieldName = NULL;
+
+  /**
+   * The entity type.
+   */
   protected ?string $entityType = NULL;
+
+  /**
+   * The bundle.
+   */
   protected ?string $bundle = NULL;
 
   /**
@@ -216,7 +249,7 @@ class FieldConfigForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $field = FieldConfig::load("{$this->entityType}.{$this->bundle}.{$this->fieldName}");
+    $field = $this->entityTypeManager->getStorage('field_config')->load("{$this->entityType}.{$this->bundle}.{$this->fieldName}");
     if (!$field) {
       $this->messenger()->addError($this->t('Field not found.'));
       return;
@@ -248,7 +281,7 @@ class FieldConfigForm extends FormBase {
    */
   protected function getAllNodeTypes(): array {
     $options = [];
-    foreach (NodeType::loadMultiple() as $type) {
+    foreach ($this->entityTypeManager->getStorage('node_type')->loadMultiple() as $type) {
       $options[$type->id()] = $type->label();
     }
     return $options;
@@ -262,7 +295,7 @@ class FieldConfigForm extends FormBase {
    */
   protected function getAllRelationVocabs(): array {
     $options = [];
-    foreach (Vocabulary::loadMultiple() as $type) {
+    foreach ($this->entityTypeManager->getStorage('taxonomy_vocabulary')->loadMultiple() as $type) {
       $bundle_info = $this->settingsManager->getBundleInfo($type);
       if ($bundle_info && $bundle_info->isRelation()) {
         $options[$type->id()] = $type->label();

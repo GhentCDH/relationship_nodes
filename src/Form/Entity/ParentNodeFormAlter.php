@@ -10,6 +10,9 @@ use Drupal\relationship_nodes\Form\Widget\WidgetSubmitHandler;
  */
 class ParentNodeFormAlter {
 
+  /**
+   * The relation form helper.
+   */
   protected RelationFormHelper $formHelper;
 
   /**

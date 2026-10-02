@@ -45,8 +45,9 @@ class RelationFormHelper {
   /**
    * Gets relation extended widget fields mapping.
    *
-   * Returns a mapping of IEF ID => field name for all relation extended widgets.
-   * Detection is based on the 'relation_extended_widget' flag stored in the
+   * Returns a mapping of IEF ID => field name for all relation extended
+   * widgets. Detection is based on the 'relation_extended_widget' flag stored
+   * in the
    * widget state by RelationIefWidget::extractFormValues().
    *
    * @param \Drupal\Core\Form\FormStateInterface $form_state
@@ -125,7 +126,8 @@ class RelationFormHelper {
    *   The IEF widget state array.
    *
    * @return string|null
-   *   The field name, or NULL if the instance is not a FieldDefinitionInterface.
+   *   The field name, or NULL if the instance is not a
+   *   FieldDefinitionInterface.
    */
   protected function getIefWidgetInstanceFieldName(array $widget_state): ?string {
     if (!(($widget_state['instance'] ?? NULL) instanceof FieldDefinitionInterface)) {

@@ -38,6 +38,9 @@ class RelationIefWidget extends InlineEntityFormComplex {
    */
   const PLUGIN_ID = 'relation_extended_ief_complex_widget';
 
+  /**
+   * The relation entity form handler.
+   */
   protected RelationEntityFormHandler $relationFormHandler;
 
   /**

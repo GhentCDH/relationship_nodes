@@ -15,15 +15,39 @@ use Drupal\relationship_nodes\RelationField\RelationshipFieldManager;
 /**
  * Service for cleaning up relationship nodes settings.
  *
- * Removes module settings and cleans up form displays when module is uninstalled.
+ * Removes module settings and cleans up form displays when module is
+ * uninstalled.
  */
 class SettingsCleanupService {
 
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The bundle info service.
+   */
   protected BundleInfoService $bundleInfoService;
+
+  /**
+   * The relationship field manager.
+   */
   protected RelationshipFieldManager $relationFieldManager;
+
+  /**
+   * The key value factory.
+   */
   protected KeyValueFactoryInterface $keyValueFactory;
+
+  /**
+   * The logger channel.
+   */
   protected LoggerChannelInterface $logger;
+
+  /**
+   * The cache backend.
+   */
   protected CacheBackendInterface $cache;
 
   /**
@@ -103,7 +127,7 @@ class SettingsCleanupService {
       'view' => $this->entityTypeManager->getStorage('entity_view_display'),
     ];
 
-    foreach ($display_storages as $mode => $storage) {
+    foreach ($display_storages as $storage) {
       $displays = $storage->loadMultiple();
 
       foreach ($displays as $display) {

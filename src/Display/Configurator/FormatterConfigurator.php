@@ -17,7 +17,8 @@ use Drupal\relationship_nodes\RelationField\CalculatedFieldHelper;
  * Key responsibilities:
  * - Extract available fields from relation bundles
  * - Replace internal fields (rn_entity_a, rn_entity_b, rn_relation_type) with
- *   calculated equivalents (calculated_related_id, calculated_relation_type_name)
+ *   calculated equivalents (calculated_related_id,
+ *   calculated_relation_type_name)
  * - Determine which fields support entity linking (entity references)
  * - Prepare field configurations for template rendering
  *
@@ -26,7 +27,14 @@ use Drupal\relationship_nodes\RelationField\CalculatedFieldHelper;
  */
 class FormatterConfigurator extends FieldConfiguratorBase {
 
+  /**
+   * The entity field manager.
+   */
   protected EntityFieldManagerInterface $entityFieldManager;
+
+  /**
+   * The calculated field helper.
+   */
   protected CalculatedFieldHelper $calculatedFieldHelper;
 
   /**
@@ -150,8 +158,10 @@ class FormatterConfigurator extends FieldConfiguratorBase {
    * Determines which fields can be rendered as links to entities.
    *
    * For calculated fields:
-   * - Checks if field has a target entity type (only ID fields, not name fields)
-   * - Example: calculated_related_id → linkable, calculated_related_name → not linkable
+   * - Checks if field has a target entity type (only ID fields, not name
+   *   fields)
+   * - Example: calculated_related_id → linkable, calculated_related_name → not
+   *   linkable
    *
    * For real fields:
    * - Checks if field type is entity_reference
@@ -206,7 +216,8 @@ class FormatterConfigurator extends FieldConfiguratorBase {
    * typically prefixed with field_* or rn_*.
    *
    * @param array $field_definitions
-   *   Array with field definitions from EntityFieldManager::getFieldDefinitions().
+   *   Array with field definitions from
+   *   EntityFieldManager::getFieldDefinitions().
    *
    * @return array
    *   Array of configurable field machine names.
@@ -277,8 +288,10 @@ class FormatterConfigurator extends FieldConfiguratorBase {
    *
    * @return array
    *   Field names with internal fields replaced by calculated variants.
-   *   Example input:  ['rn_entity_a', 'rn_entity_b', 'rn_relation_type', 'field_notes']
-   *   Example output: ['calculated_related_id', 'calculated_relation_type_name', 'field_notes']
+   *   Example input:  ['rn_entity_a', 'rn_entity_b', 'rn_relation_type',
+   *   'field_notes']
+   *   Example output: ['calculated_related_id',
+   *   'calculated_relation_type_name', 'field_notes']
    */
   protected function replaceWithCalculatedFields(array $field_names): array {
     $relation_type_field = $this->fieldNameResolver->getRelationTypeField();

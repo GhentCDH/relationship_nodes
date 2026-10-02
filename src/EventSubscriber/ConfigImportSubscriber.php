@@ -20,10 +20,29 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class ConfigImportSubscriber implements EventSubscriberInterface {
 
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The settings cleanup service.
+   */
   protected SettingsCleanupService $cleanupService;
+
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $settingsManager;
+
+  /**
+   * The config import validator.
+   */
   protected ConfigImportValidator $cimValidationService;
+
+  /**
+   * The relationship field manager.
+   */
   protected RelationshipFieldManager $relationFieldManager;
 
   /**

@@ -55,7 +55,8 @@ class CalculatedFieldHelper {
    * Gets calculated field names.
    *
    * @param string|null $calc_entity_key
-   *   Optional entity key filter ('this_entity', 'related_entity', 'relation_type').
+   *   Optional entity key filter ('this_entity', 'related_entity',
+   *   'relation_type').
    * @param string|null $property
    *   Optional property filter ('id', 'name').
    * @param bool $flatten
@@ -103,7 +104,8 @@ class CalculatedFieldHelper {
    *   The calculated field name.
    *
    * @return string|null
-   *   The entity type ('node', 'taxonomy_term'), or NULL if not a calculated field.
+   *   The entity type ('node', 'taxonomy_term'), or NULL if not a calculated
+   *   field.
    */
   public function getCalculatedFieldTargetType(string $child_fld_nm): ?string {
     $calc_fld_ids = $this->getCalculatedFieldNames(NULL, 'id');

@@ -20,6 +20,9 @@ use Drupal\relationship_nodes\RelationField\CalculatedFieldHelper;
  */
 class NestedIndexFieldHelper {
 
+  /**
+   * The calculated field helper.
+   */
   protected CalculatedFieldHelper $calculatedFieldHelper;
 
   /**
@@ -135,8 +138,8 @@ class NestedIndexFieldHelper {
    *   The child field name.
    *
    * @return string|null
-   *   The Search API type ('integer', 'decimal', 'date', 'string', 'text', etc.)
-   *   or NULL if field not found.
+   *   The Search API type ('integer', 'decimal', 'date', 'string', 'text',
+   *   etc.) or NULL if field not found.
    */
   public function getChildFieldType(Index $index, string $parent_field, string $child_field): ?string {
     $sapi_fld = $index->getField($parent_field);

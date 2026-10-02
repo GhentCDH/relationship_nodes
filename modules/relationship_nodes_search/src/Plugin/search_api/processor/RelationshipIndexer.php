@@ -39,14 +39,49 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 )]
 class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactoryPluginInterface {
 
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The entity field manager.
+   */
   protected EntityFieldManagerInterface $entityFieldManager;
+
+  /**
+   * The logger channel factory.
+   */
   protected LoggerChannelFactoryInterface $loggerFactory;
+
+  /**
+   * The bundle info service.
+   */
   protected BundleInfoService $bundleInfoService;
+
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldResolver;
+
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $settingsManager;
+
+  /**
+   * The mirror provider.
+   */
   protected MirrorProvider $mirrorProvider;
+
+  /**
+   * The nested field result views parser.
+   */
   protected NestedFieldResultViewsParser $resultParser;
+
+  /**
+   * The calculated field helper.
+   */
   protected CalculatedFieldHelper $calculatedFieldHelper;
 
   /**
@@ -193,8 +228,9 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
   }
 
   /**
-   * Cf Partially based on code of ReverseEntityReferences
    * {@inheritdoc}
+   *
+   * Partially based on the code of Search API's ReverseEntityReferences.
    */
   public function addFieldValues(ItemInterface $item) {
     try {
@@ -452,6 +488,8 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
    *   The relationship entity.
    * @param string $join_field
    *   The join field name.
+   * @param string $langcode
+   *   The language of the indexed item.
    */
   protected function fillCalculatedFields(
     array &$nested_values,

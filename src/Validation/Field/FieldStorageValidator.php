@@ -36,7 +36,13 @@ final class FieldStorageValidator {
   }
 
   /**
+   * Validates the field type.
    *
+   * @param array $required
+   *   The required field settings.
+   *
+   * @return \Drupal\relationship_nodes\Validation\ValidationResult
+   *   The validation result.
    */
   private function validateFieldType(array $required): ValidationResult {
     return $this->fieldType === $required['type']
@@ -45,7 +51,13 @@ final class FieldStorageValidator {
   }
 
   /**
+   * Validates the field cardinality.
    *
+   * @param array $required
+   *   The required field settings.
+   *
+   * @return \Drupal\relationship_nodes\Validation\ValidationResult
+   *   The validation result.
    */
   private function validateCardinality(array $required): ValidationResult {
     return $this->cardinality == $required['cardinality']
@@ -54,7 +66,13 @@ final class FieldStorageValidator {
   }
 
   /**
+   * Validates the target entity type of a reference field.
    *
+   * @param array $required
+   *   The required field settings.
+   *
+   * @return \Drupal\relationship_nodes\Validation\ValidationResult
+   *   The validation result.
    */
   private function validateTargetType(array $required): ValidationResult {
     if (!isset($required['target_type'])) {

@@ -29,7 +29,14 @@ class RnFieldAccessCheck implements AccessInterface {
     'taxonomy_term' => ['bundle_param' => 'taxonomy_vocabulary', 'permission' => 'administer taxonomy'],
   ];
 
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldResolver;
+
+  /**
+   * The relationship field manager.
+   */
   protected RelationshipFieldManager $relationFieldManager;
 
   /**

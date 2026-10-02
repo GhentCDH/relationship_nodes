@@ -7,7 +7,8 @@ use Drupal\search_api\Entity\Index;
 /**
  * Configuration form builder for Views field display.
  *
- * Extends the Views configurator base with field display-specific functionality:
+ * Extends the Views configurator base with field display-specific
+ * functionality:
  * - Display mode selection (raw, label, link)
  * - Template configuration
  * - Sorting and grouping options
@@ -67,7 +68,8 @@ class NestedFieldViewsFieldConfigurator extends NestedFieldViewsConfiguratorBase
         'show_grouping' => TRUE,
         'show_sorting' => TRUE,
         // Use parent's default field callback (buildFieldFormFromConfig)
-        // which handles display_mode, label, weight, hide_label, multiple_separator.
+        // which handles display_mode, label, weight, hide_label,
+        // multiple_separator.
       ]
     );
   }

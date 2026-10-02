@@ -12,12 +12,16 @@ use Drupal\relationship_nodes\RelationField\FieldNameResolver;
  * 1. Prepare phase: Build field configuration arrays (context-aware)
  * 2. Render phase: Build forms from configurations (context-agnostic)
  *
- * Can be used directly for field formatters or extended for Views/other contexts.
+ * Can be used directly for field formatters or extended for Views/other
+ * contexts.
  */
 class FieldConfiguratorBase {
 
   use StringTranslationTrait;
 
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldNameResolver;
 
   /**
@@ -42,8 +46,8 @@ class FieldConfiguratorBase {
    *   Current field settings from saved configuration.
    * @param array $context
    *   Extension point for context-specific capabilities. Base class passes
-   *   this through unchanged - subclasses use it to determine field capabilities.
-   *   Common keys:
+   *   this through unchanged - subclasses use it to determine field
+   *   capabilities. Common keys:
    *   - 'linkable_fields': Fields supporting entity reference display modes
    *   - 'calculated_fields': Computed/aggregated fields (no separators)
    *   - 'filterable_fields': Fields available for filtering (Views)
@@ -105,7 +109,8 @@ class FieldConfiguratorBase {
    * into form elements. Completely context-agnostic.
    *
    * Builds field_settings container directly on the provided form array.
-   * If you need a wrapper (like <details>), add it to $form before calling this.
+   * If you need a wrapper (like <details>), add it to $form before calling
+   * this.
    *
    * @param array &$form
    *   The form array to add elements to.

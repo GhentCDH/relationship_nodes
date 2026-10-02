@@ -19,6 +19,9 @@ use Drupal\relationship_nodes_search\FieldHelper\NestedIndexFieldHelper;
  */
 class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBase {
 
+  /**
+   * The filter operator helper.
+   */
   protected FilterOperatorHelper $operatorHelper;
 
   /**
@@ -330,7 +333,16 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
   }
 
   /**
+   * Adds the settings for filtering on a pair of range fields.
    *
+   * @param array $form
+   *   The form (passed by reference).
+   * @param array $rangeable_fields
+   *   The child fields that support ranges, keyed by name.
+   * @param array $saved_settings
+   *   The saved range pair settings.
+   * @param string|null $context_prefix
+   *   The form state path prefix, or NULL.
    */
   public function buildRangePairForm(
     array &$form,
@@ -462,7 +474,8 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
    * @param array $saved
    *   Saved int_range values (min, max, use_current_year_min/max).
    * @param array $defaults
-   *   Override defaults: keys min, max, use_current_year_min, use_current_year_max.
+   *   Override defaults: keys min, max, use_current_year_min,
+   *   use_current_year_max.
    */
   private function buildIntRangeSubForm(
     array &$parent,
@@ -539,7 +552,13 @@ class NestedFieldViewsFilterConfigurator extends NestedFieldViewsConfiguratorBas
   }
 
   /**
+   * Generates the identifier of a child field filter.
    *
+   * @param string $child_field_name
+   *   The child field name.
+   *
+   * @return string
+   *   The filter identifier.
    */
   private function generateChildfieldFilterId(string $child_field_name): string {
     $key = preg_replace('/^(field_|rn_|calculated_)/', '', $child_field_name);

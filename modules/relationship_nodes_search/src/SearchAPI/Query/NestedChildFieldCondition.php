@@ -12,7 +12,14 @@ use Drupal\search_api\Query\Condition;
  */
 class NestedChildFieldCondition extends Condition {
 
+  /**
+   * The parent field name.
+   */
   protected ?string $parentFieldName = NULL;
+
+  /**
+   * The child field name.
+   */
   protected ?string $childFieldName = NULL;
 
   /**

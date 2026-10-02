@@ -18,6 +18,9 @@ class BundleSettingsManager {
 
   use StringTranslationTrait;
 
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
 
   /**
@@ -41,6 +44,7 @@ class BundleSettingsManager {
    *   wrong when a vocabulary has the same machine name as a node type.
    *
    * @return \Drupal\relationship_nodes\RelationBundle\RelationBundleInfo|null
+   *   The bundle info, or NULL if the bundle does not exist.
    */
   public function getBundleInfo(ConfigEntityBundleBase|string $entity, ?string $entity_type_id = NULL): ?RelationBundleInfo {
     if (is_string($entity)) {
@@ -63,6 +67,7 @@ class BundleSettingsManager {
    * Saves bundle info back to entity.
    *
    * @param \Drupal\relationship_nodes\RelationBundle\RelationBundleInfo $info
+   *   The bundle info.
    */
   public function saveBundleInfo(RelationBundleInfo $info): void {
     $properties = $info->toArray();

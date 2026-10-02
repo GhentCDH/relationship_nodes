@@ -34,13 +34,44 @@ class RelationshipDataBuilder {
 
   use StringTranslationTrait;
 
+  /**
+   * The relation info.
+   */
   protected RelationInfo $nodeInfoService;
+
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldNameResolver;
+
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The language manager.
+   */
   protected LanguageManagerInterface $languageManager;
+
+  /**
+   * The calculated field helper.
+   */
   protected CalculatedFieldHelper $calculatedFieldHelper;
+
+  /**
+   * The field result parser.
+   */
   protected FieldResultParser $parser;
+
+  /**
+   * The mirror provider.
+   */
   protected MirrorProvider $mirrorProvider;
+
+  /**
+   * The foreign key resolver.
+   */
   protected ForeignKeyResolver $foreignKeyResolver;
 
   /**
@@ -296,7 +327,8 @@ class RelationshipDataBuilder {
    *   The requested language code.
    *
    * @return \Drupal\relationship_nodes\Display\RelationAvailability
-   *   Value object describing availability, available languages, and cache tags.
+   *   Value object describing availability, available languages, and cache
+   *   tags.
    */
   public function getRelationAvailability(NodeInterface $relation_node, string $langcode): RelationAvailability {
     $node_storage = $this->entityTypeManager->getStorage('node');
@@ -425,7 +457,8 @@ class RelationshipDataBuilder {
     $entity_ids = [];
 
     if ($viewing_node) {
-      // Show only entities from the field that does not contain the viewing node.
+      // Show only entities from the field that does not contain the viewing
+      // node.
       $viewing_fk = $this->foreignKeyResolver->getEntityForeignKeyField($relation_node, $viewing_node);
       foreach ($related_entities as $field => $ids) {
         if ($field !== $viewing_fk) {

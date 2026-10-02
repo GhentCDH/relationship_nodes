@@ -2,9 +2,6 @@
 
 namespace Drupal\relationship_nodes_search\Views\Parser;
 
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Language\LanguageManagerInterface;
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\relationship_nodes\Display\Parser\FieldResultParserBase;
 
 /**
@@ -16,24 +13,6 @@ use Drupal\relationship_nodes\Display\Parser\FieldResultParserBase;
  * Used by: RelationshipField Views plugin, Views filter widgets
  */
 class NestedFieldResultViewsParser extends FieldResultParserBase {
-
-  /**
-   * Constructs a NestedFieldResultViewsParser object.
-   *
-   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
-   *   The entity type manager.
-   * @param \Drupal\Core\Language\LanguageManagerInterface $languageManager
-   *   The language manager.
-   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
-   *   The logger factory.
-   */
-  public function __construct(
-    EntityTypeManagerInterface $entityTypeManager,
-    LanguageManagerInterface $languageManager,
-    LoggerChannelFactoryInterface $loggerFactory,
-  ) {
-    parent::__construct($entityTypeManager, $languageManager, $loggerFactory);
-  }
 
   /**
    * Batch loads entities from indexed data.
@@ -97,7 +76,8 @@ class NestedFieldResultViewsParser extends FieldResultParserBase {
    *   Pre-loaded entities keyed by "entity_type/id".
    *
    * @return array|null
-   *   Processed field data with 'field_values', 'separator', and 'is_multiple' keys.
+   *   Processed field data with 'field_values', 'separator', and 'is_multiple'
+   *   keys.
    */
   public function processFieldValuesWithCache($raw_value, array $settings, array $preloaded_entities): ?array {
     // Handle empty or NULL values.

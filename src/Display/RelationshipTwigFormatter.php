@@ -16,8 +16,19 @@ use Drupal\relationship_nodes\Display\Configurator\FormatterConfigurator;
  */
 class RelationshipTwigFormatter {
 
+  /**
+   * The virtual field manager.
+   */
   protected VirtualFieldManager $virtualFieldManager;
+
+  /**
+   * The relationship data builder.
+   */
   protected RelationshipDataBuilder $dataBuilder;
+
+  /**
+   * The formatter configurator.
+   */
   protected FormatterConfigurator $configurator;
 
   /**
@@ -97,7 +108,8 @@ class RelationshipTwigFormatter {
    *   - 'language_fallback': If TRUE, include relations unavailable in the
    *     requested language using the best available language (default: FALSE)
    *   - 'extra_fields': Associative array per relation field:
-   *       ['computed_relationshipfield__person__person' => ['field_date_start']]
+   *       ['computed_relationshipfield__person__person' =>
+   *       ['field_date_start']]
    *   - 'limit': If set, return at most this many items and set 'has_more'
    *     (OPTIONAL, default: NULL = no limit)
    * @param array $field_settings
@@ -302,7 +314,14 @@ class RelationshipTwigFormatter {
       $available_languages = $rel['_available_languages'] ?? [];
 
       foreach ($rel as $field_name => $field_data) {
-        if (in_array($field_name, ['_relation_node', '_langcode', '_is_fallback', '_available_languages', '_related_nid'])) {
+        $internal = [
+          '_relation_node',
+          '_langcode',
+          '_is_fallback',
+          '_available_languages',
+          '_related_nid',
+        ];
+        if (in_array($field_name, $internal)) {
           continue;
         }
 

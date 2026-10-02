@@ -19,6 +19,9 @@ use Drupal\relationship_nodes_search\QueryHelper\NestedQueryStructureBuilder;
  */
 class NestedFilterBuilder extends FilterBuilder {
 
+  /**
+   * The nested query structure builder.
+   */
   protected NestedQueryStructureBuilder $queryBuilder;
 
   /**
@@ -78,7 +81,7 @@ class NestedFilterBuilder extends FilterBuilder {
   }
 
   /**
-   * Builds an Elasticsearch nested query from a NestedParentFieldConditionGroup.
+   * Builds an Elasticsearch nested query from a nested parent field group.
    */
   protected function buildNestedFieldConditionFilters(NestedParentFieldConditionGroup $condition_group, array $index_fields, array $querySettings = []): array {
     $parent = $condition_group->getParentFieldName();

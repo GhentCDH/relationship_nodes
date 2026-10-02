@@ -24,7 +24,7 @@ final class RelationBundleInfo {
   ) {}
 
   /**
-   * Creates a RelationBundleInfo from a bundle entity and its third-party settings.
+   * Creates a RelationBundleInfo from a bundle and its third-party settings.
    *
    * @param \Drupal\Core\Config\Entity\ConfigEntityBundleBase $bundle
    *   The node type or vocabulary entity.
@@ -49,21 +49,30 @@ final class RelationBundleInfo {
   }
 
   /**
-   * ===== Public API =====
+   * Returns the node type or vocabulary.
+   *
+   * @return \Drupal\Core\Config\Entity\ConfigEntityBundleBase
+   *   The bundle entity.
    */
   public function getBundle(): ConfigEntityBundleBase {
     return $this->bundle;
   }
 
   /**
+   * Returns the machine name of the bundle.
    *
+   * @return string
+   *   The bundle ID.
    */
   public function getBundleId(): string {
     return $this->bundleId;
   }
 
   /**
+   * Returns the entity type of the bundle entity.
    *
+   * @return string
+   *   'node_type' or 'taxonomy_vocabulary'.
    */
   public function getEntityTypeId(): string {
     return $this->entityTypeId;
@@ -91,28 +100,34 @@ final class RelationBundleInfo {
   }
 
   /**
-   * Returns the mirror field type ('string', 'entity_reference', 'none', or NULL).
+   * Returns the mirror type: 'string', 'entity_reference', 'none' or NULL.
    */
   public function getMirrorType(): ?string {
     return $this->mirrorType;
   }
 
   /**
-   * Returns TRUE if this vocabulary has a configured bidirectional mirror field.
+   * Returns TRUE if this vocabulary has a bidirectional mirror field.
    */
   public function isMirroringVocab(): bool {
     return in_array($this->mirrorType, ['string', 'entity_reference'], TRUE);
   }
 
   /**
+   * Checks whether the bundle is a node type.
    *
+   * @return bool
+   *   TRUE for node types.
    */
   public function isNodeType(): bool {
     return $this->bundle instanceof NodeType;
   }
 
   /**
+   * Checks whether the bundle is a vocabulary.
    *
+   * @return bool
+   *   TRUE for vocabularies.
    */
   public function isVocabulary(): bool {
     return $this->bundle instanceof Vocabulary;

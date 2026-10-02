@@ -10,8 +10,19 @@ use Drupal\node\Entity\Node;
  */
 class RelationEntityValidator {
 
+  /**
+   * The parent node context.
+   */
   protected ParentNodeContext $parentNodeContext;
+
+  /**
+   * The relation info.
+   */
   protected RelationInfo $nodeInfoService;
+
+  /**
+   * The foreign key resolver.
+   */
   protected ForeignKeyResolver $foreignKeyResolver;
 
   /**

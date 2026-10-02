@@ -27,16 +27,59 @@ use Drupal\search_api\Query\ConditionGroupInterface;
  */
 class NestedFilterDropdownOptionsProvider {
 
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The cache backend.
+   */
   protected CacheBackendInterface $cache;
+
+  /**
+   * The logger channel factory.
+   */
   protected LoggerChannelFactoryInterface $loggerFactory;
+
+  /**
+   * The account proxy.
+   */
   protected AccountProxyInterface $currentUser;
+
+  /**
+   * The language manager.
+   */
   protected LanguageManagerInterface $languageManager;
+
+  /**
+   * The nested index field helper.
+   */
   protected NestedIndexFieldHelper $nestedFieldHelper;
+
+  /**
+   * The calculated field helper.
+   */
   protected CalculatedFieldHelper $calculatedFieldHelper;
+
+  /**
+   * The nested field result views parser.
+   */
   protected NestedFieldResultViewsParser $resultParser;
+
+  /**
+   * The nested facet result parser.
+   */
   protected NestedFacetResultParser $facetResultParser;
+
+  /**
+   * The mirror provider.
+   */
   protected MirrorProvider $mirrorProvider;
+
+  /**
+   * The permissions hash generator.
+   */
   protected PermissionsHashGeneratorInterface $permissionsHashGenerator;
 
   /**
@@ -261,7 +304,7 @@ class NestedFilterDropdownOptionsProvider {
       // Extract and apply non-exposed conditions.
       if ($view_query) {
         $non_exposed_fields = [];
-        foreach ($view_query->view->filter as $filter_id => $filter) {
+        foreach ($view_query->view->filter as $filter) {
           if (!$filter->isExposed() && !empty($filter->value)) {
             $non_exposed_fields[] = $filter->realField;
           }

@@ -9,9 +9,10 @@ use Drupal\field_ui\FieldConfigListBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * List builder for field configurations that keeps locked relation fields visible.
+ * Field list builder that keeps locked relation fields visible.
  *
- * Extends FieldConfigListBuilder to override operations for relationship node fields.
+ * Extends FieldConfigListBuilder to override operations for relationship node
+ * fields.
  */
 class LockedFieldListBuilder extends FieldConfigListBuilder {
 

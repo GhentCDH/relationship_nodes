@@ -22,10 +22,29 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class RelationInlineEntityForm extends NodeInlineForm {
 
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldNameResolver;
+
+  /**
+   * The foreign key resolver.
+   */
   protected ForeignKeyResolver $foreignKeyResolver;
+
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $bundleSettingsManager;
+
+  /**
+   * The relation title generator.
+   */
   protected RelationTitleGenerator $titleGenerator;
+
+  /**
+   * The parent node context.
+   */
   protected ParentNodeContext $parentNodeContext;
 
   /**

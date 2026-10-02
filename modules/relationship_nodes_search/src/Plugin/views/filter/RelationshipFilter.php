@@ -24,10 +24,29 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
 
   use SearchApiFilterTrait;
 
+  /**
+   * The nested exposed form builder.
+   */
   protected NestedExposedFormBuilder $exposedFormBuilder;
+
+  /**
+   * The nested field views filter configurator.
+   */
   protected NestedFieldViewsFilterConfigurator $filterConfigurator;
+
+  /**
+   * The nested query structure builder.
+   */
   protected NestedQueryStructureBuilder $queryBuilder;
+
+  /**
+   * The filter operator helper.
+   */
   protected FilterOperatorHelper $operatorHelper;
+
+  /**
+   * The nested index field helper.
+   */
   protected NestedIndexFieldHelper $nestedFieldHelper;
 
   /**
@@ -197,7 +216,10 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
         if ($id === 'from' || $id === 'to') {
           $form_state->setError(
             $form['field_settings'][$field_name]['child_filter_id'],
-            $this->t('The identifier "@id" is reserved by the range pair filter. Choose a different identifier for "@field".', ['@id' => $id, '@field' => $field_name])
+            $this->t('The identifier "@id" is reserved by the range pair filter. Choose a different identifier for "@field".', [
+              '@id' => $id,
+              '@field' => $field_name,
+            ])
           );
         }
       }
@@ -463,11 +485,12 @@ class RelationshipFilter extends FilterPluginBase implements ContainerFactoryPlu
   }
 
   /**
-   * Converts a year integer to an ISO 8601 date string for date field comparisons.
+   * Converts a year to an ISO 8601 date string for date field comparisons.
    *
    * Select_range widgets emit plain year integers (e.g. 1800). Date fields are
    * stored in Elasticsearch as ISO 8601 strings (date('c', $timestamp)). This
-   * method produces a matching string so Elasticsearch can compare them correctly.
+   * method produces a matching string so Elasticsearch can compare them
+   * correctly.
    *
    * For >= and > operators the start of the year is used (Jan 1 00:00:00).
    * For <= and <  operators the end  of the year is used (Dec 31 23:59:59).

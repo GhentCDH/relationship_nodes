@@ -16,7 +16,14 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class MirrorTermSubscriber implements EventSubscriberInterface {
 
+  /**
+   * The mirror sync.
+   */
   protected MirrorSync $mirrorUpdater;
+
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $settingsManager;
 
   /**

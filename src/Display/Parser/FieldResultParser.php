@@ -88,7 +88,8 @@ class FieldResultParser extends FieldResultParserBase {
   /**
    * Extracts entity references from a Drupal field.
    *
-   * Handles entity_reference fields and returns structured data with entity type.
+   * Handles entity_reference fields and returns structured data with entity
+   * type.
    *
    * @param \Drupal\Core\Entity\ContentEntityInterface $entity
    *   The entity containing the field.

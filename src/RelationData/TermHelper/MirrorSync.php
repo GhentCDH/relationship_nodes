@@ -14,7 +14,14 @@ class MirrorSync {
 
   use OriginalEntityTrait;
 
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldNameResolver;
 
   /**

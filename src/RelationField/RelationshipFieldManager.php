@@ -19,8 +19,19 @@ use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
  */
 class RelationshipFieldManager {
 
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldNameResolver;
+
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $settingsManager;
 
   /**
@@ -500,11 +511,14 @@ class RelationshipFieldManager {
    *   The configuration name.
    *
    * @return array|null
-   *   Array containing field_entity_class, entity_type_id, bundle, field_name, or NULL.
+   *   Array containing field_entity_class, entity_type_id, bundle, field_name,
+   *   or NULL.
    */
   public function getConfigFileFieldClasses(string $config_name): ?array {
     $parts = explode('.', $config_name);
-    if ($parts[0] !== 'field' || !in_array($parts[1], ['field', 'storage']) || !in_array($parts[2], ['node', 'taxonomy_term'])) {
+    if ($parts[0] !== 'field'
+      || !in_array($parts[1], ['field', 'storage'])
+      || !in_array($parts[2], ['node', 'taxonomy_term'])) {
       return NULL;
     }
     if ($parts[1] === 'field') {

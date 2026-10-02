@@ -54,7 +54,10 @@ final class FieldConfigValidator {
   }
 
   /**
+   * Validates that the field targets at most one bundle.
    *
+   * @return \Drupal\relationship_nodes\Validation\ValidationResult
+   *   The validation result.
    */
   private function validateTargetBundles(): ValidationResult {
     if (empty($this->targetBundles) || count($this->targetBundles) === 1) {
@@ -64,7 +67,10 @@ final class FieldConfigValidator {
   }
 
   /**
+   * Validates that the field is not required.
    *
+   * @return \Drupal\relationship_nodes\Validation\ValidationResult
+   *   The validation result.
    */
   private function validateFieldRequired(): ValidationResult {
     return $this->required
@@ -73,7 +79,13 @@ final class FieldConfigValidator {
   }
 
   /**
+   * Validates the field type.
    *
+   * @param array $required
+   *   The required field settings.
+   *
+   * @return \Drupal\relationship_nodes\Validation\ValidationResult
+   *   The validation result.
    */
   private function validateFieldType(array $required): ValidationResult {
     return $this->fieldType === $required['type']
@@ -82,7 +94,10 @@ final class FieldConfigValidator {
   }
 
   /**
+   * Validates that a mirror reference field targets its own vocabulary.
    *
+   * @return \Drupal\relationship_nodes\Validation\ValidationResult
+   *   The validation result.
    */
   private function validateSelfReferencingMirrorField(): ValidationResult {
     $mirrorField = $this->fieldResolver->getMirrorFields('entity_reference');
@@ -99,7 +114,10 @@ final class FieldConfigValidator {
   }
 
   /**
+   * Validates that a relation type field targets a relation vocabulary.
    *
+   * @return \Drupal\relationship_nodes\Validation\ValidationResult
+   *   The validation result.
    */
   private function validateRelationVocabTarget(): ValidationResult {
     if ($this->fieldName !== $this->fieldResolver->getRelationTypeField()) {
@@ -120,7 +138,13 @@ final class FieldConfigValidator {
   }
 
   /**
+   * Checks whether a vocabulary is a relation type vocabulary.
    *
+   * @param string $vocabName
+   *   The vocabulary machine name.
+   *
+   * @return bool
+   *   TRUE if it is a relation type vocabulary.
    */
   private function isValidRelationVocab(string $vocabName): bool {
     // Runtime check.

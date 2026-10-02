@@ -12,6 +12,9 @@ use Drupal\search_api\Entity\Index;
  */
 class NestedQueryStructureBuilder {
 
+  /**
+   * The elastic mapping inspector.
+   */
   protected ElasticMappingInspector $mappingInspector;
 
   /**
@@ -125,7 +128,7 @@ class NestedQueryStructureBuilder {
   }
 
   /**
-   * Returns the correct field path to use in a query (with or without ".keyword").
+   * Returns the field path to use in a query, with or without ".keyword".
    *
    * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.

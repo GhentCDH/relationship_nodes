@@ -12,8 +12,19 @@ use Drupal\relationship_nodes\RelationBundle\BundleInfoService;
  */
 class ForeignKeyResolver {
 
+  /**
+   * The parent node context.
+   */
   protected ParentNodeContext $parentNodeContext;
+
+  /**
+   * The bundle info service.
+   */
   protected BundleInfoService $bundleInfoService;
+
+  /**
+   * The relation info.
+   */
   protected RelationInfo $nodeInfoService;
 
   /**
@@ -37,7 +48,15 @@ class ForeignKeyResolver {
   }
 
   /**
+   * Returns the related entity field of a relation that references a node.
    *
+   * @param \Drupal\node\NodeInterface $relation_entity
+   *   The relation node.
+   * @param \Drupal\node\NodeInterface|null $target_entity
+   *   The referenced node; defaults to the node whose relations are edited.
+   *
+   * @return string|null
+   *   The field name, or NULL if none.
    */
   public function getEntityForeignKeyField(NodeInterface $relation_entity, ?NodeInterface $target_entity = NULL): ?string {
     $target_entity = $this->ensureTargetNode($target_entity);

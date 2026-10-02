@@ -23,8 +23,6 @@ final class ValidationService {
     private readonly ValidationResultFormatter $formatter,
   ) {}
 
-  // ========== Form Validation ==========
-
   /**
    * Validate form state and display errors.
    */
@@ -74,8 +72,6 @@ final class ValidationService {
     return $this->validateEntityFields($entity, $rnSettings);
   }
 
-  // ========== Entity Validation ==========
-
   /**
    * Validate a bundle entity and its fields.
    */
@@ -112,8 +108,6 @@ final class ValidationService {
 
     return ValidationResult::mergeAll($results);
   }
-
-  // ========== Field Validation ==========
 
   /**
    * Validate field storage configuration.
@@ -153,8 +147,6 @@ final class ValidationService {
     return ValidationResult::mergeAll($results);
   }
 
-  // ========== Complete Validation ==========
-
   /**
    * Validate all relation bundles and fields in the system.
    */
@@ -171,7 +163,7 @@ final class ValidationService {
   private function validateAllBundles(): ValidationResult {
     $results = [];
 
-    foreach ($this->bundleInfoService->getAllRelationBundles() as $bundleName => $entity) {
+    foreach ($this->bundleInfoService->getAllRelationBundles() as $entity) {
       $results[] = $this->validateBundleEntity($entity);
     }
 
@@ -186,7 +178,7 @@ final class ValidationService {
     $rnFields = $this->fieldManager->getAllRnCreatedFields();
     $validFieldNames = $this->fieldResolver->getAllRelationFieldNames();
 
-    foreach ($rnFields as $fieldId => $field) {
+    foreach ($rnFields as $field) {
       $fieldName = $field->getName();
 
       // Validate the field itself.

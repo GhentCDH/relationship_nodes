@@ -23,8 +23,6 @@ final class ConfigImportValidator {
     private readonly ValidationResultFormatter $formatter,
   ) {}
 
-  // ========== Public API for Event Subscribers ==========
-
   /**
    * Validate and display bundle configuration import errors.
    */
@@ -48,8 +46,6 @@ final class ConfigImportValidator {
     $result = $this->validateFieldDependencyConfig($configName, $storage);
     $this->logErrors($result, $configName, $event);
   }
-
-  // ========== Bundle Validation ==========
 
   /**
    * Validate a single bundle configuration import.
@@ -100,8 +96,6 @@ final class ConfigImportValidator {
     return ValidationResult::mergeAll($results);
   }
 
-  // ========== Field Validation ==========
-
   /**
    * Validate field storage configuration import.
    */
@@ -117,8 +111,6 @@ final class ConfigImportValidator {
     $validator = $this->validationFactory->fromFieldConfigConfigFile($configData, $storage);
     return $validator->validate();
   }
-
-  // ========== Field Dependencies ==========
 
   /**
    * Validate field dependencies during deletion.
@@ -221,10 +213,6 @@ final class ConfigImportValidator {
 
     return [];
   }
-
-  // ========== Complete Import Validation ==========
-
-  // ========== Helper Methods ==========
 
   /**
    * Get field storage config for a field config.

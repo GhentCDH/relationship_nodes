@@ -23,8 +23,19 @@ use Drupal\Core\Entity\Exception\UndefinedLinkTemplateException;
  */
 abstract class FieldResultParserBase {
 
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The language manager.
+   */
   protected LanguageManagerInterface $languageManager;
+
+  /**
+   * The logger channel factory.
+   */
   protected LoggerChannelFactoryInterface $loggerFactory;
 
   /**

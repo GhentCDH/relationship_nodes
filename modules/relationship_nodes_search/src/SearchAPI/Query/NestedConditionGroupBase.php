@@ -15,12 +15,29 @@ use Drupal\relationship_nodes_search\QueryHelper\NestedQueryStructureBuilder;
  */
 abstract class NestedConditionGroupBase extends ConditionGroup {
 
+  /**
+   * The parent field name.
+   */
   protected ?string $parentFieldName = NULL;
+
+  /**
+   * The index.
+   */
   protected ?Index $index = NULL;
+
+  /**
+   * The nested query structure builder.
+   */
   protected ?NestedQueryStructureBuilder $queryBuilder = NULL;
 
   /**
+   * Sets the relationship field the conditions apply to.
    *
+   * @param string $parentFieldName
+   *   The relationship field name on the index.
+   *
+   * @return $this
+   *   The condition group.
    */
   public function setParentFieldName(string $parentFieldName): static {
     $this->parentFieldName = $parentFieldName;
@@ -28,14 +45,23 @@ abstract class NestedConditionGroupBase extends ConditionGroup {
   }
 
   /**
+   * Returns the relationship field the conditions apply to.
    *
+   * @return string|null
+   *   The relationship field name, or NULL if not set.
    */
   public function getParentFieldName(): ?string {
     return $this->parentFieldName;
   }
 
   /**
+   * Sets the Search API index of the conditions.
    *
+   * @param \Drupal\search_api\Entity\Index $index
+   *   The index.
+   *
+   * @return $this
+   *   The condition group.
    */
   public function setIndex(Index $index): static {
     $this->index = $index;
@@ -43,7 +69,13 @@ abstract class NestedConditionGroupBase extends ConditionGroup {
   }
 
   /**
+   * Sets the builder that resolves Elasticsearch field paths.
    *
+   * @param \Drupal\relationship_nodes_search\QueryHelper\NestedQueryStructureBuilder $queryBuilder
+   *   The query structure builder.
+   *
+   * @return $this
+   *   The condition group.
    */
   public function setQueryBuilder(NestedQueryStructureBuilder $queryBuilder): static {
     $this->queryBuilder = $queryBuilder;
@@ -81,7 +113,8 @@ abstract class NestedConditionGroupBase extends ConditionGroup {
    * Creates and adds a sub-condition group inside this condition group.
    *
    * Use this to express inner boolean logic (e.g. OR-with-AND-sub-group) that
-   * must apply to the same nested document as the other conditions in this group.
+   * must apply to the same nested document as the other conditions in this
+   * group.
    *
    * @param string $conjunction
    *   'AND' or 'OR'.

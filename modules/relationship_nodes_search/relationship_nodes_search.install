@@ -24,7 +24,7 @@ function relationship_nodes_search_uninstall($is_syncing = FALSE) {
     $changed = FALSE;
     $displays = $view->get('display');
 
-    foreach ($displays as $display_id => &$display) {
+    foreach ($displays as &$display) {
       // Remove fields.
       if (!empty($display['display_options']['fields'])) {
         foreach ($display['display_options']['fields'] as $field_id => $field) {

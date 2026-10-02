@@ -13,7 +13,7 @@ use Drupal\Core\Field\Attribute\FieldFormatter;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**
- * Displays an entity reference field as the mirror label of the referenced term.
+ * Displays a relation type reference as the mirror label of the term.
  *
  * Falls back to the plain term label if no mirror label is configured.
  */
@@ -25,7 +25,14 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 )]
 class MirrorLabelFormatter extends EntityReferenceLabelFormatter implements ContainerFactoryPluginInterface {
 
+  /**
+   * The mirror provider.
+   */
   protected MirrorProvider $mirrorProvider;
+
+  /**
+   * The language manager.
+   */
   protected LanguageManagerInterface $languageManager;
 
   /**

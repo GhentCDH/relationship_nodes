@@ -21,10 +21,29 @@ use Drupal\taxonomy\TermStorageInterface;
  */
 class MirrorProvider {
 
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldNameResolver;
+
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $settingsManager;
+
+  /**
+   * The foreign key resolver.
+   */
   protected ForeignKeyResolver $foreignKeyResolver;
+
+  /**
+   * The relation form helper.
+   */
   protected RelationFormHelper $formHelper;
 
   /**
@@ -185,6 +204,8 @@ class MirrorProvider {
    *   The term ID.
    * @param string|null $default_label
    *   The default label.
+   * @param string|null $langcode
+   *   The language of the label; defaults to the current language.
    *
    * @return array
    *   Array with term ID as key and label as value.
@@ -205,10 +226,8 @@ class MirrorProvider {
    *
    * @param \Drupal\taxonomy\TermInterface $term
    *   The term.
-   *
    * @param bool $fallback_to_default
    *   Should the method return a default label if no label is found.
-   *
    * @param string|null $default_label
    *   The default label.
    *
@@ -277,6 +296,8 @@ class MirrorProvider {
    *
    * @param string $term_id
    *   The taxonomy term ID.
+   * @param string|null $langcode
+   *   The language of the label; defaults to the current language.
    *
    * @return string|null
    *   The mirror label, or NULL if the term does not exist or has no mirror.

@@ -18,10 +18,29 @@ use Drupal\relationship_nodes\RelationField\FieldNameResolver;
  */
 class RelationInfo {
 
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The parent node context.
+   */
   protected ParentNodeContext $parentNodeContext;
+
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldNameResolver;
+
+  /**
+   * The bundle info service.
+   */
   protected BundleInfoService $bundleInfoService;
+
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $settingsManager;
 
   /**
@@ -53,7 +72,7 @@ class RelationInfo {
   }
 
   /**
-   * Returns the 'related entity' fields in the relation node that reference a given target node.
+   * Returns the related entity fields of a relation that reference a node.
    *
    * @param \Drupal\node\Entity\Node $relation_node
    *   The relation node to inspect.
@@ -97,8 +116,8 @@ class RelationInfo {
   /**
    * Gets the connection info between a relation node and a target node.
    *
-   * Returns information about how a specific relation node connects to a target node,
-   * including which fields create the connection and whether it's valid.
+   * Returns information about how a specific relation node connects to a target
+   * node, including which fields create the connection and whether it's valid.
    *
    * @param \Drupal\node\Entity\Node $relation_node
    *   The relation node to inspect (e.g., "Partnership between X and Y").
@@ -113,7 +132,8 @@ class RelationInfo {
    *     * 'related': valid single connection found
    *     * 'Error: duplicate relations': multiple conflicting connections found
    *   - 'join_fields': array of field names that connect the nodes
-   *     Example: ['rn_related_entity_1'] or ['rn_related_entity_1', 'rn_related_entity_2']
+   *     Example: ['rn_related_entity_1'] or ['rn_related_entity_1',
+   *     'rn_related_entity_2']
    *   - 'relation_info': array (optional) with relation bundle metadata
    *     * 'has_relationtype': bool
    *     * 'vocabulary': string (vocab machine name if typed relation)
@@ -121,15 +141,15 @@ class RelationInfo {
    *   Returns empty array if target node is invalid.
    *
    * @example
-   *   // For a "Partnership" relation between Company A (nid:1) and Company B (nid:2)
-   *   // When checking from Company A's perspective:
-   *   $info = $service->getEntityConnectionInfo($partnership_node, $company_a_node);
-   *   // Returns:
+   *   // For a "Partnership" relation between Company A (nid:1) and Company B
+   *   (nid:2) // When checking from Company A's perspective:
+   *   $info = $service->getEntityConnectionInfo($partnership_node,
+   *   $company_a_node); // Returns:
    *   // [
    *   //   'relation_state' => 'related',
    *   //   'join_fields' => ['rn_related_entity_1'],
-   *   //   'relation_info' => ['has_relationtype' => TRUE, 'vocabulary' => 'partnership_types']
-   *   // ]
+   *   //   'relation_info' => ['has_relationtype' => TRUE, 'vocabulary' =>
+   *   'partnership_types'] // ]
    */
   public function getEntityConnectionInfo(Node $relation_node, ?Node $target_node = NULL): array {
     if (empty($target_node)) {
@@ -172,14 +192,18 @@ class RelationInfo {
   }
 
   /**
-   * Returns all relation nodes that reference a given target node through a specific relation bundle.
+   * Returns the relation nodes of a relation bundle that reference a node.
    *
    * @param \Drupal\node\Entity\Node $target_node
+   *   The node the relations reference.
    * @param string $relation_bundle
+   *   The relation bundle.
    * @param array $join_fields
-   *   Optional: list of 'related entity' fields through which the target node is referenced (in the relation bundle).
+   *   Optional: list of 'related entity' fields through which the target node
+   *   is referenced (in the relation bundle).
    * @param bool $group_by_field
-   *   Optional: should the result be grouped by field (e.g. field_related_item => [], 'field related_item_2 = []) ->true, or flattened -> false.
+   *   Optional: should the result be grouped by field (e.g. field_related_item
+   *   => [], 'field related_item_2 = []) ->true, or flattened -> false.
    *
    * @return array
    *   Array of referencing relation node objects, keyed by their ID.
@@ -216,13 +240,15 @@ class RelationInfo {
   }
 
   /**
-   * Get a list of all nodes that are related to a given target node (grouped by the relation bundle that connects them).
+   * Returns all relation nodes of a node, grouped by relation bundle.
    *
    * @param \Drupal\node\Entity\Node $target_node
+   *   The node the relations reference.
    *
    * @return array
    *   Associative array of associative arrays.
-   *   The outer array is keyed by the relation bundle names and has arrays of related nodes as value [node_id => Node,...].
+   *   The outer array is keyed by the relation bundle names and has arrays of
+   *   related nodes as value [node_id => Node,...].
    */
   public function getAllReferencingRelations(Node $target_node): array {
     $result = [];
@@ -244,12 +270,14 @@ class RelationInfo {
   }
 
   /**
-   * Returns the target entity IDs for all related entity fields in a relation node.
+   * Returns the target IDs of all related entity fields of a relation node.
    *
    * @param \Drupal\node\Entity\Node $relation_node
+   *   The relation node.
    *
    * @return array|null
-   *   Associative array of related enity field names => array of target IDs, or NULL if not a relation node type.
+   *   Associative array of related enity field names => array of target IDs, or
+   *   NULL if not a relation node type.
    *   E.g. ['related_entity_field_1' => 101, 'related_entity_field_2' => 202]
    */
   public function getRelatedEntityValues(Node $relation_node): ?array {
@@ -277,6 +305,7 @@ class RelationInfo {
    * Extracts target IDs from an entity reference field list.
    *
    * @param \Drupal\Core\Field\EntityReferenceFieldItemList $list
+   *   The field item list.
    *
    * @return array
    *   Array of target entity IDs.

@@ -19,7 +19,14 @@ class VocabFormAlter {
 
   use StringTranslationTrait;
 
+  /**
+   * The bundle form handler.
+   */
   protected BundleFormHandler $formHandler;
+
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $settingsManager;
 
   /**

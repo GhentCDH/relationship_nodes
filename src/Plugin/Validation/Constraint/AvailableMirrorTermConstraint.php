@@ -14,7 +14,19 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
   label: new TranslatableMarkup('Term Mirror Validation', options: ['context' => 'Validation']),
 )]
 class AvailableMirrorTermConstraint extends Constraint {
+
+  /**
+   * The message when the mirror term is already mirrored by another term.
+   *
+   * @var string
+   */
   public $termAlreadyMirrored = 'The selected mirror term is already linked to another relationship type. Please choose a different mirror term or remove the existing link before proceeding.';
+
+  /**
+   * The message when a term is its own mirror.
+   *
+   * @var string
+   */
   public $noSelfMirroring = 'A relationship type cannot mirror itself. For one-way (unidirectional) relationships, leave the mirror field blank. For directional relationships, select a different term for the reverse relationship or remove the existing link first.';
 
 }

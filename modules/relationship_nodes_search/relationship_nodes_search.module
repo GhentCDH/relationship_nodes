@@ -2,6 +2,7 @@
 
 /**
  * @file
+ * Hooks for the Relationship Nodes Search module.
  */
 
 use Drupal\Core\Form\FormStateInterface;

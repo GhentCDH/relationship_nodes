@@ -13,27 +13,6 @@ class ValidationResultFormatter {
 
   use StringTranslationTrait;
 
-
-  private const ERROR_MESSAGES = [
-    'no_field_storage' => 'The field "@field" does not have a valid field storage configuration.',
-    'invalid_field_type' => 'The field "@field" has an invalid field type.',
-    'invalid_cardinality' => 'The field "@field" has an invalid cardinality setting.',
-    'invalid_target_type' => 'The field "@field" has an invalid target entity type.',
-    'invalid_mirror_type' => 'The vocabulary "@bundle" has no valid mirror type. Only "none", "entity_reference", and "string" are supported.',
-    'invalid_entity_type' => 'Invalid entity type in relation configuration. Only "node_type" and "taxonomy_vocabulary" are allowed.',
-    'missing_field_config' => 'The field "@field" exists, but its field configuration cannot be found.',
-    'no_field_config_file' => 'No field configuration file is available for evaluation.',
-    'field_has_dependency' => 'The field "@field" cannot be removed because the bundle "@bundle" depends on it.',
-    'multiple_target_bundles' => 'The field "@field" in bundle "@bundle" can only target a single bundle.',
-    'field_cannot_be_required' => 'The field "@field" in bundle "@bundle" cannot be required due to Inline Entity Form widget constraints.',
-    'missing_config_file_data' => 'The field "@field" has a configuration file, but its content cannot be read.',
-    'missing_field_name_config' => 'The Relationship Node module is missing the required field name configuration (see config/install).',
-    'disabled_with_dependencies' => 'The vocabulary "@bundle" is used as a relation type in a relationship node. Remove this dependency before disabling Relationship Nodes.',
-    'orphaned_rn_field_settings' => 'The field "@field" has relation settings, but is not defined in the module configuration.',
-    'invalid_relation_vocabulary' => 'The field "@field" in bundle "@bundle" targets an invalid relation vocabulary.',
-    'mirror_field_bundle_mismatch' => 'The mirror field "@field" in bundle "@bundle" must reference the same vocabulary as the original.',
-  ];
-
   /**
    * Formats validation errors into a readable message.
    *
@@ -73,8 +52,27 @@ class ValidationResultFormatter {
    *   The translated error message.
    */
   protected function errorCodeToMessage(string $error_code, array $context): string {
-    $error_message = self::ERROR_MESSAGES[$error_code] ?? $error_code;
-    return $this->t($error_message, $context);
+    // Literal strings, so they can be found for translation.
+    return (string) match ($error_code) {
+      'no_field_storage' => $this->t('The field "@field" does not have a valid field storage configuration.', $context),
+      'invalid_field_type' => $this->t('The field "@field" has an invalid field type.', $context),
+      'invalid_cardinality' => $this->t('The field "@field" has an invalid cardinality setting.', $context),
+      'invalid_target_type' => $this->t('The field "@field" has an invalid target entity type.', $context),
+      'invalid_mirror_type' => $this->t('The vocabulary "@bundle" has no valid mirror type. Only "none", "entity_reference", and "string" are supported.', $context),
+      'invalid_entity_type' => $this->t('Invalid entity type in relation configuration. Only "node_type" and "taxonomy_vocabulary" are allowed.', $context),
+      'missing_field_config' => $this->t('The field "@field" exists, but its field configuration cannot be found.', $context),
+      'no_field_config_file' => $this->t('No field configuration file is available for evaluation.', $context),
+      'field_has_dependency' => $this->t('The field "@field" cannot be removed because the bundle "@bundle" depends on it.', $context),
+      'multiple_target_bundles' => $this->t('The field "@field" in bundle "@bundle" can only target a single bundle.', $context),
+      'field_cannot_be_required' => $this->t('The field "@field" in bundle "@bundle" cannot be required due to Inline Entity Form widget constraints.', $context),
+      'missing_config_file_data' => $this->t('The field "@field" has a configuration file, but its content cannot be read.', $context),
+      'missing_field_name_config' => $this->t('The Relationship Node module is missing the required field name configuration (see config/install).', $context),
+      'disabled_with_dependencies' => $this->t('The vocabulary "@bundle" is used as a relation type in a relationship node. Remove this dependency before disabling Relationship Nodes.', $context),
+      'orphaned_rn_field_settings' => $this->t('The field "@field" has relation settings, but is not defined in the module configuration.', $context),
+      'invalid_relation_vocabulary' => $this->t('The field "@field" in bundle "@bundle" targets an invalid relation vocabulary.', $context),
+      'mirror_field_bundle_mismatch' => $this->t('The mirror field "@field" in bundle "@bundle" must reference the same vocabulary as the original.', $context),
+      default => $error_code,
+    };
   }
 
 }

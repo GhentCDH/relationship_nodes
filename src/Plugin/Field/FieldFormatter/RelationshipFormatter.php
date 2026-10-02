@@ -35,7 +35,14 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 )]
 class RelationshipFormatter extends EntityReferenceFormatterBase implements ContainerFactoryPluginInterface {
 
+  /**
+   * The relationship data builder.
+   */
   protected RelationshipDataBuilder $displayBuilder;
+
+  /**
+   * The formatter configurator.
+   */
   protected FormatterConfigurator $configurator;
 
   /**

@@ -1,8 +1,5 @@
 <?php
 
-// ============================================================
-// 1. Value object: src/Display/RelationAvailability.php
-// ============================================================
 namespace Drupal\relationship_nodes\Display;
 
 /**
@@ -70,8 +67,9 @@ class RelationAvailability {
   }
 
   /**
-   * Returns TRUE if at least one referenced entity has no published translation
-   * at all, or could not be loaded.
+   * Returns TRUE if a referenced entity is unavailable in every language.
+   *
+   * That is: it has no viewable translation at all, or could not be loaded.
    */
   public function isUnavailable(): bool {
     return $this->status === self::UNAVAILABLE;
@@ -85,10 +83,12 @@ class RelationAvailability {
   }
 
   /**
-   * Returns languages in which all referenced entities have a published
-   * translation. Empty when status is UNAVAILABLE.
+   * Returns the languages in which all referenced entities are available.
+   *
+   * Empty when the status is UNAVAILABLE.
    *
    * @return string[]
+   *   The language codes.
    */
   public function getAvailableLanguages(): array {
     return $this->availableLanguages;
@@ -98,6 +98,7 @@ class RelationAvailability {
    * Returns cache tags for all referenced entities.
    *
    * @return string[]
+   *   The cache tags.
    */
   public function getCacheTags(): array {
     return $this->cacheTags;
@@ -107,6 +108,7 @@ class RelationAvailability {
    * Returns cache contexts of the access checks on the referenced entities.
    *
    * @return string[]
+   *   The cache contexts.
    */
   public function getCacheContexts(): array {
     return $this->cacheContexts;

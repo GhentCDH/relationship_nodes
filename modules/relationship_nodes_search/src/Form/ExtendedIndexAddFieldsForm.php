@@ -19,7 +19,14 @@ use Drupal\relationship_nodes\RelationField\FieldNameResolver;
  */
 class ExtendedIndexAddFieldsForm extends IndexAddFieldsForm {
 
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldNameResolver;
+
+  /**
+   * The calculated field helper.
+   */
   protected CalculatedFieldHelper $calculatedFieldHelper;
 
   /**
@@ -79,7 +86,7 @@ class ExtendedIndexAddFieldsForm extends IndexAddFieldsForm {
         ];
       }
       else {
-        [$sapi_fld_nm, $child_fld_nm] = explode(':', substr($machine_name, strlen('relationship_info__')), 2);
+        [, $child_fld_nm] = explode(':', substr($machine_name, strlen('relationship_info__')), 2);
 
         $attributes = ['class' => ['relationship-child-checkbox']];
 

@@ -22,10 +22,29 @@ class FieldUiManager {
 
   use StringTranslationTrait;
 
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The route match.
+   */
   protected RouteMatchInterface $routeMatch;
+
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldResolver;
+
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $settingsManager;
+
+  /**
+   * The relationship field manager.
+   */
   protected RelationshipFieldManager $relationFieldManager;
 
   /**
@@ -120,7 +139,7 @@ class FieldUiManager {
     if (!$this->currentRouteIsRelationEntity()) {
       $delete_url = $this->getRelationFieldDeleteUrl($field_config);
       $row['data']['operations']['data']['#links']['delete'] = [
-        'title' => t('Delete'),
+        'title' => $this->t('Delete'),
         'weight' => 999,
         'url' => $delete_url,
       ];

@@ -17,8 +17,19 @@ class NodeTypeFormAlter {
 
   use StringTranslationTrait;
 
+  /**
+   * The bundle form handler.
+   */
   protected BundleFormHandler $formHandler;
+
+  /**
+   * The validation service.
+   */
   protected ValidationService $validationService;
+
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $settingsManager;
 
   /**

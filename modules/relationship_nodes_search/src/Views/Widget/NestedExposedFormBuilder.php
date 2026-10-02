@@ -15,9 +15,24 @@ class NestedExposedFormBuilder {
 
   use StringTranslationTrait;
 
+  /**
+   * The filter operator helper.
+   */
   protected FilterOperatorHelper $operatorHelper;
+
+  /**
+   * The calculated field helper.
+   */
   protected CalculatedFieldHelper $calculatedFieldHelper;
+
+  /**
+   * The nested filter dropdown options provider.
+   */
   protected NestedFilterDropdownOptionsProvider $dropdownProvider;
+
+  /**
+   * The nested index field helper.
+   */
   protected NestedIndexFieldHelper $nestedFieldHelper;
 
   /**
@@ -191,7 +206,8 @@ class NestedExposedFormBuilder {
       '#title' => $this->t('Operator'),
       // Range operators unless the field is known not to support them.
       '#options' => $this->operatorHelper->getOperatorOptionsForField($field_config['supports_range'] ?? TRUE),
-      // Sanitized so operators from older configurations are not illegal choices.
+      // Sanitized so operators from older configurations are not illegal
+      // choices.
       '#default_value' => $this->operatorHelper->sanitizeOperator($field_value['operator'] ?? $field_config['field_operator'] ?? NULL),
       '#attributes' => ['class' => ['relationship-filter-operator']],
     ];
@@ -373,7 +389,13 @@ class NestedExposedFormBuilder {
   }
 
   /**
+   * Builds the options of a year or integer range dropdown.
    *
+   * @param array $int_range
+   *   The range settings: 'min', 'max' and their sources.
+   *
+   * @return array
+   *   Integers keyed by themselves.
    */
   protected function buildIntRangeOptions(array $int_range): array {
     $min = ($int_range['use_current_year_min'] ?? FALSE)

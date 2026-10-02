@@ -16,8 +16,19 @@ class RelationEntityFormHandler {
 
   use StringTranslationTrait;
 
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldNameResolver;
+
+  /**
+   * The relation sync.
+   */
   protected RelationSync $syncService;
+
+  /**
+   * The relation form helper.
+   */
   protected RelationFormHelper $formHelper;
 
   /**

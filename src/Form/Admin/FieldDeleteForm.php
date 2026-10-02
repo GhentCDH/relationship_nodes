@@ -16,8 +16,19 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class FieldDeleteForm extends ConfirmFormBase {
 
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $settingsManager;
+
+  /**
+   * The field UI manager.
+   */
   protected FieldUiManager $uiUpdater;
+
+  /**
+   * The field config.
+   */
   protected ?FieldConfig $fieldConfig = NULL;
 
   /**

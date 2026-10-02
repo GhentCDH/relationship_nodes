@@ -12,7 +12,14 @@ use Twig\TwigFunction;
  */
 class RelationshipNodesTwigExtension extends AbstractExtension {
 
+  /**
+   * The relationship twig formatter.
+   */
   protected RelationshipTwigFormatter $formatter;
+
+  /**
+   * The renderer.
+   */
   protected RendererInterface $renderer;
 
   /**

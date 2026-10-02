@@ -20,9 +20,24 @@ class BundleFormHandler {
 
   use StringTranslationTrait;
 
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $settingsManager;
+
+  /**
+   * The relationship field manager.
+   */
   protected RelationshipFieldManager $relationFieldManager;
+
+  /**
+   * The field UI manager.
+   */
   protected FieldUiManager $fieldUiUpdater;
+
+  /**
+   * The messenger.
+   */
   protected MessengerInterface $messenger;
 
   /**
@@ -91,7 +106,12 @@ class BundleFormHandler {
   }
 
   /**
+   * Shows a message about the relation fields that were created.
    *
+   * @param \Drupal\Core\Config\Entity\ConfigEntityBundleBase $entity
+   *   The node type or vocabulary.
+   * @param array $missing_fields
+   *   The names of the created fields.
    */
   protected function showFieldCreationMessage(ConfigEntityBundleBase $entity, array $missing_fields): void {
     if (empty($missing_fields)) {
@@ -105,16 +125,11 @@ class BundleFormHandler {
 
     $link = Link::fromTextAndUrl($this->t('Manage fields'), $url)->toString();
 
-    if ($entity instanceof NodeType) {
-      $message = 'The following relationship fields were created but need to be configured: @fields. @link';
-    }
-    else {
-      $message = 'The following relationship fields were created: @fields. You can review them here: @link';
-    }
-
-    $this->messenger->addStatus($this->t(
-      $message, ['@fields' => implode(', ', array_keys($missing_fields)), '@link' => $link]
-    ));
+    $args = ['@fields' => implode(', ', array_keys($missing_fields)), '@link' => $link];
+    $message = $entity instanceof NodeType
+      ? $this->t('The following relationship fields were created but need to be configured: @fields. @link', $args)
+      : $this->t('The following relationship fields were created: @fields. You can review them here: @link', $args);
+    $this->messenger->addStatus($message);
   }
 
 }

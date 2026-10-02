@@ -18,10 +18,29 @@ use Psr\Log\LoggerInterface;
  */
 class RelationProcessorProperty extends ProcessorProperty implements ComplexDataDefinitionInterface {
 
+  /**
+   * The property definitions.
+   */
   protected ?array $propertyDefinitions = NULL;
+
+  /**
+   * The drupal field info.
+   */
   protected ?array $drupalFieldInfo = NULL;
+
+  /**
+   * The entity field manager.
+   */
   protected EntityFieldManagerInterface $entityFieldManager;
+
+  /**
+   * The logger.
+   */
   protected LoggerInterface $logger;
+
+  /**
+   * The calculated field names.
+   */
   protected ?array $calculatedFieldNames = NULL;
 
   /**

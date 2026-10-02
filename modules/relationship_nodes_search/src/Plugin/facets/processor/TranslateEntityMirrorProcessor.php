@@ -33,9 +33,24 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class TranslateEntityMirrorProcessor extends ProcessorPluginBase implements BuildProcessorInterface, ContainerFactoryPluginInterface {
 
+  /**
+   * The mirror provider.
+   */
   protected MirrorProvider $mirrorProvider;
+
+  /**
+   * The language manager.
+   */
   protected LanguageManagerInterface $languageManager;
+
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldNameResolver;
+
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $bundleSettingsManager;
 
   /**
@@ -82,7 +97,7 @@ class TranslateEntityMirrorProcessor extends ProcessorPluginBase implements Buil
 
     $langcode = $this->languageManager->getCurrentLanguage()->getId();
 
-    foreach ($results as $key => $result) {
+    foreach ($results as $result) {
       $term_id = (string) $result->getRawValue();
 
       if (!is_numeric($term_id)) {

@@ -2,6 +2,7 @@
 
 namespace Drupal\relationship_nodes\RelationField;
 
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -19,7 +20,16 @@ use Drupal\relationship_nodes\RelationBundle\BundleInfoService;
  */
 class VirtualFieldManager {
 
+  use StringTranslationTrait;
+
+  /**
+   * The bundle info service.
+   */
   protected BundleInfoService $bundleInfoService;
+
+  /**
+   * The logger channel.
+   */
   protected LoggerChannelInterface $logger;
 
   /**
@@ -27,6 +37,8 @@ class VirtualFieldManager {
    *
    * @param \Drupal\relationship_nodes\RelationBundle\BundleInfoService $bundleInfoService
    *   The bundle info service.
+   * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $loggerFactory
+   *   The logger factory.
    */
   public function __construct(BundleInfoService $bundleInfoService, LoggerChannelFactoryInterface $loggerFactory) {
     $this->bundleInfoService = $bundleInfoService;
@@ -73,7 +85,7 @@ class VirtualFieldManager {
       $fields[$field_name] = BaseFieldDefinition::create('entity_reference')
         ->setName($field_name)
         ->setLabel('Relationships with ' . implode(', ', $relationship['related_bundles']))
-        ->setDescription(t('This computed field lists all the relationships between @this and @related.', [
+        ->setDescription($this->t('This computed field lists all the relationships between @this and @related.', [
           '@this' => $bundle,
           '@related' => implode(', ', $relationship['related_bundles']),
         ]))

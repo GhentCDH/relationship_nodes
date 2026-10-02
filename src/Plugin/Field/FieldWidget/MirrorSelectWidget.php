@@ -24,6 +24,9 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 )]
 class MirrorSelectWidget extends OptionsSelectWidget {
 
+  /**
+   * The mirror provider.
+   */
   protected MirrorProvider $mirrorProvider;
 
   /**

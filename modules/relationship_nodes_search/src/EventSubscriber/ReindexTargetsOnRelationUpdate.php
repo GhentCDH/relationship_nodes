@@ -18,7 +18,7 @@ use Drupal\taxonomy\TermInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
- * Event subscriber that triggers Search API reindexing for relationship changes.
+ * Triggers Search API reindexing when relationship data changes.
  *
  * The relationship indexer copies data of relation nodes, of the nodes on
  * the other side and of relation type terms into the index of each related
@@ -32,11 +32,34 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
 
   use OriginalEntityTrait;
 
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The cache tags invalidator.
+   */
   protected CacheTagsInvalidatorInterface $cacheTagsInvalidator;
+
+  /**
+   * The logger channel factory.
+   */
   protected LoggerChannelFactoryInterface $loggerFactory;
+
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $settingsManager;
+
+  /**
+   * The relation info.
+   */
   protected RelationInfo $nodeInfoService;
+
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldNameResolver;
 
   /**

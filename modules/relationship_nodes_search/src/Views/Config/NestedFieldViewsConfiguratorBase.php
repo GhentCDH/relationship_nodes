@@ -22,8 +22,19 @@ use Drupal\relationship_nodes_search\FieldHelper\NestedIndexFieldHelper;
  */
 abstract class NestedFieldViewsConfiguratorBase extends FieldConfiguratorBase {
 
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldNameResolver;
+
+  /**
+   * The nested index field helper.
+   */
   protected NestedIndexFieldHelper $nestedFieldHelper;
+
+  /**
+   * The calculated field helper.
+   */
   protected CalculatedFieldHelper $calculatedFieldHelper;
 
   /**
@@ -50,7 +61,8 @@ abstract class NestedFieldViewsConfiguratorBase extends FieldConfiguratorBase {
    * Validates and prepares configuration for Views plugin options form.
    *
    * Common validation pattern used by both filter and field handlers.
-   * Performs field structure validation and adds error message to form if validation fails.
+   * Performs field structure validation and adds error message to form if
+   * validation fails.
    *
    * @param mixed $index
    *   The index from $this->getIndex().
@@ -60,7 +72,8 @@ abstract class NestedFieldViewsConfiguratorBase extends FieldConfiguratorBase {
    *   The form array to add error message to if validation fails.
    *
    * @return array|null
-   *   Configuration array with 'index', 'field_name', 'available_fields', or NULL if invalid.
+   *   Configuration array with 'index', 'field_name', 'available_fields', or
+   *   NULL if invalid.
    */
   public function validateAndPreparePluginForm($index, array $definition, array &$form): ?array {
     // Extract field name from plugin definition.
@@ -193,7 +206,8 @@ abstract class NestedFieldViewsConfiguratorBase extends FieldConfiguratorBase {
    *
    * @return array
    *   Keyed array of capabilities per field, e.g.:
-   *   ['field_person' => ['linkable' => true, 'is_entity_reference' => true, ...]]
+   *   ['field_person' => ['linkable' => true, 'is_entity_reference' => true,
+   *   ...]]
    */
   protected function getAllChildFieldCapabilities(
     Index $index,
@@ -320,8 +334,8 @@ abstract class NestedFieldViewsConfiguratorBase extends FieldConfiguratorBase {
   /**
    * Gets processed nested child field names with unnecessary fields removed.
    *
-   * Filters out internal relationship fields that shouldn't be exposed to users,
-   * returning only the relevant child fields for a parent field.
+   * Filters out internal relationship fields that shouldn't be exposed to
+   * users, returning only the relevant child fields for a parent field.
    *
    * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.

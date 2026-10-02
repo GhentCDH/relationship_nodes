@@ -57,7 +57,10 @@ function relationship_nodes_search_post_update_explicit_nested_mapping(array &$s
   }
 
   if ($stalled && $remaining > 0) {
-    return (string) t('Rebuilt the search indexes @indexes; @count items could not be indexed now and will be indexed by cron.', ['@indexes' => implode(', ', $sandbox['indexes']), '@count' => $remaining]);
+    return (string) t('Rebuilt the search indexes @indexes; @count items could not be indexed now and will be indexed by cron.', [
+      '@indexes' => implode(', ', $sandbox['indexes']),
+      '@count' => $remaining,
+    ]);
   }
   return $sandbox['indexes']
     ? (string) t('Rebuilt the search indexes @indexes with explicit mapping for relationship fields.', ['@indexes' => implode(', ', $sandbox['indexes'])])

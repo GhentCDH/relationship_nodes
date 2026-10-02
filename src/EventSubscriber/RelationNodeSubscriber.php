@@ -13,6 +13,9 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class RelationNodeSubscriber implements EventSubscriberInterface {
 
+  /**
+   * The relation title generator.
+   */
   protected RelationTitleGenerator $titleGenerator;
 
   /**

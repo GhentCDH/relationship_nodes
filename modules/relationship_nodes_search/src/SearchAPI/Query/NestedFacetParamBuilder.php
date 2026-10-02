@@ -16,12 +16,19 @@ use Drupal\relationship_nodes_search\FieldHelper\NestedIndexFieldHelper;
  * services.yml) rather than replacing it. This is intentional: replacing the
  * service entirely would break aggregations for all non-nested fields, which
  * make up the majority of facets on the site. The decorator intercepts only
- * nested relationship fields and delegates everything else to the parent class /
- * inner service, ensuring non-nested behaviour is completely unchanged.
+ * nested relationship fields and delegates everything else to the parent class
+ * / inner service, ensuring non-nested behaviour is completely unchanged.
  */
 class NestedFacetParamBuilder extends FacetParamBuilder {
 
+  /**
+   * The nested query structure builder.
+   */
   protected NestedQueryStructureBuilder $queryBuilder;
+
+  /**
+   * The nested index field helper.
+   */
   protected NestedIndexFieldHelper $nestedFieldHelper;
 
   /**
@@ -97,7 +104,8 @@ class NestedFacetParamBuilder extends FacetParamBuilder {
   /**
    * Builds a nested bucket aggregation.
    *
-   * Creates an Elasticsearch nested aggregation for fields within nested objects.
+   * Creates an Elasticsearch nested aggregation for fields within nested
+   * objects.
    *
    * @param \Drupal\search_api\Entity\Index $index
    *   The Search API index.

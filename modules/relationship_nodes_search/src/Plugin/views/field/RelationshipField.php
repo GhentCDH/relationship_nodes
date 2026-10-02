@@ -19,8 +19,19 @@ use Drupal\views\Attribute\ViewsField;
 #[ViewsField('search_api_relationship_field')]
 class RelationshipField extends SearchApiStandard implements ContainerFactoryPluginInterface {
 
+  /**
+   * The nested field views field configurator.
+   */
   protected NestedFieldViewsFieldConfigurator $fieldConfigurator;
+
+  /**
+   * The nested field result views parser.
+   */
   protected NestedFieldResultViewsParser $resultParser;
+
+  /**
+   * The calculated field helper.
+   */
   protected CalculatedFieldHelper $calculatedFieldHelper;
 
   /**
@@ -193,6 +204,7 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
   /**
    * {@inheritdoc}
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidFunctionName.ScopeNotCamelCaps -- Overrides the Views method.
   public function render_item($count, $item) {
     return '';
   }

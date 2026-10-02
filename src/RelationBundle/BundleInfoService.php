@@ -22,11 +22,34 @@ use Drupal\relationship_nodes\RelationField\RelationshipFieldManager;
  */
 class BundleInfoService {
 
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The entity field manager.
+   */
   protected EntityFieldManagerInterface $fieldManager;
+
+  /**
+   * The entity type bundle info.
+   */
   protected EntityTypeBundleInfoInterface $bundleInfo;
+
+  /**
+   * The field name resolver.
+   */
   protected FieldNameResolver $fieldNameResolver;
+
+  /**
+   * The bundle settings manager.
+   */
   protected BundleSettingsManager $settingsManager;
+
+  /**
+   * The relationship field manager.
+   */
   protected RelationshipFieldManager $relationFieldManager;
 
   /**
@@ -436,7 +459,8 @@ class BundleInfoService {
    * @return array
    *   Array of configuration data arrays keyed by config name.
    *   Keys are like 'taxonomy.vocabulary.relation_types'.
-   *   Each value is the full config data array with 'third_party_settings', etc.
+   *   Each value is the full config data array with 'third_party_settings',
+   *   etc.
    */
   public function getAllCimRelationVocabs(StorageInterface $storage, ?string $type = NULL): array {
     $all_vocabs = $this->getAllCimRelationBundles($storage, 'taxonomy_vocabulary') ?? [];

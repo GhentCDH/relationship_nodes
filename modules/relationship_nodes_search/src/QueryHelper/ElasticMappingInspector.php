@@ -8,13 +8,25 @@ use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 /**
  * Service for inspecting and working with Elasticsearch field mappings.
  *
- * Provides utilities to determine correct field paths for queries and aggregations,
- * handling the complexity of Elasticsearch's text/keyword field patterns.
+ * Provides utilities to determine correct field paths for queries and
+ * aggregations, handling the complexity of Elasticsearch's text/keyword field
+ * patterns.
  */
 class ElasticMappingInspector {
 
+  /**
+   * The mapping cache.
+   */
   protected array $mappingCache = [];
+
+  /**
+   * The field mapping cache.
+   */
   protected array $fieldMappingCache = [];
+
+  /**
+   * The logger channel factory.
+   */
   protected LoggerChannelFactoryInterface $loggerFactory;
 
   /**
@@ -75,6 +87,7 @@ class ElasticMappingInspector {
 
   /**
    * Retrieves all field mappings for a Search API index from Elasticsearch.
+   *
    * Results are cached to avoid repeated API calls.
    *
    * @param \Drupal\search_api\Entity\Index $index

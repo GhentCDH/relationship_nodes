@@ -23,8 +23,19 @@ class TargetNodeSubscriber implements EventSubscriberInterface {
 
   use OriginalEntityTrait;
 
+  /**
+   * The relation info.
+   */
   protected RelationInfo $nodeInfoService;
+
+  /**
+   * The relation sync.
+   */
   protected RelationSync $syncService;
+
+  /**
+   * The relation title generator.
+   */
   protected RelationTitleGenerator $titleGenerator;
 
   /**

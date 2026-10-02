@@ -15,10 +15,29 @@ use Drupal\relationship_nodes\Form\Entity\RelationFormHelper;
  */
 class RelationSync {
 
+  /**
+   * The entity type manager.
+   */
   protected EntityTypeManagerInterface $entityTypeManager;
+
+  /**
+   * The relation info.
+   */
   protected RelationInfo $nodeInfoService;
+
+  /**
+   * The foreign key resolver.
+   */
   protected ForeignKeyResolver $foreignKeyResolver;
+
+  /**
+   * The relation form helper.
+   */
   protected RelationFormHelper $formHelper;
+
+  /**
+   * The relation weight manager.
+   */
   protected RelationWeightManager $relationWeightManager;
 
   /**
