@@ -21,9 +21,7 @@ services:
   relationship_nodes.relation_node_event_subscriber:
     class: Drupal\relationship_nodes\EventSubscriber\RelationNodeSubscriber
     arguments:
-      - '@entity_type.manager'
-      - '@relationship_nodes.bundle_settings_manager'
-      - '@relationship_nodes.relation_info'
+      - '@relationship_nodes.relation_title_generator'
     tags:
       - {name: event_subscriber}
   relationship_nodes.target_node_event_subscriber:
@@ -31,6 +29,7 @@ services:
     arguments:
       - '@relationship_nodes.relation_info'
       - '@relationship_nodes.relation_sync'
+      - '@relationship_nodes.relation_title_generator'
     tags:
       - {name: event_subscriber}
 
@@ -57,6 +56,12 @@ services:
       - '@keyvalue'
 
   # ── RelationData layer ─────────────────────────────────────────────────────
+  relationship_nodes.relation_title_generator:
+    class: Drupal\relationship_nodes\RelationData\NodeHelper\RelationTitleGenerator
+    arguments:
+      - '@entity_type.manager'
+      - '@relationship_nodes.bundle_settings_manager'
+      - '@relationship_nodes.relation_info'
   relationship_nodes.parent_node_context:
     class: Drupal\relationship_nodes\Form\Entity\ParentNodeContext
     arguments:

@@ -54,6 +54,7 @@ class RelationInlineEntityForm extends NodeInlineForm {
     if (!$relation_entity instanceof NodeInterface) {
       return $entity_form;
     }
+    \Drupal::service('relationship_nodes.relation_title_generator')->hideTitleField($entity_form, $relation_entity);
 
     $foreign_key = $this->foreignKeyResolver->getEntityFormForeignKeyField($relation_entity, $form_state);
     if ($foreign_key) {

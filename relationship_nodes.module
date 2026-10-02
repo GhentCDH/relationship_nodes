@@ -12,6 +12,7 @@ use Drupal\Core\Hook\Attribute\LegacyModuleImplementsAlter;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\NodeType;
+use Drupal\node\NodeInterface;
 use Drupal\relationship_nodes\Form\Entity\RelationInlineEntityForm;
 use Drupal\relationship_nodes\Hook\RelationshipNodesHooks;
 
@@ -182,6 +183,12 @@ function relationship_nodes_entity_type_build(array &$entity_types) {
  * Implements hook_form_alter().
  */
 function relationship_nodes_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  // Relation node forms: hide the title when it is generated automatically.
+  $form_object = $form_state->getFormObject();
+  if ($form_object instanceof EntityFormInterface && $form_object->getEntity() instanceof NodeInterface) {
+    \Drupal::service('relationship_nodes.relation_title_generator')->hideTitleField($form, $form_object->getEntity());
+  }
+
   $alter_form_service = NULL;
   switch ($form_id) {
     case 'node_type_add_form':
