@@ -83,7 +83,17 @@ class BundleInfoService {
     }
 
     if (empty($fields)) {
-      $fields = $this->fieldManager->getFieldDefinitions('node', $bundle);
+      // Load the field config entities directly instead of the field
+      // definitions: this method runs while the bundle info is built, and the
+      // field definitions themselves depend on the bundle info (through the
+      // computed relationship fields). Using them here can return field
+      // definitions that were built from incomplete bundle info.
+      $fields = [];
+      $field_configs = $this->entityTypeManager->getStorage('field_config')
+        ->loadByProperties(['entity_type' => 'node', 'bundle' => $bundle]);
+      foreach ($field_configs as $field_config) {
+        $fields[$field_config->getName()] = $field_config;
+      }
     }
 
     $related_bundles = [];

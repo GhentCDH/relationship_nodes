@@ -3,12 +3,16 @@
 namespace Drupal\Tests\relationship_nodes\Kernel;
 
 use Drupal\node\Entity\Node;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Tests relation listing, caching and cleanup.
  *
  * @group relationship_nodes
  */
+#[Group('relationship_nodes')]
+#[RunTestsInSeparateProcesses]
 class RelationsTest extends RelationshipNodesKernelTestBase {
 
   /**

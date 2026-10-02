@@ -2,10 +2,10 @@
 
 namespace Drupal\relationship_nodes\Form\Entity;
 
+use Drupal\Core\Entity\EntityFormInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\Entity\Node;
-use Drupal\node\NodeForm;
 
 /**
  * Helper service for relationship node forms.
@@ -22,8 +22,10 @@ class RelationFormHelper {
    *   The parent node or NULL.
    */
   public function getParentFormNode(FormStateInterface $form_state): ?Node {
+    // Drupal\node\NodeForm moved to Drupal\node\Form\NodeForm in Drupal 11,
+    // so check for an entity form instead of the class.
     $form_object = $form_state->getFormObject();
-    if (!$form_object instanceof NodeForm) {
+    if (!$form_object instanceof EntityFormInterface) {
       return null;
     }
 

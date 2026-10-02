@@ -12,6 +12,7 @@ use Drupal\entity_events\EntityEventType;
 use Drupal\entity_events\Event\EntityEvent;
 use Drupal\node\Entity\Node;
 use Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo;
+use Drupal\relationship_nodes\Entity\OriginalEntityTrait;
 use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
 use Drupal\relationship_nodes\RelationField\FieldNameResolver;
 use Drupal\taxonomy\TermInterface;
@@ -30,6 +31,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  * - a relation type term's name or mirror changes.
  */
 class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
+
+  use OriginalEntityTrait;
 
   protected EntityTypeManagerInterface $entityTypeManager;
   protected CacheTagsInvalidatorInterface $cacheTagsInvalidator;
@@ -114,7 +117,7 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     $all_ids = [];
 
     // If this is an UPDATE event, include IDs from the original entity as well.
-    $original = $this->getOriginal($entity);
+    $original = $this->getOriginalEntity($entity);
     if ($event_name === EntityEventType::UPDATE && $original instanceof Node) {
       $old_values = $this->nodeInfoService->getRelatedEntityValues($original) ?? [];
       foreach ($old_values as $ids) {
@@ -172,7 +175,7 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     if ($bundle_info && $bundle_info->isRelation()) {
       return;
     }
-    $original = $this->getOriginal($entity);
+    $original = $this->getOriginalEntity($entity);
     if (!$original instanceof Node || !$this->labelOrStatusChanged($entity, $original)) {
       return;
     }
@@ -210,7 +213,7 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     if (!$bundle_info || !$bundle_info->isRelation()) {
       return;
     }
-    $original = $this->getOriginal($term);
+    $original = $this->getOriginalEntity($term);
     $mirror_fields = array_filter(array_values((array) $this->fieldNameResolver->getMirrorFields()));
     if (!$original instanceof TermInterface || !$this->labelOrStatusChanged($term, $original, $mirror_fields)) {
       return;
@@ -299,24 +302,6 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
       }
     }
     return $nids;
-  }
-
-
-  /**
-   * Returns the unchanged entity of an update, if available.
-   *
-   * @param EntityInterface $entity
-   *   The entity.
-   *
-   * @return EntityInterface|null
-   *   The original entity, or NULL.
-   */
-  protected function getOriginal(EntityInterface $entity): ?EntityInterface {
-    // Drupal 11.2+ has getOriginal(); before, it is the 'original' property.
-    if (method_exists($entity, 'getOriginal')) {
-      return $entity->getOriginal();
-    }
-    return $entity->original ?? NULL;
   }
 
 

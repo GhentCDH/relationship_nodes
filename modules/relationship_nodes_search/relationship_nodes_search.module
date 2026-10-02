@@ -6,20 +6,6 @@ use Drupal\views\Plugin\views\filter\FilterPluginBase;
 use Drupal\relationship_nodes_search\Plugin\views\filter\RelationshipFilter;
 
 
-/**
- * Implements hook_module_implements_alter().
- *
- * Ensures the search_api_query_alter runs last to properly handle nested queries.
- */
-function relationship_nodes_search_module_implements_alter(&$implementations, $hook) {
-  if ($hook === 'search_api_query_alter') {
-    if (isset($implementations['relationship_nodes_search'])) {
-      $implementation = $implementations['relationship_nodes_search'];
-      unset($implementations['relationship_nodes_search']);
-      $implementations['relationship_nodes_search'] = $implementation;
-    }
-  }
-}
 
 
 /**

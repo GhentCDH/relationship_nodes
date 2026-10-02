@@ -1,7 +1,7 @@
 name: 'Relationship Nodes'
 description: 'Enables bidirectional relationships between nodes and other entities with configurable relationship types and automatic mirror field synchronization.'
 type: module
-core_version_requirement: ^10 || ^11
+core_version_requirement: ^10.3 || ^11.2
 package: Custom
 dependencies:
   - drupal:field_ui

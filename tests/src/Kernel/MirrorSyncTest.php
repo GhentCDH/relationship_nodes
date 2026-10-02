@@ -4,12 +4,16 @@ namespace Drupal\Tests\relationship_nodes\Kernel;
 
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\TermInterface;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Tests that entity reference mirror terms stay linked both ways.
  *
  * @group relationship_nodes
  */
+#[Group('relationship_nodes')]
+#[RunTestsInSeparateProcesses]
 class MirrorSyncTest extends RelationshipNodesKernelTestBase {
 
   /**

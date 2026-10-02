@@ -3,6 +3,7 @@
 namespace Drupal\relationship_nodes\RelationData\TermHelper;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\relationship_nodes\Entity\OriginalEntityTrait;
 use Drupal\relationship_nodes\RelationField\FieldNameResolver;
 use Drupal\taxonomy\TermInterface;
 
@@ -10,6 +11,8 @@ use Drupal\taxonomy\TermInterface;
  * Service for automatically updating mirror term links.
  */
 class MirrorSync {
+
+  use OriginalEntityTrait;
 
   protected EntityTypeManagerInterface $entityTypeManager;
   protected FieldNameResolver $fieldNameResolver;
@@ -47,10 +50,10 @@ class MirrorSync {
    */
   public function getMirrorTermId(TermInterface $term, string $field, bool $original = false): ?int {
     if ($original) {
-      if (!isset($term->original)) {
+      $term = $this->getOriginalEntity($term);
+      if (!$term instanceof TermInterface) {
         return null;
       }
-      $term = $term->original;
     }
     return $term->$field->target_id ?? null;
   }

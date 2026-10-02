@@ -7,12 +7,16 @@ use Drupal\Core\Session\AnonymousUserSession;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\user\Entity\Role;
 use Drupal\user\RoleInterface;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Tests that relations are only displayed when the viewer may see them.
  *
  * @group relationship_nodes
  */
+#[Group('relationship_nodes')]
+#[RunTestsInSeparateProcesses]
 class RelationAccessTest extends RelationshipNodesKernelTestBase {
 
   use UserCreationTrait;

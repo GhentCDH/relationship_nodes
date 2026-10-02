@@ -9,6 +9,8 @@ use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\NodeType;
 use Drupal\Tests\user\Traits\UserCreationTrait;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\Routing\Route;
 
 /**
@@ -16,6 +18,8 @@ use Symfony\Component\Routing\Route;
  *
  * @group relationship_nodes
  */
+#[Group('relationship_nodes')]
+#[RunTestsInSeparateProcesses]
 class ConfigAndRoutesTest extends RelationshipNodesKernelTestBase {
 
   use UserCreationTrait;

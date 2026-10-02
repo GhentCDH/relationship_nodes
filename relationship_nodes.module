@@ -7,11 +7,13 @@
 use Drupal\Core\Config\ConfigException;
 use Drupal\Core\Entity\EntityFormInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Hook\Attribute\LegacyHook;
+use Drupal\Core\Hook\Attribute\LegacyModuleImplementsAlter;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\NodeType;
 use Drupal\relationship_nodes\Form\Entity\RelationInlineEntityForm;
-use Drupal\relationship_nodes\Form\Admin\LockedFieldListBuilder;
+use Drupal\relationship_nodes\Hook\RelationshipNodesHooks;
 
 /**
  * Implements hook_entity_bundle_info_alter().
@@ -26,14 +28,17 @@ function relationship_nodes_entity_bundle_field_info_alter(&$fields, $entity_typ
     $fieldAdder->addFields($fields, $entity_type, $bundle);
   } elseif ($type_id === 'taxonomy_term') {
     $settingsManager = \Drupal::service('relationship_nodes.bundle_settings_manager');
-    $bundle_info = $settingsManager->getBundleInfo($bundle); 
-    $vocab_type = $bundle_info->getMirrorType();
+    // Look up the vocabulary itself: a node type may share its machine name.
+    $vocab = $settingsManager->ensureVocab($bundle);
+    $bundle_info = $vocab ? $settingsManager->getBundleInfo($vocab) : NULL;
+    $vocab_type = $bundle_info?->getMirrorType();
     
     if ($vocab_type == 'entity_reference') {
       $fieldnameResolver = \Drupal::service('relationship_nodes.field_name_resolver');
       $mirror_field_name = $fieldnameResolver->getMirrorFields('entity_reference');
-      if (!empty($mirror_field_name)) {
-        $fields[$mirror_field_name]->addConstraint(available_mirror_term_constraint::class);
+      // The field may not exist yet, e.g. while the vocabulary is being set up.
+      if (!empty($mirror_field_name) && isset($fields[$mirror_field_name])) {
+        $fields[$mirror_field_name]->addConstraint('available_mirror_term_constraint');
       }
     }
   }
@@ -117,14 +122,12 @@ function relationship_nodes_field_config_update(FieldConfig $field) {
 
 /**
  * Implements hook_entity_type_alter().
+ *
+ * Drupal 11.2+ uses RelationshipNodesHooks::entityTypeAlter() instead.
  */
+#[LegacyHook]
 function relationship_nodes_entity_type_alter(array &$entity_types) {
-  if (isset($entity_types['node'])) {
-    $entity_types['node']->addConstraint(valid_relation_reference_constraint::class);
-  }
-  if (isset($entity_types['field_config'])) {
-    $entity_types['field_config']->setListBuilderClass(LockedFieldListBuilder::class);
-  }
+  \Drupal::classResolver(RelationshipNodesHooks::class)->entityTypeAlter($entity_types);
 }
 
 
@@ -212,7 +215,10 @@ function relationship_nodes_local_tasks_alter(&$local_tasks) {
 
 /**
  * Implements hook_module_implements_alter().
+ *
+ * Drupal 11.2+ uses the order of the hook attribute instead.
  */
+#[LegacyModuleImplementsAlter]
 function relationship_nodes_module_implements_alter(array &$implementations, $hook) {
   if ($hook === 'entity_type_alter') {
     $module = 'relationship_nodes';
