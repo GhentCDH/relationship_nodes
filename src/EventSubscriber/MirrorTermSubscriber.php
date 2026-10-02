@@ -64,7 +64,7 @@ class MirrorTermSubscriber implements EventSubscriberInterface {
       return;      
     }
 
-    $bundle_info = $this->settingsManager->getBundleInfo($term->bundle());    
+    $bundle_info = $this->settingsManager->getBundleInfo($term->bundle(), 'taxonomy_term');    
     if (!$bundle_info || !$bundle_info->isRelation() || $bundle_info->getMirrorType() !== 'entity_reference') {
         return;
     }

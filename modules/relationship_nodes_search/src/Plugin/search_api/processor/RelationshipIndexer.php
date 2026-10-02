@@ -455,7 +455,7 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
     }
 
     $relation_field = $this->fieldResolver->getRelationTypeField();
-    $bundle_info = $this->settingsManager->getBundleInfo($relationship_entity->getType());
+    $bundle_info = $this->settingsManager->getBundleInfo($relationship_entity->getType(), 'node');
     if ($bundle_info && $bundle_info->isTypedRelation() && !empty($nested_values[$relation_field])) {
       $relation_parsed = $this->resultParser->parseEntityReferenceString($nested_values[$relation_field]);
 

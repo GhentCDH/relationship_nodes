@@ -106,7 +106,7 @@ class RelationInlineEntityForm extends NodeInlineForm {
     $typed_relation = FALSE;
 
     foreach ($bundles as $bundle) {
-      $bundle_info = $this->bundleSettingsManager->getBundleInfo($bundle);
+      $bundle_info = $this->bundleSettingsManager->getBundleInfo($bundle, 'node');
       if ($bundle_info && $bundle_info->isTypedRelation()) {
         $typed_relation = TRUE;
         break;

@@ -107,7 +107,7 @@ final class FieldConfigValidator {
   private function isValidRelationVocab(string $vocabName): bool {
     // Runtime check
     if (empty($this->storage)) {
-      $bundleInfo = $this->settingsManager->getBundleInfo($vocabName);
+      $bundleInfo = $this->settingsManager->getBundleInfo($vocabName, 'taxonomy_term');
       return $bundleInfo && $bundleInfo->isRelation();
     }
 

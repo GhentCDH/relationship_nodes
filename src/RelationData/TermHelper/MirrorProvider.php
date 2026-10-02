@@ -72,7 +72,7 @@ class MirrorProvider{
    *   TRUE if mirroring is supported, FALSE otherwise.
    */
   public function elementSupportsMirroring(FieldItemListInterface $items, array $form, FormStateInterface $form_state): bool {   
-    $bundle_info = $this->settingsManager->getBundleInfo($items->getEntity()->getType());
+    $bundle_info = $this->settingsManager->getBundleInfo($items->getEntity()->getType(), 'node');
     if (
       !$this->formHelper->isParentFormWithIefSubforms($form_state) ||
       !$bundle_info || !$bundle_info->isRelation() ||
@@ -238,7 +238,7 @@ class MirrorProvider{
     $result = [$term->id() => $default_label];
       
     $vocab = $term->bundle();
-    $bundle_info = $this->settingsManager->getBundleInfo($term->bundle());    
+    $bundle_info = $this->settingsManager->getBundleInfo($term->bundle(), 'taxonomy_term');    
     $vocab_type = $bundle_info->getMirrorType();
 
     switch ($vocab_type) {

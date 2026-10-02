@@ -106,7 +106,7 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
   public function trackRelatedEntitiesForReindexing(EntityEvent $event, string $event_name): void {
     // Only process if entity is a recognized relation node type.
     $entity = $event->getEntity();
-    $bundleInfo = $this->settingsManager->getBundleInfo($entity->bundle());
+    $bundleInfo = $this->settingsManager->getBundleInfo($entity->bundle(), 'node');
     if (!$entity instanceof Node || !$bundleInfo || !$bundleInfo->isRelation()) {
       return;
     }
@@ -171,7 +171,7 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     if (!$entity instanceof Node) {
       return;
     }
-    $bundle_info = $this->settingsManager->getBundleInfo($entity->bundle());
+    $bundle_info = $this->settingsManager->getBundleInfo($entity->bundle(), 'node');
     if ($bundle_info && $bundle_info->isRelation()) {
       return;
     }
@@ -209,7 +209,7 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     if (!$term instanceof TermInterface) {
       return;
     }
-    $bundle_info = $this->settingsManager->getBundleInfo($term->bundle());
+    $bundle_info = $this->settingsManager->getBundleInfo($term->bundle(), 'taxonomy_term');
     if (!$bundle_info || !$bundle_info->isRelation()) {
       return;
     }

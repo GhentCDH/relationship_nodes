@@ -77,7 +77,7 @@ class BundleInfoService {
    *   Array containing relation bundle information.
    */
   public function getRelationBundleInfo(string $bundle, array $fields = []): array {
-    $bundle_info = $this->settingsManager->getBundleInfo($bundle);    
+    $bundle_info = $this->settingsManager->getBundleInfo($bundle, 'node');    
     if (!$bundle_info || !$bundle_info->isRelation()) {
       return [];
     }

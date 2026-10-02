@@ -116,7 +116,7 @@ class FieldDeleteForm extends ConfirmFormBase {
    *   TRUE if the field is on a relation bundle.
    */
   protected function isRelationBundleField(): bool {
-    $bundle_info = $this->settingsManager->getBundleInfo($this->fieldConfig->getTargetBundle());
+    $bundle_info = $this->settingsManager->getBundleInfo($this->fieldConfig->getTargetBundle(), $this->fieldConfig->getTargetEntityTypeId());
     return $bundle_info && $bundle_info->isRelation();
   }
 

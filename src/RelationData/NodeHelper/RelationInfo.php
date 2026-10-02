@@ -64,13 +64,18 @@ class RelationInfo {
    * @param array $field_names
    *   List of field names to check for references.
    * @param Node|null $target_node
-   *   The target node to check connections against.
+   *   The target node to check connections against; defaults to the node
+   *   whose relations are being edited.
    *
    * @return array
    *   Array of 'related entity' field names that reference the target node.
    */
   public function getJoinFields(Node $relation_node, array $field_names, ?Node $target_node = NULL): array {
     $result = [];
+    $target_node ??= $this->parentNodeContext->getParentNode();
+    if (!$target_node instanceof Node) {
+      return $result;
+    }
     $bundle_connections = $this->bundleInfoService->getBundleConnectionInfo($relation_node->getType(), $target_node->getType());
     
     if( empty($bundle_connections['join_fields'])) {
@@ -254,7 +259,7 @@ class RelationInfo {
    *  E.g. ['related_entity_field_1' => 101, 'related_entity_field_2' => 202]
    */
   public function getRelatedEntityValues(Node $relation_node): ?array {   
-    $bundle_info = $this->settingsManager->getBundleInfo($relation_node->getType());    
+    $bundle_info = $this->settingsManager->getBundleInfo($relation_node->getType(), 'node');    
     if (!$bundle_info || !$bundle_info->isRelation()) {
       return null;
     }

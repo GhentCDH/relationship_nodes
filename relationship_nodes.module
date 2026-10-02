@@ -94,7 +94,7 @@ function relationship_nodes_field_storage_config_update(FieldStorageConfig $stor
  */
 function relationship_nodes_field_config_update(FieldConfig $field) {
   $settingsManager = \Drupal::service('relationship_nodes.bundle_settings_manager');
-  $bundle_info = $settingsManager->getBundleInfo($field->getTargetBundle()); 
+  $bundle_info = $settingsManager->getBundleInfo($field->getTargetBundle(), $field->getTargetEntityTypeId()); 
   if (!$bundle_info || !$bundle_info->isRelation()) {
     return;
   }
@@ -139,7 +139,7 @@ function relationship_nodes_entity_bundle_info_alter(&$bundles) {
   if (isset($bundles['node'])) {  
     $settingsManager = \Drupal::service('relationship_nodes.bundle_settings_manager');
     foreach ($bundles['node'] as $bundle_id => $bundle) { 
-      $bundle_info = $settingsManager->getBundleInfo($bundle_id);
+      $bundle_info = $settingsManager->getBundleInfo($bundle_id, 'node');
       if (!$bundle_info || !$bundle_info->isRelation()) {
         $bundles['node'][$bundle_id]['relation_bundle'] = [];
         continue;

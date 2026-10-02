@@ -109,6 +109,10 @@ class FieldConfigForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, ?FieldConfig $field_config = NULL) {
+    // The routes always pass the field; nothing to edit without one.
+    if (!$field_config) {
+      return $form;
+    }
     $this->fieldConfig = $field_config;
     $this->entityType = $field_config->getTargetEntityTypeId();
     $this->fieldName = $field_config->getName();
@@ -145,7 +149,7 @@ class FieldConfigForm extends FormBase {
       '#type' => 'submit',
       '#value' => $this->t('Save'),
     ];
-    $bundle_info = $this->settingsManager->getBundleInfo($this->bundle);    
+    $bundle_info = $this->settingsManager->getBundleInfo($this->bundle, $this->entityType);    
     if (!$bundle_info || !$bundle_info->isRelation()) {
       $form['delete'] = [
         '#type' => 'link',

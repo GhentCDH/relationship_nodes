@@ -37,12 +37,21 @@ class BundleSettingsManager {
    * 
    * 
    * @param ConfigEntityBundleBase|string $entity
-   * 
+   *   A node type or vocabulary, or its machine name.
+   * @param string|null $entity_type_id
+   *   For a machine name: 'node' or 'taxonomy_term', the entity type the
+   *   bundle belongs to. Without it, node types are looked up first, which is
+   *   wrong when a vocabulary has the same machine name as a node type.
+   *
    * @return RelationBundleInfo|null
    */
-  public function getBundleInfo(ConfigEntityBundleBase|string $entity): ?RelationBundleInfo {
+  public function getBundleInfo(ConfigEntityBundleBase|string $entity, ?string $entity_type_id = NULL): ?RelationBundleInfo {
     if (is_string($entity)) {
-      $entity = $this->ensureNodeType($entity) ?? $this->ensureVocab($entity);
+      $entity = match ($entity_type_id) {
+        'node' => $this->ensureNodeType($entity),
+        'taxonomy_term' => $this->ensureVocab($entity),
+        default => $this->ensureNodeType($entity) ?? $this->ensureVocab($entity),
+      };
     }
     
     if (!$entity instanceof ConfigEntityBundleBase) {

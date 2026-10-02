@@ -9,6 +9,7 @@ use Drupal\Core\Routing\RouteMatch;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\NodeType;
+use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\relationship_nodes\Form\Admin\FieldConfigForm;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use PHPUnit\Framework\Attributes\Group;
@@ -115,6 +116,16 @@ class ConfigAndRoutesTest extends RelationshipNodesKernelTestBase {
     $this->assertArrayHasKey('target_bundle', $submit());
     $reloaded = $this->container->get('entity_type.manager')->getStorage('field_config')->loadUnchanged($field->id());
     $this->assertSame(['person' => 'person'], $reloaded->getSetting('handler_settings')['target_bundles']);
+  }
+
+  /**
+   * A vocabulary may share its machine name with a content type.
+   */
+  public function testBundleNameClash(): void {
+    Vocabulary::create(['vid' => static::RELATION_BUNDLE, 'name' => 'Same name'])->save();
+    $settings = $this->container->get('relationship_nodes.bundle_settings_manager');
+    $this->assertTrue($settings->getBundleInfo(static::RELATION_BUNDLE, 'node')->isRelation());
+    $this->assertFalse($settings->getBundleInfo(static::RELATION_BUNDLE, 'taxonomy_term')->isRelation());
   }
 
 }

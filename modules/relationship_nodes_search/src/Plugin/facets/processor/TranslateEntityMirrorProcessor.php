@@ -141,7 +141,7 @@ class TranslateEntityMirrorProcessor extends ProcessorPluginBase implements Buil
       return FALSE;
     }
 
-    $bundle_info = $this->bundleSettingsManager->getBundleInfo($bundle);
+    $bundle_info = $this->bundleSettingsManager->getBundleInfo($bundle, 'node');
     return $bundle_info !== NULL && $bundle_info->isTypedRelation();
   }
 }
