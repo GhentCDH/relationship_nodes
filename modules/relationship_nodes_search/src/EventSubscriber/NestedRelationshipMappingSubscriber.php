@@ -54,10 +54,41 @@ class NestedRelationshipMappingSubscriber implements EventSubscriberInterface {
       return;
     }
 
-    // Map to Elasticsearch nested type for relationship data.
-    // Properties are automatically mapped from nested field configuration.
-    $event->setParam([
-      'type' => 'nested',
-    ]);
+    // Map the child fields explicitly, like elasticsearch_connector maps
+    // regular fields. Otherwise Elasticsearch guesses the types from the first
+    // indexed values (e.g. strings become text with a keyword subfield that
+    // ignores values longer than 256 characters).
+    $properties = [];
+    foreach ($sapi_fld->getConfiguration()['nested_fields'] ?? [] as $child_name => $child_config) {
+      $properties[$child_name] = $this->mapChildType($child_config['type'] ?? 'string');
+    }
+    $param = ['type' => 'nested'];
+    if ($properties) {
+      $param['properties'] = $properties;
+    }
+    $event->setParam($param);
+  }
+
+
+  /**
+   * Maps a Search API data type to an Elasticsearch field mapping.
+   *
+   * Follows elasticsearch_connector's FieldMapper for the same types.
+   *
+   * @param string $type
+   *   The Search API data type of the child field.
+   *
+   * @return array
+   *   The Elasticsearch mapping.
+   */
+  protected function mapChildType(string $type): array {
+    return match ($type) {
+      'text' => ['type' => 'text', 'fields' => ['keyword' => ['type' => 'keyword', 'ignore_above' => 256]]],
+      'integer', 'duration' => ['type' => 'integer'],
+      'decimal' => ['type' => 'float'],
+      'boolean' => ['type' => 'boolean'],
+      'date' => ['type' => 'date', 'format' => 'strict_date_optional_time||epoch_second'],
+      default => ['type' => 'keyword'],
+    };
   }
 }

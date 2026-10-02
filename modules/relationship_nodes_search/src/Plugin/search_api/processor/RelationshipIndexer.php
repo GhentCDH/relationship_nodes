@@ -24,6 +24,7 @@ use Drupal\relationship_nodes\RelationField\CalculatedFieldHelper;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\search_api\IndexInterface;
+use Drupal\node\NodeInterface;
 use Drupal\search_api\Attribute\SearchApiProcessor;
 use Drupal\Core\StringTranslation\TranslatableMarkup;
 
@@ -136,13 +137,8 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
    * {@inheritdoc}
    */
     public static function supportsIndex(IndexInterface $index) {
-    // Check if the index has entity datasources.
-    foreach ($index->getDatasources() as $datasource) {
-      if ($datasource->getEntityTypeId()) {
-        return TRUE;
-      }
-    }
-    return FALSE;
+    // Relations only exist between nodes.
+    return $index->isValidDatasource('entity:node');
   }
 
 
@@ -214,9 +210,12 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
       return;
     }
 
-    $item_relation_info_list = $this->bundleInfoService->getRelationInfoForTargetBundle($entity->getType());
-
-    if (!($entity instanceof EntityInterface) || empty($item_relation_info_list)) {
+    // Relations only exist between nodes; other datasources have no values.
+    if (!$entity instanceof NodeInterface) {
+      return;
+    }
+    $item_relation_info_list = $this->bundleInfoService->getRelationInfoForTargetBundle($entity->bundle());
+    if (empty($item_relation_info_list)) {
       return;
     }
 
@@ -357,11 +356,9 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
           $serialized[] = $nested_values;
         }   
       }
-      if(empty($serialized)){
-        $sapi_fld->setValues([[]]);
-      } else {
-        $sapi_fld->setValues($serialized);
-      }
+      // Without relations the field stays empty: an empty nested object per
+      // field bloats the index and would count as a relation without values.
+      $sapi_fld->setValues($serialized);
     }  
   }
 
