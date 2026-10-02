@@ -256,12 +256,7 @@ class RelationshipField extends SearchApiStandard implements ContainerFactoryPlu
     }
 
     // Step 1: Batch load all needed entities via helper service.
-    $preloaded_entities = $this->resultParser->batchLoadFromIndexedData(
-      $nested_data,
-      $field_settings,
-      $index,
-      $sapi_fld_nm
-    );
+    $preloaded_entities = $this->resultParser->batchLoadFromIndexedData($nested_data, $field_settings);
 
     // Step 2: Build relationships using cached entities.
     $relationships = [];

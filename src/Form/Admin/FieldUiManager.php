@@ -87,9 +87,8 @@ class FieldUiManager {
    * @return \Drupal\Core\Url|null
    *   The URL or NULL.
    */
-  public function getRelationFieldDeleteUrl(FieldConfig $field_config): ?url {
-    $url = Url::fromRoute('relationship_nodes.rn_field_delete', ['field_config' => $field_config->id()]);
-    return $url ?? NULL;
+  public function getRelationFieldDeleteUrl(FieldConfig $field_config): ?Url {
+    return Url::fromRoute('relationship_nodes.rn_field_delete', ['field_config' => $field_config->id()]);
   }
 
   /**

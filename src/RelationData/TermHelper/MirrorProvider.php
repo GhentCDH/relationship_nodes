@@ -94,9 +94,6 @@ class MirrorProvider {
     }
 
     $target_bundles = $field_settings['handler_settings']['target_bundles'];
-    if (empty($target_bundles)) {
-      return FALSE;
-    }
 
     $target_vocab = $this->settingsManager->ensureVocab(reset($target_bundles));
     $bundle_info = $this->settingsManager->getBundleInfo($target_vocab);

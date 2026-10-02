@@ -224,63 +224,6 @@ final class ConfigImportValidator {
 
   // ========== Complete Import Validation ==========
 
-  /**
-   * Validate all bundle imports.
-   */
-  private function validateAllBundleImports(StorageInterface $storage): ValidationResult {
-    $results = [];
-
-    foreach ($this->bundleInfoService->getAllCimRelationBundles($storage) as $configName => $configData) {
-      $results[] = $this->validateBundleConfig($configName, $storage);
-    }
-
-    return ValidationResult::mergeAll($results);
-  }
-
-  /**
-   * Validate all field imports.
-   */
-  private function validateAllFieldImports(StorageInterface $storage): ValidationResult {
-    $results = [];
-    $rnFields = $this->fieldManager->getAllCimRnCreatedFields($storage);
-    $validFieldNames = $this->fieldResolver->getAllRelationFieldNames();
-
-    foreach ($rnFields as $configName => $configData) {
-      $fieldInfo = $this->fieldManager->getConfigFileFieldClasses($configName);
-
-      if (empty($fieldInfo['field_entity_class'])) {
-        $results[] = ValidationResult::fromErrorCode('missing_config_file_data', [
-          '@field' => $configName,
-        ]);
-        continue;
-      }
-
-      $fieldName = $fieldInfo['field_name'];
-      $fieldClass = $fieldInfo['field_entity_class'];
-
-      // Validate field.
-      if ($fieldClass === 'storage') {
-        $results[] = $this->validateFieldStorageConfig($configData);
-      }
-      elseif ($fieldClass === 'field') {
-        $results[] = $this->validateFieldConfigImport($configData, $storage);
-      }
-
-      // Check for orphaned fields.
-      if (!in_array($fieldName, $validFieldNames, TRUE)) {
-        $context = ['@field' => $fieldName];
-
-        if ($fieldClass === 'field') {
-          $context['@bundle'] = $configData['bundle'];
-        }
-
-        $results[] = ValidationResult::fromErrorCode('orphaned_rn_field_settings', $context);
-      }
-    }
-
-    return ValidationResult::mergeAll($results);
-  }
-
   // ========== Helper Methods ==========
 
   /**

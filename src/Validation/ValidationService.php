@@ -3,12 +3,10 @@
 namespace Drupal\relationship_nodes\Validation;
 
 use Drupal\Core\Config\Entity\ConfigEntityBundleBase;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\relationship_nodes\RelationBundle\BundleInfoService;
-use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
 use Drupal\relationship_nodes\RelationField\FieldNameResolver;
 use Drupal\relationship_nodes\RelationField\RelationshipFieldManager;
 
@@ -18,11 +16,9 @@ use Drupal\relationship_nodes\RelationField\RelationshipFieldManager;
 final class ValidationService {
 
   public function __construct(
-    private readonly EntityTypeManagerInterface $entityTypeManager,
     private readonly FieldNameResolver $fieldResolver,
     private readonly RelationshipFieldManager $fieldManager,
     private readonly BundleInfoService $bundleInfoService,
-    private readonly BundleSettingsManager $settingsManager,
     private readonly ValidationObjectFactory $validationFactory,
     private readonly ValidationResultFormatter $formatter,
   ) {}

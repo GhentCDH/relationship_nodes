@@ -237,10 +237,8 @@ services:
   relationship_nodes.validation_service:
     class: Drupal\relationship_nodes\Validation\ValidationService
     arguments:
-      - '@entity_type.manager'
       - '@relationship_nodes.field_name_resolver'
       - '@relationship_nodes.relationship_field_manager'
       - '@relationship_nodes.bundle_info_service'
-      - '@relationship_nodes.bundle_settings_manager'
       - '@relationship_nodes.validation_object_factory'
       - '@relationship_nodes.validation_result_formatter'

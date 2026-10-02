@@ -177,7 +177,7 @@ class RelationshipFieldManager {
    *   The bundle name.
    * @param array $rn_settings
    *   Relationship nodes settings.
-   * @param \Drupal\field\Entity\FieldConfigStorage|StorageInterface $storage
+   * @param \Drupal\field\FieldConfigStorage|\Drupal\Core\Config\StorageInterface $storage
    *   The field storage.
    *
    * @return array|null
