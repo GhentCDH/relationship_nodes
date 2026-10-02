@@ -150,7 +150,13 @@ class RelationshipIndexer extends ProcessorPluginBase implements ContainerFactor
       return [];
     }
 
-    $index_bundles = $datasource->getConfiguration()['bundles']['selected']  ?? [];
+    // With "default" set, all bundles are indexed except the selected ones;
+    // otherwise only the selected ones.
+    $bundle_settings = $datasource->getConfiguration()['bundles'] ?? ['default' => TRUE, 'selected' => []];
+    $selected = array_values($bundle_settings['selected'] ?? []);
+    $index_bundles = !empty($bundle_settings['default'])
+      ? array_diff(array_keys($datasource->getBundles()), $selected)
+      : $selected;
     
     $relation_bundles = [];
     foreach($index_bundles as $index_bundle){

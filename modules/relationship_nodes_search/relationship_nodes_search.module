@@ -194,3 +194,20 @@ function relationship_nodes_search_views_data_alter(array &$data): void {
   }
   unset($table);
 }
+
+
+/**
+ * Implements hook_config_schema_info_alter().
+ *
+ * Relationship fields on Search API indexes use the property path
+ * relationship_info__{relation bundle}, so their configuration falls back to
+ * Search API's search_api.property_configuration.* schema. New schema names
+ * cannot be added here, so the (empty) fallback gets the optional
+ * nested_fields key; other properties do not have that key.
+ */
+function relationship_nodes_search_config_schema_info_alter(array &$definitions): void {
+  $nested = $definitions['relationship_nodes_search.nested_field_configuration']['mapping']['nested_fields'] ?? NULL;
+  if ($nested && isset($definitions['search_api.property_configuration.*'])) {
+    $definitions['search_api.property_configuration.*']['mapping']['nested_fields'] = $nested;
+  }
+}

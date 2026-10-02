@@ -128,3 +128,38 @@ views.field.search_api_relationship_field:
     template:
       type: string
       label: 'Twig template name (without .html.twig)'
+
+# Configuration of a relationship field on a Search API index. Added to
+# search_api.property_configuration.* by
+# relationship_nodes_search_config_schema_info_alter().
+relationship_nodes_search.nested_field_configuration:
+  type: mapping
+  label: 'Relationship field configuration'
+  mapping:
+    nested_fields:
+      type: sequence
+      label: 'Indexed fields of the relation'
+      sequence:
+        type: mapping
+        label: 'Indexed relation field'
+        mapping:
+          type:
+            type: string
+            label: 'Search API data type'
+          label:
+            type: label
+            label: 'Label'
+          drupal_field:
+            type: mapping
+            label: 'Drupal field'
+            mapping:
+              machine_name:
+                type: string
+                label: 'Machine name'
+              type:
+                type: string
+                label: 'Field type'
+              target_type:
+                type: string
+                label: 'Target entity type'
+
