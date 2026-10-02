@@ -104,11 +104,12 @@ Only published relations to published nodes are indexed, in the language of the 
 - `SupportsDataTypeEvent` — marks `relationship_nodes_search_nested_relationship` as a supported data type
 - `FieldMappingEvent` — maps that data type to `nested`, with an explicit mapping of the child fields based on their configured Search API types (string: `keyword`, text: `text` with a `keyword` subfield, numbers, dates)
 
+The Search API type of a child field is derived from its Drupal field type when the relationship field is added to the index (dates and date ranges: `date`, with the start date of a range; numbers; text; everything else, including references, as `string`). It is stored in the field's configuration, so changing a Drupal field type later requires removing and re-adding the relationship field.
+
 Elasticsearch cannot change the type of an existing field: after changing child field types, clear the index ("Clear all indexed data"), which recreates it, and reindex.
 
 ## Known limitations
 
-- **Child field types**: child fields of relations are indexed with the type set in their configuration (default `string`); they are not derived from the Drupal field types.
 - **Autocomplete widget**: the exposed relationship filter has no autocomplete widget.
 - **Disabling the module** while indexes still contain relationship fields can cause `SearchApiException` errors from `elasticsearch_connector` when it updates the index settings and cannot resolve the data type. Remove the relationship fields from the indexes first.
 

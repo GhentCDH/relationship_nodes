@@ -317,7 +317,11 @@ class RelationProcessorProperty extends ProcessorProperty implements ComplexData
       'float' => 'decimal',
       'boolean' => 'boolean',
       'datetime' => 'date',
+      // Date ranges are indexed with their start date.
+      'daterange' => 'date',
       'timestamp' => 'date',
+      'created' => 'date',
+      'changed' => 'date',
       'string' => 'string',
       'string_long' => 'text',
       'text' => 'text',
