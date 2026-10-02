@@ -2,6 +2,9 @@
 
 namespace Drupal\relationship_nodes_search\EventSubscriber;
 
+use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityPublishedInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
@@ -10,15 +13,21 @@ use Drupal\entity_events\Event\EntityEvent;
 use Drupal\node\Entity\Node;
 use Drupal\relationship_nodes\RelationData\NodeHelper\RelationInfo;
 use Drupal\relationship_nodes\RelationBundle\Settings\BundleSettingsManager;
+use Drupal\relationship_nodes\RelationField\FieldNameResolver;
+use Drupal\taxonomy\TermInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 
 /**
  * Event subscriber that triggers Search API reindexing for relationship changes.
  *
- * When a relation node (linking two entities) is created, updated, or deleted,
- * this subscriber ensures that all affected target nodes are marked for
- * reindexing in Search API.
+ * The relationship indexer copies data of relation nodes, of the nodes on
+ * the other side and of relation type terms into the index of each related
+ * node. These nodes are marked for reindexing when:
+ * - a relation node is created, updated, or deleted;
+ * - a related node's title or published status changes (a deleted node's
+ *   relations are deleted, which is covered by the first case);
+ * - a relation type term's name or mirror changes.
  */
 class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
 
@@ -27,6 +36,7 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
   protected LoggerChannelFactoryInterface $loggerFactory;
   protected BundleSettingsManager $settingsManager;
   protected RelationInfo $nodeInfoService;
+  protected FieldNameResolver $fieldNameResolver;
 
 
   /**
@@ -42,19 +52,23 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
    *   The relation bundle settings manager.
    * @param RelationInfo $nodeInfoService
    *   The relation node info service.
+   * @param FieldNameResolver $fieldNameResolver
+   *   The field name resolver.
    */
   public function __construct(
     EntityTypeManagerInterface $entityTypeManager,
     CacheTagsInvalidatorInterface $cacheTagsInvalidator,
     LoggerChannelFactoryInterface $loggerFactory,
     BundleSettingsManager $settingsManager,
-    RelationInfo $nodeInfoService
+    RelationInfo $nodeInfoService,
+    FieldNameResolver $fieldNameResolver
   ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->cacheTagsInvalidator = $cacheTagsInvalidator;
     $this->loggerFactory = $loggerFactory;
     $this->settingsManager = $settingsManager;
     $this->nodeInfoService = $nodeInfoService;
+    $this->fieldNameResolver = $fieldNameResolver;
   }
 
 
@@ -64,7 +78,11 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
   public static function getSubscribedEvents(): array {
     return [
       EntityEventType::INSERT => ['trackRelatedEntitiesForReindexing'],
-      EntityEventType::UPDATE => ['trackRelatedEntitiesForReindexing'],
+      EntityEventType::UPDATE => [
+        ['trackRelatedEntitiesForReindexing'],
+        ['trackTargetNodeChanges'],
+        ['trackRelationTypeChanges'],
+      ],
       EntityEventType::PREDELETE => ['trackRelatedEntitiesForReindexing'],
     ];
   }
@@ -96,8 +114,9 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     $all_ids = [];
 
     // If this is an UPDATE event, include IDs from the original entity as well.
-    if ($event_name === EntityEventType::UPDATE && property_exists($entity, 'original')) {
-      $old_values = $this->nodeInfoService->getRelatedEntityValues($entity->original) ?? [];
+    $original = $this->getOriginal($entity);
+    if ($event_name === EntityEventType::UPDATE && $original instanceof Node) {
+      $old_values = $this->nodeInfoService->getRelatedEntityValues($original) ?? [];
       foreach ($old_values as $ids) {
         if (!empty($ids) && is_array($ids)) {
           $all_ids = array_merge($all_ids, $ids);
@@ -121,29 +140,210 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
       return;
     }
 
-    $node_storage = $this->entityTypeManager->getStorage('node');
-    $target_nodes = $node_storage->loadMultiple($unique_ids);
-
-    // Search API IDs are strings in the format "nid:langcode" (e.g., "101:en").
-    $sapi_ids = [];
-    foreach ($target_nodes as $nid => $target_node) {
-      // Get the languages that are available for a specific target node.
-      $node_languages = array_keys($target_node->getTranslationLanguages());
-      foreach ($node_languages as $language_code) {
-        $sapi_ids[] = $nid . ':' . $language_code;
-      }
-    }
-
-    if (empty($sapi_ids)) {
+    $sapi_count = $this->reindexNodes($unique_ids);
+    if (!$sapi_count) {
       return;
     }
-
-    $this->trackItemsInIndexes($sapi_ids);
 
     // Invalidate cache for this specific relation bundle.
     $relation_bundle = $entity->bundle();
     $this->invalidateRelationshipCache($relation_bundle, $unique_ids);
-    $this->logReindexOperation($event_name, $entity->id(), $relation_bundle, count($sapi_ids));
+    $this->logReindexOperation($event_name, $entity->id(), $relation_bundle, $sapi_count);
+  }
+
+
+  /**
+   * Reindexes the nodes related to a node whose title or status changed.
+   *
+   * Their index documents contain this node's title, and only contain
+   * relations to it while it is published.
+   *
+   * @param EntityEvent $event
+   *   The entity event.
+   * @param string $event_name
+   *   The event name.
+   */
+  public function trackTargetNodeChanges(EntityEvent $event, string $event_name): void {
+    $entity = $event->getEntity();
+    if (!$entity instanceof Node) {
+      return;
+    }
+    $bundle_info = $this->settingsManager->getBundleInfo($entity->bundle());
+    if ($bundle_info && $bundle_info->isRelation()) {
+      return;
+    }
+    $original = $this->getOriginal($entity);
+    if (!$original instanceof Node || !$this->labelOrStatusChanged($entity, $original)) {
+      return;
+    }
+
+    $nids = [];
+    foreach ($this->nodeInfoService->getAllReferencingRelations($entity) ?? [] as $relations) {
+      foreach ($relations as $relation) {
+        $nids = array_merge($nids, $this->getRelatedNodeIds($relation));
+      }
+    }
+    // The node itself is reindexed by Search API.
+    $nids = array_diff(array_unique($nids), [$entity->id()]);
+    $this->reindexNodes($nids);
+  }
+
+
+  /**
+   * Reindexes both sides of relations whose relation type term changed.
+   *
+   * The index contains the relation type's name, and on the reverse side
+   * the name of its mirror, so relations typed with the term's mirror are
+   * included as well.
+   *
+   * @param EntityEvent $event
+   *   The entity event.
+   * @param string $event_name
+   *   The event name.
+   */
+  public function trackRelationTypeChanges(EntityEvent $event, string $event_name): void {
+    $term = $event->getEntity();
+    if (!$term instanceof TermInterface) {
+      return;
+    }
+    $bundle_info = $this->settingsManager->getBundleInfo($term->bundle());
+    if (!$bundle_info || !$bundle_info->isRelation()) {
+      return;
+    }
+    $original = $this->getOriginal($term);
+    $mirror_fields = array_filter(array_values((array) $this->fieldNameResolver->getMirrorFields()));
+    if (!$original instanceof TermInterface || !$this->labelOrStatusChanged($term, $original, $mirror_fields)) {
+      return;
+    }
+
+    $term_ids = [(int) $term->id()];
+    $mirror_ref = $this->fieldNameResolver->getMirrorFields('entity_reference');
+    foreach ([$term, $original] as $version) {
+      if ($mirror_ref && $version->hasField($mirror_ref) && !$version->get($mirror_ref)->isEmpty()) {
+        $term_ids[] = (int) $version->get($mirror_ref)->target_id;
+      }
+    }
+
+    $relation_ids = $this->entityTypeManager->getStorage('node')->getQuery()
+      ->accessCheck(FALSE)
+      ->condition($this->fieldNameResolver->getRelationTypeField(), array_unique($term_ids), 'IN')
+      ->execute();
+    if (empty($relation_ids)) {
+      return;
+    }
+
+    $nids = [];
+    foreach ($this->entityTypeManager->getStorage('node')->loadMultiple($relation_ids) as $relation) {
+      $nids = array_merge($nids, $this->getRelatedNodeIds($relation));
+    }
+    $this->reindexNodes(array_unique($nids));
+  }
+
+
+  /**
+   * Checks whether an entity's label, status or given fields changed.
+   *
+   * All translations are compared, including added or removed ones.
+   *
+   * @param ContentEntityInterface $entity
+   *   The updated entity.
+   * @param ContentEntityInterface $original
+   *   The entity before the update.
+   * @param string[] $fields
+   *   Additional field names to compare.
+   *
+   * @return bool
+   *   TRUE if something the index depends on changed.
+   */
+  protected function labelOrStatusChanged(ContentEntityInterface $entity, ContentEntityInterface $original, array $fields = []): bool {
+    $langcodes = array_unique(array_merge(
+      array_keys($entity->getTranslationLanguages()),
+      array_keys($original->getTranslationLanguages())
+    ));
+    foreach ($langcodes as $langcode) {
+      if (!$entity->hasTranslation($langcode) || !$original->hasTranslation($langcode)) {
+        return TRUE;
+      }
+      $new = $entity->getTranslation($langcode);
+      $old = $original->getTranslation($langcode);
+      if ($new->label() !== $old->label()) {
+        return TRUE;
+      }
+      if ($new instanceof EntityPublishedInterface && $old instanceof EntityPublishedInterface && $new->isPublished() !== $old->isPublished()) {
+        return TRUE;
+      }
+      foreach ($fields as $field) {
+        if ($new->hasField($field) && !$new->get($field)->equals($old->get($field))) {
+          return TRUE;
+        }
+      }
+    }
+    return FALSE;
+  }
+
+
+  /**
+   * Returns the IDs of the nodes on both sides of a relation.
+   *
+   * @param Node $relation
+   *   The relation node.
+   *
+   * @return int[]
+   *   The node IDs.
+   */
+  protected function getRelatedNodeIds(Node $relation): array {
+    $nids = [];
+    foreach ($this->nodeInfoService->getRelatedEntityValues($relation) ?? [] as $ids) {
+      if (!empty($ids) && is_array($ids)) {
+        $nids = array_merge($nids, $ids);
+      }
+    }
+    return $nids;
+  }
+
+
+  /**
+   * Returns the unchanged entity of an update, if available.
+   *
+   * @param EntityInterface $entity
+   *   The entity.
+   *
+   * @return EntityInterface|null
+   *   The original entity, or NULL.
+   */
+  protected function getOriginal(EntityInterface $entity): ?EntityInterface {
+    // Drupal 11.2+ has getOriginal(); before, it is the 'original' property.
+    if (method_exists($entity, 'getOriginal')) {
+      return $entity->getOriginal();
+    }
+    return $entity->original ?? NULL;
+  }
+
+
+  /**
+   * Marks nodes for reindexing in all their translations.
+   *
+   * @param array $nids
+   *   Node IDs.
+   *
+   * @return int
+   *   The number of Search API items marked.
+   */
+  protected function reindexNodes(array $nids): int {
+    if (empty($nids)) {
+      return 0;
+    }
+    // Search API IDs are strings in the format "nid:langcode" (e.g., "101:en").
+    $sapi_ids = [];
+    foreach ($this->entityTypeManager->getStorage('node')->loadMultiple($nids) as $nid => $node) {
+      foreach (array_keys($node->getTranslationLanguages()) as $language_code) {
+        $sapi_ids[] = $nid . ':' . $language_code;
+      }
+    }
+    if ($sapi_ids) {
+      $this->trackItemsInIndexes($sapi_ids);
+    }
+    return count($sapi_ids);
   }
 
 
@@ -158,7 +358,8 @@ class ReindexTargetsOnRelationUpdate implements EventSubscriberInterface {
     $indexes = $index_storage->loadMultiple();
 
     foreach ($indexes as $index) {
-      if (!$index->status() || !$index->isValidDatasource('entity:node')) {
+      // Only indexes that contain relationship data need reindexing.
+      if (!$index->status() || !$index->isValidDatasource('entity:node') || !$index->isValidProcessor('relationship_indexer')) {
         continue;
       }
       $index->trackItemsUpdated('entity:node', $sapi_ids);

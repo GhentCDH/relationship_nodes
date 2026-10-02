@@ -11,6 +11,7 @@ services:
       - '@logger.factory'
       - '@relationship_nodes.bundle_settings_manager'
       - '@relationship_nodes.relation_info'
+      - '@relationship_nodes.field_name_resolver'
     tags:
       - {name: event_subscriber}
   relationship_nodes_search.nested_field_result_views_parser:
