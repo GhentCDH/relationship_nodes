@@ -172,7 +172,8 @@ class RelationsTest extends RelationshipNodesKernelTestBase {
     // $third has no weight and comes last.
     $expected = [(int) $second->id(), (int) $first->id(), (int) $third->id()];
     $this->assertSame($expected, $this->getComputedRelationIds($a));
-    $this->assertSame([(int) $first->id() => 2, (int) $third->id() => 9999], $weights->getMultiple([$first->id(), $third->id()], 'rn_related_entity_1'));
+    $stored = $weights->getMultiple([$first->id(), $third->id()], 'rn_related_entity_1');
+    $this->assertSame([(int) $first->id() => 2, (int) $third->id() => 9999], $stored);
   }
 
 }
