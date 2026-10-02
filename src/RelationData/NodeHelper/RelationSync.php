@@ -57,33 +57,6 @@ class RelationSync {
 
   
   /**
-   * Binds newly created relations to their parent node.
-   *
-   * @param FormStateInterface $form_state
-   *   The form state.
-   */
-  public function bindNewRelationsToParent(FormStateInterface $form_state): void {
-    $relations = $form_state->get('created_relation_ids');
-    if (empty($relations) || !is_array($relations)) {
-      return;
-    }
-    $target_node = $this->formHelper->getParentFormNode($form_state);
-    if (!($target_node instanceof NodeInterface)) {
-      return;   
-    }
-    $node_storage = $this->entityTypeManager->getStorage('node');
-    foreach ($relations as $relation_id => $foreign_key) {
-      $relation_node = $node_storage->load($relation_id);
-      if (!($relation_node instanceof NodeInterface)) {
-        continue;
-      }
-      $relation_node->set($foreign_key, [['target_id' => $target_node->id()]]);
-      $relation_node->save();    
-    } 
-  }
-
-
-  /**
    * Hard-deletes relation nodes and their associated weights.
    *
    * Relations are hard-deleted (not unpublished or soft-deleted) because a
@@ -112,56 +85,47 @@ class RelationSync {
 
 
   /**
-   * Saves relation nodes from subforms.
+   * Saves relation changes from the relation widgets of a saved parent node.
+   *
+   * Runs after the parent node is saved, so new relations can reference it.
+   * Removed relations are only deleted once the parent is saved.
    *
    * @param NodeInterface $parent_node
-   *   The parent node.
-   * @param array $widget_state
-   *   The widget state array (passed by reference).
-   * @param array $form
-   *   The form array (passed by reference).
+   *   The saved parent node.
+   * @param array $deferred_per_widget
+   *   Per widget: 'entities' (items with 'entity', 'weight', 'needs_save')
+   *   and 'delete' (removed relation nodes).
    * @param FormStateInterface $form_state
    *   The form state.
    */
-  public function saveSubformRelations(
-    NodeInterface $parent_node, 
-    array &$widget_state, 
-    array &$form, 
-    FormStateInterface $form_state
-  ): void {        
-    if (empty($widget_state['entities']) || !is_array($widget_state['entities'])) {
-      return;
-    }
-
-    $new_parent = $parent_node->isNew();
-    foreach ($widget_state['entities'] as $delta => &$entity_item) {
-      $entity = $entity_item['entity'] ?? null;
-      if (!$entity instanceof NodeInterface) {
-        continue;
-      }
-
-      $foreign_key = $this->foreignKeyResolver->getEntityFormForeignKeyField($entity, $form_state);
-      $weight = $entity_item['weight'] ?? $delta;
-
-      $needs_save = $this->relationNeedsSave($entity_item);
-
-      // Save new entities first so they get an ID.
-      if ($needs_save) {
-        $this->entityTypeManager->getHandler('node', 'inline_form')->save($entity);
-        $entity_item['needs_save'] = FALSE;
-
-        if ($new_parent) {
-          $form_state->set(['created_relation_ids', $entity->id()], $foreign_key);
+  public function saveDeferredRelations(NodeInterface $parent_node, array $deferred_per_widget, FormStateInterface $form_state): void {
+    $handler = $this->entityTypeManager->getHandler('node', 'inline_form');
+    foreach ($deferred_per_widget as $deferred) {
+      foreach ($deferred['entities'] ?? [] as $entity_item) {
+        $entity = $entity_item['entity'];
+        $needs_save = $entity_item['needs_save'];
+        $foreign_key = $this->foreignKeyResolver->getEntityForeignKeyField($entity, $parent_node);
+        if ($foreign_key && $entity->hasField($foreign_key) && (int) $entity->get($foreign_key)->target_id !== (int) $parent_node->id()) {
+          $entity->set($foreign_key, [['target_id' => $parent_node->id()]]);
+          $needs_save = TRUE;
+        }
+        if ($needs_save) {
+          $handler->save($entity);
+        }
+        // Always save the weight, also for reordered but unchanged relations.
+        if ($entity->id() && $foreign_key) {
+          $this->relationWeightManager->setWeight((int) $entity->id(), $foreign_key, $entity_item['weight']);
         }
       }
-
-      // Always save the weight, including for reordered but unedited entities.
-      // For new entities this runs after save() so the ID is available.
-      $relation_id = $entity->id();
-      if ($relation_id && $foreign_key) {
-        $this->relationWeightManager->setWeight((int) $relation_id, $foreign_key, $weight);
+      $removed_ids = [];
+      foreach ($deferred['delete'] ?? [] as $removed) {
+        if ($removed instanceof NodeInterface && $removed->id()) {
+          $removed_ids[] = $removed->id();
+        }
       }
-    }      
+      // Also removes the weights of the deleted relations.
+      $this->deleteNodes($removed_ids);
+    }
   }
 
 

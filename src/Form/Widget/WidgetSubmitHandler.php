@@ -49,9 +49,12 @@ class WidgetSubmitHandler extends WidgetSubmit{
     $relation_widgets = $relationFormHelper->getRelationExtendedWidgetFields($form_state);
     $all_widget_states = $form_state->get('inline_entity_form');
 
+    // Relations reference their parent node, so they are saved after it, in
+    // RelationEntityFormHandler::saveDeferredRelations(). IEF itself would
+    // save them before the parent.
     foreach ($relation_widgets as $ief_id => $field_name) {
       $widget_state = $all_widget_states[$ief_id];
-      $relationFormHandler->handleRelationWidgetSubmit($ief_id, $widget_state, $form, $form_state);
+      $relationFormHandler->deferRelationWidgetSubmit($ief_id, $widget_state, $form_state);
       $all_widget_states[$ief_id] = $widget_state;
     }
 

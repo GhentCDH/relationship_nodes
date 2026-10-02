@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\relationship_nodes\Kernel;
 
+use Drupal\Core\Form\FormState;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
@@ -79,6 +80,82 @@ class RelationsTest extends RelationshipNodesKernelTestBase {
     $b = $this->createPerson('B');
     $relation = $this->createRelation($a, $b);
     $this->assertSame([(int) $relation->id()], $this->getComputedRelationIds($a));
+  }
+
+  /**
+   * Deferred relation changes are applied to the saved parent node.
+   */
+  public function testSaveDeferredRelations(): void {
+    $parent = $this->createPerson('Parent');
+    $other = $this->createPerson('Other');
+    $removed = $this->createRelation($parent, $other);
+    $weights = $this->container->get('relationship_nodes.relation_weight_manager');
+    $weights->setWeight((int) $removed->id(), 'rn_related_entity_1', 3);
+
+    // A relation added in the parent's form: no reference to the parent yet.
+    $new = Node::create([
+      'type' => static::RELATION_BUNDLE,
+      'title' => 'New relation',
+      'rn_related_entity_2' => $other->id(),
+    ]);
+    $deferred = [
+      'relations-form' => [
+        'entities' => [['entity' => $new, 'weight' => 5, 'needs_save' => TRUE]],
+        'delete' => [$removed],
+      ],
+    ];
+    $form_state = new FormState();
+    $this->container->get('relationship_nodes.relation_sync')->saveDeferredRelations($parent, $deferred, $form_state);
+
+    $this->assertFalse($new->isNew());
+    $saved = Node::load($new->id());
+    $this->assertSame((int) $parent->id(), (int) $saved->get('rn_related_entity_1')->target_id);
+    $this->assertNull(Node::load($removed->id()));
+    $this->assertSame([(int) $new->id()], $this->getComputedRelationIds($parent));
+    $this->assertSame(5, $weights->getWeight((int) $new->id(), 'rn_related_entity_1'));
+    $stored_for_removed = array_filter(array_keys($weights->getAllWeights()), fn($key) => str_starts_with($key, $removed->id() . '.'));
+    $this->assertSame([], $stored_for_removed);
+  }
+
+  /**
+   * Saving a node does not save new relations in its computed field.
+   *
+   * Inline entity forms put new relations in the computed field; they are
+   * saved after the parent, when it has an ID to reference.
+   */
+  public function testParentSaveDoesNotSaveNewRelations(): void {
+    $other = $this->createPerson('Other');
+    $parent = Node::create(['type' => 'person', 'title' => 'Parent']);
+    $new = Node::create(['type' => static::RELATION_BUNDLE, 'title' => 'New', 'rn_related_entity_2' => $other->id()]);
+    $parent->get(static::COMPUTED_FIELD)->appendItem(['entity' => $new]);
+    $parent->save();
+    $this->assertTrue($new->isNew());
+  }
+
+  /**
+   * IEF does not save or delete relations of a relation widget itself.
+   */
+  public function testDeferRelationWidgetSubmit(): void {
+    $other = $this->createPerson('Other');
+    $existing = $this->createRelation($this->createPerson('A'), $other);
+    $new = Node::create(['type' => static::RELATION_BUNDLE, 'title' => 'New']);
+    $widget_state = [
+      'entities' => [
+        ['entity' => $new, 'weight' => 0, 'needs_save' => TRUE],
+        ['entity' => $existing, 'weight' => 1, 'needs_save' => FALSE],
+      ],
+      'delete' => [$existing],
+    ];
+    $form_state = new FormState();
+    $this->container->get('relationship_nodes.relation_entity_form_handler')
+      ->deferRelationWidgetSubmit('relations-form', $widget_state, $form_state);
+
+    $this->assertFalse($widget_state['entities'][0]['needs_save']);
+    $this->assertSame([], $widget_state['delete']);
+    $deferred = $form_state->get(['rn_deferred_relations', 'relations-form']);
+    $this->assertTrue($deferred['entities'][0]['needs_save']);
+    $this->assertSame(1, $deferred['entities'][1]['weight']);
+    $this->assertSame([$existing], $deferred['delete']);
   }
 
 }

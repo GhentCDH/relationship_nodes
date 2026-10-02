@@ -4,6 +4,7 @@ namespace Drupal\relationship_nodes\Form\Entity;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\relationship_nodes\Form\Entity\RelationFormHelper;
+use Drupal\relationship_nodes\Form\Entity\RelationEntityFormHandler;
 use Drupal\relationship_nodes\Form\Widget\WidgetSubmitHandler;
 
 /**
@@ -46,24 +47,18 @@ class ParentNodeFormAlter {
       return;
     }
     
-    $target_entity = $this->formHelper->getParentFormNode($form_state);
-    if ($target_entity->isNew()) {
-      $form['actions']['submit']['#submit'][] = [$this, 'bindNewRelationsToParent'];
+    // Save the relations after the parent node, on the buttons that save it
+    // (the same buttons IEF attaches its submit processing to).
+    $save_relations = [RelationEntityFormHandler::class, 'saveDeferredRelations'];
+    foreach (['submit', 'publish', 'unpublish'] as $action) {
+      if (!empty($form['actions'][$action]['#submit'])) {
+        $form['actions'][$action]['#submit'][] = $save_relations;
+      }
+    }
+    if (!empty($form['submit']['#submit'])) {
+      $form['submit']['#submit'][] = $save_relations;
     }
     WidgetSubmitHandler::updateDefaultSubmit($form, $form_state);
   }
 
-
-  /**
-   * Binds newly created relations to their parent node.
-   *
-   * @param array $form
-   *   The form array (passed by reference).
-   * @param FormStateInterface $form_state
-   *   The form state.
-   */
-  public function bindNewRelationsToParent(array &$form, FormStateInterface $form_state) {
-    $syncService = \Drupal::service('relationship_nodes.relation_sync');
-    $syncService->bindNewRelationsToParent($form_state);
-  }
 }

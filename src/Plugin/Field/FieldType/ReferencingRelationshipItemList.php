@@ -74,6 +74,18 @@ class ReferencingRelationshipItemList extends EntityReferenceFieldItemList imple
   /**
    * {@inheritdoc}
    *
+   * Entity reference items save new referenced entities before the host
+   * entity is saved. Relations reference their parent node, so they are saved
+   * after it by RelationSync::saveDeferredRelations() instead. This computed
+   * field stores nothing itself.
+   */
+  public function preSave() {
+  }
+
+
+  /**
+   * {@inheritdoc}
+   *
    * The list depends on relation nodes stored elsewhere, so it must be
    * invalidated whenever a relation node of this bundle is created, changed or
    * deleted, also when the list is empty. FormatterBase::view() bubbles this
