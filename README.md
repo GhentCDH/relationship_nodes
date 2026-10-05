@@ -161,7 +161,8 @@ When `auto_title` is enabled on a relation bundle, the title of each relation is
 
 ## Upgrading
 
-### From 1.0.0-beta2 to 1.0.0-beta3
+### From 1.0.0-beta2 to the next release
+
 
 - Drupal 10.3+ or 11.2+ is required. With `relationship_nodes_search`, `elasticsearch_connector` 8.0.0-alpha7 or later is required (`composer require "drupal/elasticsearch_connector:^8.0@alpha"`).
 - Run `drush updb` (or `drush deploy`). With `relationship_nodes_search`, this rebuilds the Elasticsearch indexes that use the relationship indexer: their relationship fields get an explicit mapping, which Elasticsearch cannot apply to an existing index. Until the update has run, saving such an index's settings fails.
@@ -184,6 +185,10 @@ SIMPLETEST_DB=sqlite://localhost//tmp/test.sqlite vendor/bin/phpunit -c web/core
 ```
 
 `SearchElasticsearchTest` runs against a real Elasticsearch server and is skipped unless `RN_ELASTICSEARCH_URL` is set (e.g. `RN_ELASTICSEARCH_URL=http://localhost:9200`). It creates an index with a random prefix and deletes it afterwards.
+
+Browser tests are in `tests/src/FunctionalJavascript` (admin forms, the relation widget, the display from both sides and in another language). They need a web server for the site and chromedriver (`MINK_DRIVER_ARGS_WEBDRIVER`); they run on Drupal 11, because Drupal 10's WebDriver test driver fails clicks with current chromedriver.
+
+`.github/run-tests.sh` builds a Drupal project with the module and runs the coding standards checks, PHPStan (`phpstan.neon.dist`, with `RN_PHPSTAN=1`) and the tests, as the GitHub Actions workflow does; its header lists the environment variables.
 
 Refactoring candidates: `BundleInfoService` mixes live-site and config-import methods; `RelationInlineEntityForm::getTableFields()` is a near-copy of the parent.
 
