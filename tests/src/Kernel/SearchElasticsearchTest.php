@@ -229,6 +229,22 @@ class SearchElasticsearchTest extends RelationshipNodesKernelTestBase {
     ksort($buckets);
     $this->assertSame(['"colleague"' => 2, '"friend"' => 2], $buckets);
 
+    // With another facet's filter: only persons (the same), or only relation
+    // nodes (no person relations).
+    $facet_buckets = function (string $type) use ($facet_id, $facet): array {
+      $query = $this->index->query();
+      $query->setOption('search_api_facets', [$facet_id => $facet]);
+      $aggs = $this->container->get('elasticsearch_connector.facet_builder')
+        ->buildFacetParams($query, $this->index->getFields(), ['type' => ['term' => ['type' => $type]]]);
+      $response = $this->client()->search(['index' => $this->esIndex(), 'body' => ['size' => 0, 'aggs' => $aggs]])->asArray();
+      $parsed = $this->container->get('elasticsearch_connector.facet_result_parser')->parseFacetResult($query, $response);
+      $buckets = array_column($parsed[$facet_id] ?? [], 'count', 'filter');
+      ksort($buckets);
+      return $buckets;
+    };
+    $this->assertSame(['"colleague"' => 2, '"friend"' => 2], $facet_buckets('person'));
+    $this->assertSame([], $facet_buckets(static::RELATION_BUNDLE));
+
     // Renaming a related node updates the index of the nodes related to it.
     $bob = Node::load($this->nodes['Bob']->id());
     $bob->setTitle('Robert')->save();
