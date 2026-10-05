@@ -1,0 +1,45 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  # Weekly, to notice breaking changes in dependencies such as
+  # elasticsearch_connector.
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  tests:
+    name: Drupal ${{ matrix.drupal }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        drupal: ['^10.3', '^11']
+    services:
+      elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+        env:
+          discovery.type: single-node
+          xpack.security.enabled: 'false'
+          ES_JAVA_OPTS: -Xms512m -Xmx512m
+        ports:
+          - 9200:9200
+        options: >-
+          --health-cmd "curl -s http://localhost:9200 >/dev/null"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, gd
+          tools: composer:v2
+          coverage: none
+      - name: Build and test
+        env:
+          DRUPAL_CORE: ${{ matrix.drupal }}
+          RN_ELASTICSEARCH_URL: http://localhost:9200
+        run: .github/run-tests.sh
