@@ -125,7 +125,8 @@ class FieldUiManager {
       return;
     }
 
-    if (!in_array($row['data']['field_name'], $this->fieldResolver->getAllRelationFieldNames())) {
+    // Recent Drupal 11 versions have no field_name cell in the row.
+    if (!in_array($field_config->getName(), $this->fieldResolver->getAllRelationFieldNames())) {
       return;
     }
 
