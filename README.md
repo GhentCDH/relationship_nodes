@@ -10,7 +10,7 @@ Core module for managing bidirectional relationships between nodes, with optiona
 
 ### Submodule: relationship_nodes_search
 
-`modules/relationship_nodes_search/` extends the module with Search API / Elasticsearch indexing and Views integration for relation fields. It has additional dependencies — see its own `README.md`.
+`modules/relationship_nodes_search/` extends the module with indexing, filters and facets for relations in Search API views. It **requires an Elasticsearch server** (through `elasticsearch_connector` 8.0.0-alpha7 or later); other Search API backends are not supported. See its own `README.md`.
 
 ## Installation
 

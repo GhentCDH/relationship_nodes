@@ -1,6 +1,6 @@
 name: 'Relationship Nodes Search'
 type: module
-description: 'ElasticSearch integration for relationship_nodes.'
+description: 'Indexes, filters and facets relationship_nodes relations in Elasticsearch, via Search API and Views. Requires the Elasticsearch Connector; other Search API backends are not supported.'
 package: 'Relationship Nodes'
 core_version_requirement: ^10.3 || ^11.2
 dependencies:

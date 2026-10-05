@@ -1,5 +1,5 @@
 name: 'Relationship Nodes'
-description: 'Enables bidirectional relationships between nodes and other entities with configurable relationship types and automatic mirror field synchronization.'
+description: 'Bidirectional relationships between nodes, stored as relation nodes, with typed relations (taxonomy terms) and mirror labels for the reverse direction.'
 type: module
 core_version_requirement: ^10.3 || ^11.2
 package: Custom

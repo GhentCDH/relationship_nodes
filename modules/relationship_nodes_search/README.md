@@ -2,6 +2,8 @@
 
 Elasticsearch / Search API integration for `relationship_nodes`.
 
+> **Requires Elasticsearch.** This submodule only works with Search API indexes on an Elasticsearch server through [`elasticsearch_connector`](https://www.drupal.org/project/elasticsearch_connector) (8.0.0-alpha7 or later). It builds Elasticsearch `nested` queries and aggregations, so the Search API database backend, Solr and other backends are not supported.
+
 ## Purpose
 
 Enables relationship data (from `relationship_nodes` relation nodes) to be indexed in Elasticsearch and queried via Search API Views, including faceted filtering. Relationship fields are indexed as Elasticsearch `nested` objects, which prevents cross-object query pollution when filtering on multi-value nested documents.
