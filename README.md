@@ -160,12 +160,14 @@ When `auto_title` is enabled on a relation bundle, the title of each relation is
 
 ### From 1.0.0-beta2 to 1.0.0-beta3
 
-- Drupal 10.3+ or 11.2+ is required.
+- Drupal 10.3+ or 11.2+ is required. With `relationship_nodes_search`, `elasticsearch_connector` 8.0.0-alpha7 or later is required (`composer require "drupal/elasticsearch_connector:^8.0@alpha"`).
 - Run `drush updb` (or `drush deploy`). With `relationship_nodes_search`, this rebuilds the Elasticsearch indexes that use the relationship indexer: their relationship fields get an explicit mapping, which Elasticsearch cannot apply to an existing index. Until the update has run, saving such an index's settings fails.
 - Behaviour changes:
   - Users who may view unpublished content (e.g. administrators) also see unpublished relations; anonymous visitors only see published ones, as before.
   - Relations are saved after their parent node, also for new nodes.
-  - A relation field's target cannot be changed while relations use it.
+  - A relation field's target cannot be changed while relations use it, and only one relation type may connect the same two content types.
+  - With auto-title, titles are generated in all translations and updated when a related node is renamed; the title field is hidden in relation forms.
+  - Config imports also validate changes to relation fields alone, and refuse invalid relation field configuration.
   - In `relationship_nodes_search`: unpublished relations and relations to unpublished nodes are no longer indexed; the "Contains" operator is now labelled "Is not equal to" (what it always did); a single "not equal" condition excludes items with a matching relation; nested facets count items instead of relations.
 
 ## Development
