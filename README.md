@@ -151,6 +151,9 @@ Templates access this via the `relationship_nodes.twig_extension` Twig functions
 - **Revisions**: relations are separate nodes, not part of a node's revisions. Reverting a node to an older revision does not restore the relations it had then.
 - **Scale**: all relations of a node are loaded when it is displayed or edited, and renaming a node updates the titles of all its relations and (with `relationship_nodes_search`) marks all related nodes for reindexing. This is meant for up to hundreds of relations per node, not thousands.
 - **Access**: relations are shown when the viewer may view the relation node and the related nodes (node access, including node grants and permission modules).
+- **Content moderation on relation bundles**: renaming a node updates the titles of its relations in their default revision, so pending drafts of relations are not updated.
+- **Relation widgets in nested inline forms**: a relation widget inside the inline form of another entity is bound to the node of the outer form, not to the inner entity.
+- **Saving relations in code**: create and save relation nodes themselves (with `rn_related_entity_1` and `rn_related_entity_2`). Saving a node does not save new relations put in its computed relationship field.
 
 ### Auto-title
 
@@ -162,9 +165,11 @@ When `auto_title` is enabled on a relation bundle, the title of each relation is
 
 - Drupal 10.3+ or 11.2+ is required. With `relationship_nodes_search`, `elasticsearch_connector` 8.0.0-alpha7 or later is required (`composer require "drupal/elasticsearch_connector:^8.0@alpha"`).
 - Run `drush updb` (or `drush deploy`). With `relationship_nodes_search`, this rebuilds the Elasticsearch indexes that use the relationship indexer: their relationship fields get an explicit mapping, which Elasticsearch cannot apply to an existing index. Until the update has run, saving such an index's settings fails.
+  - The update clears these indexes and reindexes them during `updb`, so search results are incomplete until it finishes; on large indexes, plan for the indexing time. Items that cannot be indexed then are indexed by cron.
+  - The Elasticsearch server must be reachable during the update.
 - Behaviour changes:
   - Users who may view unpublished content (e.g. administrators) also see unpublished relations; anonymous visitors only see published ones, as before.
-  - Relations are saved after their parent node, also for new nodes.
+  - Relations are saved after their parent node, also for new nodes. Saving a node no longer saves new relation nodes put in its computed relationship field; save the relation nodes themselves.
   - A relation field's target cannot be changed while relations use it, and only one relation type may connect the same two content types.
   - With auto-title, titles are generated in all translations and updated when a related node is renamed; the title field is hidden in relation forms.
   - Config imports also validate changes to relation fields alone, and refuse invalid relation field configuration.

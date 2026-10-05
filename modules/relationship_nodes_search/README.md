@@ -113,6 +113,8 @@ Elasticsearch cannot change the type of an existing field: after changing child 
 ## Known limitations
 
 - **Autocomplete widget** (to do): the exposed relationship filter offers a text field, a dropdown of indexed values or a year range, but no autocomplete.
+- **Other modules replacing the same services**: the three `elasticsearch_connector` services above are replaced by subclasses, not wrapped, so another module that decorates them is overridden by this one (or overrides it).
+- **Nested facets** ignore the facets' "minimum count" and "missing" settings.
 - **Uninstalling the module** removes its fields and filters from views and the relationship fields and processor from Search API indexes. Elasticsearch then recreates the affected indexes, so reindex afterwards.
 
 ## Dependencies
