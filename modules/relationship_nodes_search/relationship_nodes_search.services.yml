@@ -88,3 +88,4 @@ services:
       - '@relationship_nodes_search.nested_facet_result_parser'
       - '@relationship_nodes.mirror_provider'
       - '@user_permissions_hash_generator'
+      - '@module_handler'

@@ -102,6 +102,8 @@ class SearchQueryTest extends SearchKernelTestBase {
             $facet_id => [
               'buckets' => [
             ['key' => 'Ann', 'doc_count' => 3, 'parents' => ['doc_count' => 2]],
+            ['key' => 0, 'doc_count' => 1, 'parents' => ['doc_count' => 1]],
+            ['key' => '', 'doc_count' => 1, 'parents' => ['doc_count' => 1]],
               ],
             ],
           ],
@@ -109,7 +111,13 @@ class SearchQueryTest extends SearchKernelTestBase {
       ],
     ];
     $parsed = $this->container->get('elasticsearch_connector.facet_result_parser')->parseFacetResult($query, $response);
-    $this->assertSame([['count' => 2, 'filter' => '"Ann"']], $parsed[$facet_id]);
+    // The value 0 (e.g. of a boolean field) is a value, not a missing one.
+    $expected = [
+      ['count' => 2, 'filter' => '"Ann"'],
+      ['count' => 1, 'filter' => '"0"'],
+      ['count' => 1, 'filter' => '!'],
+    ];
+    $this->assertSame($expected, $parsed[$facet_id]);
   }
 
   /**

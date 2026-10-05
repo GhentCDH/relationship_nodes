@@ -5,6 +5,7 @@ namespace Drupal\relationship_nodes_search\Views\Widget;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Session\AccountProxyInterface;
@@ -107,6 +108,8 @@ class NestedFilterDropdownOptionsProvider {
    *   The mirror provider service.
    * @param \Drupal\Core\Session\PermissionsHashGeneratorInterface $permissionsHashGenerator
    *   The permissions hash generator.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
+   *   The module handler.
    */
   public function __construct(
     EntityTypeManagerInterface $entityTypeManager,
@@ -120,6 +123,7 @@ class NestedFilterDropdownOptionsProvider {
     NestedFacetResultParser $facetResultParser,
     MirrorProvider $mirrorProvider,
     PermissionsHashGeneratorInterface $permissionsHashGenerator,
+    protected ModuleHandlerInterface $moduleHandler,
   ) {
     $this->permissionsHashGenerator = $permissionsHashGenerator;
     $this->entityTypeManager = $entityTypeManager;
@@ -341,13 +345,17 @@ class NestedFilterDropdownOptionsProvider {
 
       // The options only change when the index changes. They depend on the
       // language, the view's fixed conditions and, through Search API's access
-      // processors and the entity labels, on the user's permissions.
+      // processors and the entity labels, on the user's permissions. With node
+      // grants or access to own unpublished content, they depend on the user.
+      $per_user = $this->moduleHandler->hasImplementations('node_grants')
+        || $this->currentUser->hasPermission('view own unpublished content');
       $cid = 'relationship_nodes_search:options:' . hash('sha256', serialize([
         $index->id(),
         $field_key,
         $display_mode,
         $this->languageManager->getCurrentLanguage()->getId(),
         $this->permissionsHashGenerator->generate($this->currentUser),
+        $per_user ? (int) $this->currentUser->id() : NULL,
         $this->normalizeConditions($query->getConditionGroup()),
       ]));
       if ($cached = $this->cache->get($cid)) {

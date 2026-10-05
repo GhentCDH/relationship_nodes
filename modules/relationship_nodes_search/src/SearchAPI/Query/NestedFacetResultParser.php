@@ -29,7 +29,7 @@ class NestedFacetResultParser extends FacetResultParser {
       }
       $facet_data[$facet_id] = array_map(fn(array $bucket): array => [
         'count' => $bucket['parents']['doc_count'] ?? $bucket['doc_count'] ?? 0,
-        'filter' => empty($bucket['key']) ? '!' : sprintf('"%s"', $bucket['key']),
+        'filter' => !isset($bucket['key']) || $bucket['key'] === '' ? '!' : sprintf('"%s"', $bucket['key']),
       ], $nested[$facet_id]['buckets'] ?? []);
     }
 
