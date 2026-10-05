@@ -24,6 +24,11 @@ class ParentNodeContext {
   protected ?NodeInterface $parentNode = NULL;
 
   /**
+   * Whether a node form registered its node.
+   */
+  protected bool $registered = FALSE;
+
+  /**
    * Constructs a ParentNodeContext object.
    *
    * @param \Drupal\Core\Routing\RouteMatchInterface $routeMatch
@@ -32,7 +37,7 @@ class ParentNodeContext {
   public function __construct(protected RouteMatchInterface $routeMatch) {}
 
   /**
-   * Registers the node of a form, if the form is a form of a saved node.
+   * Registers the node of a node form, or no node for a new node.
    *
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form state of the node form.
@@ -43,8 +48,10 @@ class ParentNodeContext {
       return;
     }
     $entity = $form_object->getEntity();
-    if ($entity instanceof NodeInterface && !$entity->isNew()) {
-      $this->parentNode = $entity;
+    if ($entity instanceof NodeInterface) {
+      // A form of a new node replaces the node of an earlier form.
+      $this->parentNode = $entity->isNew() ? NULL : $entity;
+      $this->registered = TRUE;
     }
   }
 
@@ -55,7 +62,7 @@ class ParentNodeContext {
    *   The node, or NULL for a new node or outside a node form.
    */
   public function getParentNode(): ?NodeInterface {
-    if ($this->parentNode) {
+    if ($this->registered) {
       return $this->parentNode;
     }
     $node = $this->routeMatch->getParameter('node');

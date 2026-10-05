@@ -6,6 +6,7 @@ use Drupal\Core\Form\FormState;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
+use Drupal\relationship_nodes\Form\Entity\RelationEntityFormHandler;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
@@ -156,6 +157,33 @@ class RelationsTest extends RelationshipNodesKernelTestBase {
     $this->assertTrue($deferred['entities'][0]['needs_save']);
     $this->assertSame(1, $deferred['entities'][1]['weight']);
     $this->assertSame([$existing], $deferred['delete']);
+  }
+
+  /**
+   * Deferred relation changes are kept when the parent is not saved.
+   */
+  public function testDeferredRelationsRestoredWithoutParentSave(): void {
+    $existing = $this->createRelation($this->createPerson('A'), $this->createPerson('B'));
+    $new = Node::create(['type' => static::RELATION_BUNDLE, 'title' => 'New']);
+    $widget_state = [
+      'entities' => [['entity' => $new, 'weight' => 0, 'needs_save' => TRUE]],
+      'delete' => [$existing],
+    ];
+    $form_state = new FormState();
+    $form_object = $this->container->get('entity_type.manager')->getFormObject('node', 'default');
+    $form_object->setEntity(Node::create(['type' => 'person', 'title' => 'Unsaved']));
+    $form_state->setFormObject($form_object);
+    $this->container->get('relationship_nodes.relation_entity_form_handler')
+      ->deferRelationWidgetSubmit('relations-form', $widget_state, $form_state);
+    $form_state->set('inline_entity_form', ['relations-form' => $widget_state]);
+
+    $form = [];
+    RelationEntityFormHandler::saveDeferredRelations($form, $form_state);
+
+    $restored = $form_state->get(['inline_entity_form', 'relations-form']);
+    $this->assertTrue($restored['entities'][0]['needs_save']);
+    $this->assertSame([$existing], $restored['delete']);
+    $this->assertNull($form_state->get('rn_deferred_relations'));
   }
 
   /**

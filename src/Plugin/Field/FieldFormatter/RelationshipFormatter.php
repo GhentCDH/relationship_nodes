@@ -289,7 +289,7 @@ class RelationshipFormatter extends EntityReferenceFormatterBase implements Cont
       '#groups' => $grouped,
       '#fields' => $fields_metadata,
       '#summary' => [
-        'total' => count($relation_nodes),
+        'total' => count($relationships),
         'has_groups' => !empty($grouped),
         'group_count' => count($grouped),
       ],

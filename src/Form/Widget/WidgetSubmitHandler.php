@@ -22,12 +22,16 @@ class WidgetSubmitHandler extends WidgetSubmit {
    *   The form state.
    */
   public static function updateDefaultSubmit(array &$form, FormStateInterface $form_state): void {
-    foreach ($form['#ief_element_submit'] as $i => $callback) {
+    foreach ($form['#ief_element_submit'] ?? [] as $i => $callback) {
       if (is_array($callback) && $callback[0] === WidgetSubmit::class && $callback[1] === 'doSubmit') {
         $form['#ief_element_submit'][$i] = [static::class, 'doSubmit'];
         return;
       }
     }
+    // Without the replacement, IEF would save the relations before the node.
+    \Drupal::logger('relationship_nodes')->error('The Inline Entity Form submit handler was not found on form %form_id; relations may be saved before their node.', [
+      '%form_id' => $form['#form_id'] ?? '',
+    ]);
   }
 
   /**

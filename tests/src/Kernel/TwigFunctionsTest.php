@@ -47,8 +47,12 @@ class TwigFunctionsTest extends RelationshipNodesKernelTestBase {
     $this->assertCount(1, $limited['items']);
     $this->assertTrue($limited['has_more']);
 
-    // A node without relations.
-    $this->assertNull($rn('formatted_relations', $this->createPerson('Alone'), static::COMPUTED_FIELD));
+    // A node without relations; the empty result is still invalidated when a
+    // relation is added.
+    $context = new RenderContext();
+    $alone = $this->createPerson('Alone');
+    $this->assertNull($this->container->get('renderer')->executeInRenderContext($context, fn() => $twig->rn('formatted_relations', $alone, static::COMPUTED_FIELD)));
+    $this->assertContains('node_list:rel_person_person', $context->pop()->getCacheTags());
   }
 
 }

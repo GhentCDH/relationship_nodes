@@ -102,10 +102,41 @@ class RelationEntityFormHandler {
       return;
     }
     $parent_node = $form_object->getEntity();
-    if (!$parent_node instanceof Node || $parent_node->isNew()) {
+    if (!$parent_node instanceof Node) {
+      return;
+    }
+    if ($parent_node->isNew()) {
+      // The parent was not saved and the form is rebuilt: put the deferred
+      // changes back, so that they are saved on the next submit.
+      static::restoreDeferredRelations($deferred, $form_state);
       return;
     }
     \Drupal::service('relationship_nodes.relation_sync')->saveDeferredRelations($parent_node, $deferred, $form_state);
+    $form_state->set('rn_deferred_relations', NULL);
+  }
+
+  /**
+   * Puts deferred relation changes back into the widget states.
+   *
+   * @param array $deferred
+   *   The deferred changes per widget, see deferRelationWidgetSubmit().
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   */
+  protected static function restoreDeferredRelations(array $deferred, FormStateInterface $form_state): void {
+    $widget_states = $form_state->get('inline_entity_form') ?? [];
+    foreach ($deferred as $ief_id => $changes) {
+      if (!isset($widget_states[$ief_id])) {
+        continue;
+      }
+      foreach ($changes['entities'] as $delta => $item) {
+        if ($item['needs_save'] && isset($widget_states[$ief_id]['entities'][$delta])) {
+          $widget_states[$ief_id]['entities'][$delta]['needs_save'] = TRUE;
+        }
+      }
+      $widget_states[$ief_id]['delete'] = array_merge($widget_states[$ief_id]['delete'] ?? [], $changes['delete']);
+    }
+    $form_state->set('inline_entity_form', $widget_states);
     $form_state->set('rn_deferred_relations', NULL);
   }
 

@@ -2,6 +2,7 @@
 
 namespace Drupal\relationship_nodes\Display;
 
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\node\NodeInterface;
 use Drupal\relationship_nodes\RelationField\VirtualFieldManager;
 use Drupal\relationship_nodes\Display\Configurator\FormatterConfigurator;
@@ -134,16 +135,51 @@ class RelationshipTwigFormatter {
     array $options = [],
     array $field_settings = [],
   ): ?array {
+    return $this->buildFormattedRelationships($node, $relation_field_name, $options, $field_settings)['result'];
+  }
+
+  /**
+   * Builds formatted relationship data and its cacheability.
+   *
+   * Unlike getFormattedRelationships(), this also returns the cacheability
+   * when there are no relationships to show, so that the empty output is
+   * invalidated when a relation is added or becomes visible.
+   *
+   * @param \Drupal\node\NodeInterface $node
+   *   The node whose relationships to format.
+   * @param string $relation_field_name
+   *   The computed relation field name.
+   * @param array $options
+   *   Options, see getFormattedRelationships().
+   * @param array $field_settings
+   *   Custom field configuration per field.
+   *
+   * @return array
+   *   An array with the keys:
+   *   - 'result': the return value of getFormattedRelationships().
+   *   - 'cache': CacheableMetadata, also when 'result' is NULL.
+   */
+  public function buildFormattedRelationships(
+    NodeInterface $node,
+    string $relation_field_name,
+    array $options = [],
+    array $field_settings = [],
+  ): array {
     $limit = isset($options['limit']) ? (int) $options['limit'] : NULL;
+    $empty = ['result' => NULL, 'cache' => new CacheableMetadata()];
+
+    if (!$node->hasField($relation_field_name)) {
+      return $empty;
+    }
+    $relation_bundle = $this->getRelationBundle($node, $relation_field_name);
+    if (!$relation_bundle) {
+      return $empty;
+    }
+    $empty['cache']->addCacheTags(['node_list:' . $relation_bundle]);
 
     $relation_nodes = $this->loadRelationNodes($node, $relation_field_name);
     if (!$relation_nodes) {
-      return NULL;
-    }
-
-    $relation_bundle = $this->getRelationBundle($node, $relation_field_name);
-    if (!$relation_bundle) {
-      return NULL;
+      return $empty;
     }
 
     $field_configs = $this->buildFieldConfigurations(
@@ -165,7 +201,7 @@ class RelationshipTwigFormatter {
     $cache->addCacheTags(['node_list:' . $relation_bundle]);
 
     if (empty($relationships)) {
-      return NULL;
+      return ['result' => NULL, 'cache' => $cache];
     }
 
     $extra_fields = $this->getExtraFields($relation_field_name, $options);
@@ -182,7 +218,7 @@ class RelationshipTwigFormatter {
       $items = array_slice($items, 0, $limit);
     }
 
-    return [
+    $result = [
       'title'           => $this->extractRelatedBundle($relation_field_name),
       'field_name'      => $relation_field_name,
       'relation_bundle' => $relation_bundle,
@@ -190,6 +226,7 @@ class RelationshipTwigFormatter {
       'items'           => $items,
       '_cache'          => $cache,
     ];
+    return ['result' => $result, 'cache' => $cache];
   }
 
   /**

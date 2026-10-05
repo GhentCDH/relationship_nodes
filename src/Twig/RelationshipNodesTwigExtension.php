@@ -58,19 +58,22 @@ class RelationshipNodesTwigExtension extends AbstractExtension {
    *   The result of the operation.
    */
   public function rn(string $operation, ...$args) {
-    $result = match($operation) {
-      'relation_fields_list' => $this->formatter->getAllRelationFields(...$args),
-      'formatted_relations' => $this->formatter->getFormattedRelationships(...$args),
-      default => NULL,
-    };
-    if (is_array($result) && isset($result['_cache'])) {
+    if ($operation === 'formatted_relations') {
+      $built = $this->formatter->buildFormattedRelationships(...$args);
+      // Bubble the cacheability also for empty results, so that they are
+      // invalidated when a relation is added or becomes visible.
       $build = [];
-      $result['_cache']->applyTo($build);
+      $built['cache']->applyTo($build);
       $this->renderer->render($build);
+      $result = $built['result'];
       unset($result['_cache']);
+      return $result;
     }
 
-    return $result;
+    return match($operation) {
+      'relation_fields_list' => $this->formatter->getAllRelationFields(...$args),
+      default => NULL,
+    };
   }
 
   /**
