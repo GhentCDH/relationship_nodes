@@ -178,15 +178,21 @@ class RelationInlineEntityForm extends NodeInlineForm {
     $current_node = \Drupal::service('relationship_nodes.parent_node_context')->getParentNode();
 
     $foreign_key = $foreignKeyResolver->getEntityForeignKeyField($entity, $current_node);
-    $other_field = $foreign_key
-      ? $fieldNameResolver->getOppositeRelatedEntityField($foreign_key)
-      : $fieldNameResolver->getRelatedEntityFields(1);
-
-    if (!$other_field || !$entity->hasField($other_field)) {
-      return [];
+    if ($foreign_key) {
+      $other_fields = [$fieldNameResolver->getOppositeRelatedEntityField($foreign_key)];
+    }
+    else {
+      // On the form of a new node, the relation only references the other
+      // node yet: the new node is bound to it when the node is saved.
+      $other_fields = $fieldNameResolver->getRelatedEntityFields();
     }
 
-    $ref_arr = $entity->get($other_field)->referencedEntities();
+    $ref_arr = [];
+    foreach ($other_fields as $other_field) {
+      if ($other_field && $entity->hasField($other_field) && $ref_arr = $entity->get($other_field)->referencedEntities()) {
+        break;
+      }
+    }
     if (empty($ref_arr)) {
       return [];
     }
