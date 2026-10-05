@@ -176,6 +176,8 @@ Kernel tests are in `tests/src/Kernel`. They need `search_api`, `elasticsearch_c
 SIMPLETEST_DB=sqlite://localhost//tmp/test.sqlite vendor/bin/phpunit -c web/core/phpunit.xml.dist web/modules/contrib/relationship_nodes/tests
 ```
 
+`SearchElasticsearchTest` runs against a real Elasticsearch server and is skipped unless `RN_ELASTICSEARCH_URL` is set (e.g. `RN_ELASTICSEARCH_URL=http://localhost:9200`). It creates an index with a random prefix and deletes it afterwards.
+
 Refactoring candidates: `BundleInfoService` mixes live-site and config-import methods; `RelationInlineEntityForm::getTableFields()` is a near-copy of the parent.
 
 ## Dependencies
