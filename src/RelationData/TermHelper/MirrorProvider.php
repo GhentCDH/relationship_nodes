@@ -88,7 +88,11 @@ class MirrorProvider {
    *   TRUE if mirroring is supported, FALSE otherwise.
    */
   public function elementSupportsMirroring(FieldItemListInterface $items, array $form, FormStateInterface $form_state): bool {
-    $bundle_info = $this->settingsManager->getBundleInfo($items->getEntity()->getType(), 'node');
+    $entity = $items->getEntity();
+    if (!$entity instanceof NodeInterface) {
+      return FALSE;
+    }
+    $bundle_info = $this->settingsManager->getBundleInfo($entity->getType(), 'node');
     if (
       !$this->formHelper->isParentFormWithIefSubforms($form_state) ||
       !$bundle_info || !$bundle_info->isRelation() ||

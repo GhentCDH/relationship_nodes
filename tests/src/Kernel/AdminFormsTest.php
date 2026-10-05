@@ -79,6 +79,12 @@ class AdminFormsTest extends RelationshipNodesKernelTestBase {
     $this->assertNotNull($type);
     $this->assertTrue((bool) $type->getThirdPartySetting('relationship_nodes', 'typed_relation'));
     $this->assertNotNull(FieldConfig::loadByName('node', 'collaboration', 'rn_relation_type'));
+
+    // The created fields are on the form, with the widgets they need.
+    $display = $this->container->get('entity_display.repository')->getFormDisplay('node', 'collaboration');
+    $this->assertSame('entity_reference_autocomplete', $display->getComponent('rn_related_entity_1')['type']);
+    $this->assertSame('entity_reference_autocomplete', $display->getComponent('rn_related_entity_2')['type']);
+    $this->assertSame('mirror_select_widget', $display->getComponent('rn_relation_type')['type']);
   }
 
   /**
@@ -97,6 +103,8 @@ class AdminFormsTest extends RelationshipNodesKernelTestBase {
     $this->assertSame('entity_reference', $vocab->getThirdPartySetting('relationship_nodes', 'referencing_type'));
     $this->assertNotNull(FieldConfig::loadByName('taxonomy_term', 'roles', 'rn_mirror_reference'));
     $this->assertNull(FieldConfig::loadByName('taxonomy_term', 'roles', 'rn_mirror_string'));
+    $display = $this->container->get('entity_display.repository')->getFormDisplay('taxonomy_term', 'roles');
+    $this->assertSame('options_select', $display->getComponent('rn_mirror_reference')['type']);
   }
 
 }

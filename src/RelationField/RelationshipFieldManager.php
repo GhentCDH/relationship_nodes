@@ -99,11 +99,14 @@ class RelationshipFieldManager {
    *
    * @param \Drupal\Core\Config\Entity\ConfigEntityBundleBase $entity
    *   The bundle entity.
+   * @param bool $add_to_form_display
+   *   Whether to add created fields to the default form display. Config
+   *   imports leave this off: the imported displays are the source of truth.
    *
    * @return array
    *   Array with keys 'checked', 'created', 'removed' containing field names.
    */
-  public function implementFieldUpdates(ConfigEntityBundleBase $entity): array {
+  public function implementFieldUpdates(ConfigEntityBundleBase $entity, bool $add_to_form_display = FALSE): array {
     $result = [];
     $fields_status = $this->getBundleFieldsStatus($entity);
     $existing = $fields_status['existing'];
@@ -115,7 +118,7 @@ class RelationshipFieldManager {
     }
 
     if (!empty($missing)) {
-      $this->createFields($entity, $missing);
+      $this->createFields($entity, $missing, $add_to_form_display);
       $result['created'] = $missing;
     }
 
@@ -384,8 +387,10 @@ class RelationshipFieldManager {
    *   The bundle entity.
    * @param array $missing_fields
    *   Array of missing field configurations.
+   * @param bool $add_to_form_display
+   *   Whether to add the created fields to the default form display.
    */
-  protected function createFields(ConfigEntityBundleBase $entity, array $missing_fields): void {
+  protected function createFields(ConfigEntityBundleBase $entity, array $missing_fields, bool $add_to_form_display = FALSE): void {
     $field_storage_config_storage = $this->entityTypeManager->getStorage('field_storage_config');
     $field_config_storage = $this->entityTypeManager->getStorage('field_config');
 
@@ -430,8 +435,42 @@ class RelationshipFieldManager {
           'third_party_settings' => ['relationship_nodes' => ['rn_created' => TRUE]],
         ]);
         $field_config->save();
+        if ($add_to_form_display) {
+          $this->addToFormDisplay($entity_type_id, $entity->id(), $field_name);
+        }
       }
     }
+  }
+
+  /**
+   * Adds a newly created field to the default form display of its bundle.
+   *
+   * @param string $entity_type_id
+   *   The entity type ID.
+   * @param string $bundle
+   *   The bundle name.
+   * @param string $field_name
+   *   The field name.
+   */
+  protected function addToFormDisplay(string $entity_type_id, string $bundle, string $field_name): void {
+    $widgets = [
+      $this->fieldNameResolver->getMirrorFields('entity_reference') => 'options_select',
+      $this->fieldNameResolver->getMirrorFields('string') => 'string_textfield',
+      $this->fieldNameResolver->getRelationTypeField() => 'mirror_select_widget',
+    ];
+    $display_storage = $this->entityTypeManager->getStorage('entity_form_display');
+    $display = $display_storage->load("$entity_type_id.$bundle.default") ?? $display_storage->create([
+      'targetEntityType' => $entity_type_id,
+      'bundle' => $bundle,
+      'mode' => 'default',
+      'status' => TRUE,
+    ]);
+    if ($display->getComponent($field_name)) {
+      return;
+    }
+    $display->setComponent($field_name, [
+      'type' => $widgets[$field_name] ?? 'entity_reference_autocomplete',
+    ])->save();
   }
 
   /**

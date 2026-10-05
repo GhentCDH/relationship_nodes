@@ -69,7 +69,8 @@ function relationship_nodes_node_type_insert(NodeType $node_type) {
     return;
   }
   $fieldManager = \Drupal::service('relationship_nodes.relationship_field_manager');
-  $fieldManager->implementFieldUpdates($node_type);
+  // Imported node types come with their own form displays.
+  $fieldManager->implementFieldUpdates($node_type, !$node_type->isSyncing());
 }
 
 /**

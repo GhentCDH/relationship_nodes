@@ -84,7 +84,7 @@ class BundleFormHandler {
       return;
     }
 
-    $updates = $this->relationFieldManager->implementFieldUpdates($entity);
+    $updates = $this->relationFieldManager->implementFieldUpdates($entity, TRUE);
 
     if (isset($updates['created'])) {
       $this->showFieldCreationMessage($entity, $updates['created']);
