@@ -165,18 +165,34 @@ class ConfigImportSubscriber implements EventSubscriberInterface {
    */
   protected function getUpdatedBundleConfigsToValidate(StorageComparerInterface $storage_comparer): array {
     $result = [];
-    $operations = ['create', 'update'];
+    $source = $storage_comparer->getSourceStorage();
+    $bundle_prefixes = ['node' => 'node.type.', 'taxonomy_term' => 'taxonomy.vocabulary.'];
     foreach ($storage_comparer->getAllCollectionNames() as $collection) {
-      foreach ($operations as $op) {
-        $change_list = $storage_comparer->getChangelist($op, $collection) ?? [];
-        foreach ($change_list as $config_name) {
+      foreach (['create', 'update'] as $op) {
+        foreach ($storage_comparer->getChangelist($op, $collection) ?? [] as $config_name) {
           if (str_starts_with($config_name, 'taxonomy.vocabulary.') || str_starts_with($config_name, 'node.type.')) {
             $result[] = $config_name;
+            continue;
+          }
+          // A changed field is validated with its bundle; a changed field
+          // storage with every bundle that has the field.
+          $parts = explode('.', $config_name);
+          if (str_starts_with($config_name, 'field.field.') && count($parts) === 5 && isset($bundle_prefixes[$parts[2]])) {
+            $result[] = $bundle_prefixes[$parts[2]] . $parts[3];
+          }
+          elseif (str_starts_with($config_name, 'field.storage.') && count($parts) === 4 && isset($bundle_prefixes[$parts[2]])) {
+            foreach ($source->listAll('field.field.' . $parts[2] . '.') as $field_config_name) {
+              $field_parts = explode('.', $field_config_name);
+              if (($field_parts[4] ?? NULL) === $parts[3]) {
+                $result[] = $bundle_prefixes[$parts[2]] . $field_parts[3];
+              }
+            }
           }
         }
       }
     }
-    return $result;
+    // Only bundles that exist in the imported configuration.
+    return array_values(array_filter(array_unique($result), fn($name) => $source->exists($name)));
   }
 
   /**

@@ -112,8 +112,39 @@ function relationship_nodes_field_config_update(FieldConfig $field) {
     throw new ConfigException("The field config {$field_name} doesn't meet the required 'Relationship Nodes' configuration.");
   }
 
-  // The relation info in the bundle info and the computed relationship fields
-  // depend on the target bundles of these fields.
+  _relationship_nodes_clear_relation_caches($field);
+}
+
+/**
+ * Implements hook_field_config_insert().
+ */
+function relationship_nodes_field_config_insert(FieldConfig $field) {
+  _relationship_nodes_clear_relation_caches($field);
+}
+
+/**
+ * Implements hook_field_config_delete().
+ */
+function relationship_nodes_field_config_delete(FieldConfig $field) {
+  _relationship_nodes_clear_relation_caches($field);
+}
+
+/**
+ * Clears the caches that depend on the module's relation fields.
+ *
+ * The relation info in the bundle info and the computed relationship fields
+ * depend on these fields and their target bundles. Without this, a config
+ * import that creates or changes relation fields only takes effect after a
+ * full cache rebuild.
+ *
+ * @param \Drupal\field\Entity\FieldConfig $field
+ *   The created, updated or deleted field.
+ */
+function _relationship_nodes_clear_relation_caches(FieldConfig $field): void {
+  $module_fields = \Drupal::service('relationship_nodes.field_name_resolver')->getAllRelationFieldNames();
+  if (!in_array($field->getName(), $module_fields, TRUE)) {
+    return;
+  }
   \Drupal::service('entity_type.bundle.info')->clearCachedBundles();
   \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
 }
