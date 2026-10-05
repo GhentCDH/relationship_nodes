@@ -162,4 +162,3 @@ relationship_nodes_search.nested_field_configuration:
               target_type:
                 type: string
                 label: 'Target entity type'
-
