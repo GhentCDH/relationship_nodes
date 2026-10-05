@@ -4,9 +4,15 @@
 # locally in a container with PHP 8.3 and Composer.
 #
 # Environment:
-#   DRUPAL_CORE           Composer constraint for drupal/core (e.g. ^10.3, ^11).
-#   RN_ELASTICSEARCH_URL  Optional; enables the Elasticsearch integration test.
-#   BUILD_DIR             Where the Drupal project is built (default /tmp/rn-build).
+#   DRUPAL_CORE                  Composer constraint for drupal/core (e.g. ^10.3, ^11).
+#   RN_ELASTICSEARCH_URL         Optional; enables the Elasticsearch integration test.
+#   RN_PHPSTAN                   Optional; 1 runs PHPStan (with Drupal 11: on older
+#                                cores, newer core classes are reported missing).
+#   MINK_DRIVER_ARGS_WEBDRIVER   Optional; WebDriver settings that enable the
+#                                browser tests (tests/src/FunctionalJavascript).
+#   SIMPLETEST_BASE_URL          URL at which the browser reaches this machine's
+#                                web server (default http://localhost:8080).
+#   BUILD_DIR                    Where the Drupal project is built (default /tmp/rn-build).
 set -euo pipefail
 
 MODULE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -36,12 +42,28 @@ MODULE="$BUILD_DIR/web/modules/contrib/relationship_nodes"
 echo "== Coding standards"
 vendor/bin/phpcs --standard=Drupal,DrupalPractice --extensions=php,module,install,inc,yml "$MODULE"
 
-echo "== Kernel tests"
+if [ "${RN_PHPSTAN:-0}" = 1 ]; then
+  echo "== PHPStan"
+  vendor/bin/phpstan analyse --no-progress --memory-limit=1G -c "$MODULE/phpstan.neon.dist" "$MODULE"
+fi
+
 mkdir -p "$BUILD_DIR/web/sites/simpletest"
 cd "$BUILD_DIR/web"
+export SIMPLETEST_DB="sqlite://localhost/$BUILD_DIR/test.sqlite"
+export SIMPLETEST_BASE_URL="${SIMPLETEST_BASE_URL:-http://localhost:8080}"
 # Deprecations in dependencies are reported, but do not fail the tests (as
 # with PHPUnit 10 and later on Drupal 11).
-SYMFONY_DEPRECATIONS_HELPER=weak \
-SIMPLETEST_DB="sqlite://localhost/$BUILD_DIR/test.sqlite" \
-SIMPLETEST_BASE_URL="http://localhost" \
-  "$BUILD_DIR/vendor/bin/phpunit" -c "$BUILD_DIR/web/core/phpunit.xml.dist" "$MODULE/tests"
+export SYMFONY_DEPRECATIONS_HELPER=weak
+TESTS="$MODULE/tests/src/Kernel"
+
+if [ -n "${MINK_DRIVER_ARGS_WEBDRIVER:-}" ]; then
+  # The browser tests need a web server for the test site.
+  port="${SIMPLETEST_BASE_URL##*:}"
+  php -S "0.0.0.0:${port%%/*}" .ht.router.php > "$BUILD_DIR/webserver.log" 2>&1 &
+  server_pid=$!
+  trap 'kill "$server_pid"' EXIT
+  TESTS="$MODULE/tests"
+fi
+
+echo "== Tests ($TESTS)"
+"$BUILD_DIR/vendor/bin/phpunit" -c "$BUILD_DIR/web/core/phpunit.xml.dist" "$TESTS"
